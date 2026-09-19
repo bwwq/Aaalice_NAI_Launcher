@@ -22,6 +22,7 @@ import '../../../core/watermark/watermark_derivative_registry.dart';
 import '../../../core/watermark/watermark_logo_service.dart';
 import '../../../core/watermark/watermark_render_service.dart';
 import '../../../core/watermark/watermark_scene.dart';
+import '../../../core/watermark/watermark_contrast.dart';
 import '../../../data/models/watermark/watermark_settings.dart';
 import '../../../data/repositories/gallery_folder_repository.dart';
 import '../../adaptive/adaptive_layout.dart';
@@ -30,6 +31,7 @@ import '../../providers/share_image_settings_provider.dart';
 import '../../providers/watermark_settings_provider.dart';
 import '../../router/app_routes.dart';
 import 'watermark_editor_controls.dart';
+import 'watermark_preview_painter.dart';
 
 class WatermarkEditorSource {
   const WatermarkEditorSource({
@@ -79,6 +81,11 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
   String? _sourcePath;
   ui.Image? _sourceImage;
   ui.Image? _logoImage;
+  WatermarkContrastPixels? _background;
+  WatermarkContrastPixels? _logoMask;
+  int _imageGeneration = 0;
+  int _logoGeneration = 0;
+  int _sourceChoiceGeneration = 0;
   Uint8List? _logoBytes;
   Uint8List? _initialLogoBytes;
   String? _logoPath;
@@ -103,38 +110,41 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
   }
 
   Future<void> _loadImages() async {
+    final generation = ++_imageGeneration;
+    final logoGeneration = ++_logoGeneration;
+    ui.Image? source;
+    ui.Image? logo;
     try {
-      final source = await _decodeSingleFrame(
-        _sourceBytes,
-        requireStatic: true,
-      );
-      ui.Image? logo;
+      final background = await WatermarkContrastPixels.decode(_sourceBytes);
+      source = await _decodeSingleFrame(_sourceBytes, requireStatic: true);
+      WatermarkContrastPixels? logoMask;
       Uint8List? logoBytes;
       final path = _logoPath;
       if (path != null) {
         try {
           logoBytes = await _logoService.readValidated(path);
+          logoMask = await WatermarkContrastPixels.decode(logoBytes);
           logo = await _decodeSingleFrame(logoBytes);
         } on Object {
           logoBytes = null;
           logo = null;
         }
       }
-      if (!mounted) {
-        source.dispose();
-        logo?.dispose();
-        return;
-      }
+      if (!mounted || generation != _imageGeneration) return;
       setState(() {
         if (!widget.defaultsOnly && _settings.rememberLayoutsByOrientation) {
-          _previewKind = WatermarkScene.classify(
-            Size(source.width.toDouble(), source.height.toDouble()),
-          );
+          _previewKind = WatermarkScene.classify(background.sourceSize);
         }
         _sourceImage = source;
-        _logoImage = logo;
-        _logoBytes = logoBytes;
-        _initialLogoBytes = logoBytes;
+        _background = background;
+        source = null;
+        if (logoGeneration == _logoGeneration) {
+          _logoImage = logo;
+          _logoMask = logoMask;
+          _logoBytes = logoBytes;
+          _initialLogoBytes = logoBytes;
+          logo = null;
+        }
         _loading = false;
       });
     } on Object catch (error, stackTrace) {
@@ -144,11 +154,14 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
         stackTrace,
         'WatermarkEditor',
       );
-      if (!mounted) return;
+      if (!mounted || generation != _imageGeneration) return;
       setState(() {
         _loadError = error;
         _loading = false;
       });
+    } finally {
+      source?.dispose();
+      logo?.dispose();
     }
   }
 
@@ -234,9 +247,7 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
       if (!widget.defaultsOnly) {
         final source = _sourceImage;
         _previewKind = value.rememberLayoutsByOrientation && source != null
-            ? WatermarkScene.classify(
-                Size(source.width.toDouble(), source.height.toDouble()),
-              )
+            ? WatermarkScene.classify(_background!.sourceSize)
             : WatermarkLayoutKind.universal;
       }
     });
@@ -255,12 +266,16 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
   }
 
   Future<void> _reset() async {
+    final generation = ++_logoGeneration;
     _changeSettings(_initialSettings);
     final initialBytes = _initialLogoBytes;
+    final mask = initialBytes == null
+        ? null
+        : await WatermarkContrastPixels.decode(initialBytes);
     final restoredImage = initialBytes == null
         ? null
         : await _decodeSingleFrame(initialBytes);
-    if (!mounted) {
+    if (!mounted || generation != _logoGeneration) {
       restoredImage?.dispose();
       return;
     }
@@ -270,12 +285,14 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
       _logoPath = _initialLogoPath;
       _logoBytes = initialBytes;
       _logoImage = restoredImage;
+      _logoMask = mask;
       _draftImportedLogoPath = null;
     });
     if (draftPath != null) await _logoService.deleteManaged(draftPath);
   }
 
   Future<void> _chooseLogo() async {
+    final generation = ++_logoGeneration;
     String? importedPath;
     var adopted = false;
     try {
@@ -283,13 +300,14 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
         dialogTitle: context.l10n.watermark_chooseLogo,
       );
       if (importedPath == null) return;
-      if (!mounted) {
+      if (!mounted || generation != _logoGeneration) {
         await _deleteDraftLogo(importedPath);
         return;
       }
       final bytes = await _logoService.readValidated(importedPath);
+      final mask = await WatermarkContrastPixels.decode(bytes);
       final image = await _decodeSingleFrame(bytes);
-      if (!mounted) {
+      if (!mounted || generation != _logoGeneration) {
         image.dispose();
         await _deleteDraftLogo(importedPath);
         return;
@@ -301,11 +319,13 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
         _draftImportedLogoPath = importedPath;
         _logoBytes = bytes;
         _logoImage = image;
+        _logoMask = mask;
       });
       adopted = true;
       if (previousDraft != null && previousDraft != importedPath) {
         await _deleteDraftLogo(previousDraft);
       }
+      if (!mounted || generation != _logoGeneration) return;
       if (!_settings.logoStyle.enabled) {
         _changeSettings(
           _settings.copyWith(
@@ -541,6 +561,8 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
     _logoImage?.dispose();
     _sourceImage = null;
     _logoImage = null;
+    _background = null;
+    _logoMask = null;
     setState(() {
       _loadError = null;
       _loading = true;
@@ -551,8 +573,11 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
   Future<void> _chooseSource() async {
     final choose = widget.onChooseSource;
     if (choose == null) return;
+    final generation = ++_sourceChoiceGeneration;
     final selected = await choose();
-    if (selected == null || !mounted) return;
+    if (selected == null || !mounted || generation != _sourceChoiceGeneration) {
+      return;
+    }
     _sourceBytes = selected.bytes;
     _sourceFileName = selected.fileName;
     _sourcePath = selected.path;
@@ -759,7 +784,7 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
 
   Widget _buildPreview() {
     final source = _sourceImage!;
-    final originalAspect = source.width / source.height;
+    final originalAspect = _background!.sourceSize.aspectRatio;
     final aspect = widget.defaultsOnly
         ? switch (_previewKind) {
             WatermarkLayoutKind.portrait => 9 / 16,
@@ -857,9 +882,14 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
                                     filterQuality: FilterQuality.medium,
                                   ),
                                   CustomPaint(
-                                    painter: _WatermarkPreviewPainter(
+                                    painter: WatermarkPreviewPainter(
                                       settings: _settings,
                                       logo: _logoImage,
+                                      background: _background!,
+                                      logoMask: _logoMask,
+                                      sourceSize: widget.defaultsOnly
+                                          ? Size(aspect * 1000, 1000)
+                                          : _background!.sourceSize,
                                       selectedLayer: _selectedLayer,
                                       selectionColor: Theme.of(
                                         context,
@@ -998,48 +1028,4 @@ class _WatermarkEditorScreenState extends ConsumerState<WatermarkEditorScreen> {
       ),
     );
   }
-}
-
-class _WatermarkPreviewPainter extends CustomPainter {
-  const _WatermarkPreviewPainter({
-    required this.settings,
-    required this.logo,
-    required this.selectedLayer,
-    required this.selectionColor,
-  });
-
-  final WatermarkSettings settings;
-  final ui.Image? logo;
-  final WatermarkEditableLayer selectedLayer;
-  final Color selectionColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final result = WatermarkScene.paint(
-      canvas: canvas,
-      canvasSize: size,
-      settings: settings,
-      logo: logo,
-    );
-    final kind = selectedLayer == WatermarkEditableLayer.text
-        ? WatermarkLayerKind.text
-        : WatermarkLayerKind.logo;
-    final bounds = result.boundsFor(kind);
-    if (bounds != null) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(bounds.inflate(4), const Radius.circular(4)),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
-          ..color = selectionColor,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _WatermarkPreviewPainter oldDelegate) =>
-      oldDelegate.settings != settings ||
-      oldDelegate.logo != logo ||
-      oldDelegate.selectedLayer != selectedLayer ||
-      oldDelegate.selectionColor != selectionColor;
 }

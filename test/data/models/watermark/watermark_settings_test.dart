@@ -4,6 +4,33 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nai_launcher/data/models/watermark/watermark_settings.dart';
 
 void main() {
+  test('old complete v1 settings enable adaptation without a load issue', () {
+    final json = const WatermarkSettings().toJson();
+    (json['textStyle']! as Map<String, Object?>).remove('autoContrast');
+    (json['logoStyle']! as Map<String, Object?>).remove('autoContrast');
+    final loaded = WatermarkSettings.decode(jsonEncode(json));
+    expect(loaded.issue, isNull);
+    expect(loaded.settings.textStyle.autoContrast, isTrue);
+    expect(loaded.settings.logoStyle.autoContrast, isTrue);
+  });
+
+  test(
+    'independent adaptation switches retain manual colors on round-trip',
+    () {
+      final settings = const WatermarkSettings().copyWith(
+        textStyle: const WatermarkTextStyle(
+          colorArgb: 0xFF123456,
+        ).copyWith(autoContrast: false),
+        logoStyle: const WatermarkLogoStyle().copyWith(autoContrast: false),
+      );
+      final loaded = WatermarkSettings.decode(settings.encode());
+      expect(loaded.issue, isNull);
+      expect(loaded.settings.textStyle.autoContrast, isFalse);
+      expect(loaded.settings.logoStyle.autoContrast, isFalse);
+      expect(loaded.settings.textStyle.colorArgb, 0xFF123456);
+    },
+  );
+
   test('defaults are safe and place text at the lower right', () {
     const settings = WatermarkSettings();
 

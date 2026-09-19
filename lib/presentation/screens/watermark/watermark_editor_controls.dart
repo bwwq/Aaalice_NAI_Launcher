@@ -81,6 +81,23 @@ class WatermarkEditorControls extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
+        SwitchListTile(
+          key: ValueKey('watermark-auto-contrast-${selectedLayer.name}'),
+          contentPadding: EdgeInsets.zero,
+          title: Text(context.l10n.watermark_autoContrast),
+          value: selectedLayer == WatermarkEditableLayer.text
+              ? text.autoContrast
+              : logo.autoContrast,
+          onChanged: (value) => onSettingsChanged(
+            selectedLayer == WatermarkEditableLayer.text
+                ? settings.copyWith(
+                    textStyle: text.copyWith(autoContrast: value),
+                  )
+                : settings.copyWith(
+                    logoStyle: logo.copyWith(autoContrast: value),
+                  ),
+          ),
+        ),
         if (selectedLayer == WatermarkEditableLayer.text) ...[
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
@@ -177,14 +194,17 @@ class WatermarkEditorControls extends StatelessWidget {
               child: const Icon(Icons.palette_outlined),
             ),
             title: Text(context.l10n.editor_toolColorPicker),
+            enabled: !text.autoContrast,
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _pickColor(context, Color(text.colorArgb), (color) {
-              onSettingsChanged(
-                settings.copyWith(
-                  textStyle: text.copyWith(colorArgb: color.toARGB32()),
-                ),
-              );
-            }),
+            onTap: text.autoContrast
+                ? null
+                : () => _pickColor(context, Color(text.colorArgb), (color) {
+                    onSettingsChanged(
+                      settings.copyWith(
+                        textStyle: text.copyWith(colorArgb: color.toARGB32()),
+                      ),
+                    );
+                  }),
           ),
           Text(
             context.l10n.watermark_alignment,
@@ -316,6 +336,9 @@ class WatermarkEditorControls extends StatelessWidget {
         const SizedBox(height: 8),
         DropdownButtonFormField<WatermarkAnchor>(
           initialValue: selectedPlacement.anchor,
+          isExpanded: true,
+          isDense: false,
+          itemHeight: null,
           decoration: _controlDecoration(
             context,
             context.l10n.watermark_anchor,
@@ -349,6 +372,9 @@ class WatermarkEditorControls extends StatelessWidget {
         const SizedBox(height: 12),
         DropdownButtonFormField<WatermarkLayerArrangement>(
           initialValue: settings.composition.arrangement,
+          isExpanded: true,
+          isDense: false,
+          itemHeight: null,
           decoration: _controlDecoration(
             context,
             context.l10n.watermark_layerArrangement,

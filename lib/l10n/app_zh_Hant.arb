@@ -7317,5 +7317,6 @@
         "format": "yMMMd"
       }
     }
-  }
+  },
+  "watermark_autoContrast": "自動適應底色"
 }

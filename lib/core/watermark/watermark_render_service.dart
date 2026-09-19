@@ -11,6 +11,7 @@ import '../../data/models/watermark/watermark_settings.dart';
 import '../../data/services/metadata/unified_metadata_parser.dart';
 import '../utils/image_share_sanitizer.dart';
 import 'watermark_scene.dart';
+import 'watermark_contrast.dart';
 
 class WatermarkCancelledException implements Exception {
   const WatermarkCancelledException();
@@ -72,6 +73,8 @@ class WatermarkRenderResult {
 
 class WatermarkRenderService {
   WatermarkRenderService._();
+
+  static const renderVersion = 2;
 
   static const int _maxSourcePixels = 64000000;
   static const int _maxSourceDimension = 32768;
@@ -147,6 +150,21 @@ class WatermarkRenderService {
           'The source image size is invalid.',
         );
       }
+      final needsContrast =
+          (request.settings.textStyle.enabled &&
+              request.settings.textStyle.autoContrast) ||
+          (request.settings.logoStyle.enabled &&
+              request.settings.logoStyle.autoContrast);
+      final background = needsContrast
+          ? await WatermarkContrastPixels.decode(request.sourceBytes)
+          : null;
+      final logoMask =
+          request.settings.logoStyle.enabled &&
+              request.settings.logoStyle.autoContrast &&
+              logoBytes != null
+          ? await WatermarkContrastPixels.decode(logoBytes)
+          : null;
+      token.throwIfCancelled();
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder);
       canvas.drawImage(sourceImage, ui.Offset.zero, ui.Paint());
@@ -155,6 +173,8 @@ class WatermarkRenderService {
         canvasSize: ui.Size(width.toDouble(), height.toDouble()),
         settings: request.settings,
         logo: logoImage,
+        background: background,
+        logoMask: logoMask,
       );
       final picture = recorder.endRecording();
       outputImage = await picture.toImage(width, height);

@@ -21,6 +21,7 @@ final copyDragWatermarkProvider = Provider<ShareImageTransform?>((ref) {
       .convert(
         utf8.encode(
           jsonEncode([
+            WatermarkRenderService.renderVersion,
             state.configuration.encode(),
             state.localLogoPath,
             state.loadIssue?.name,

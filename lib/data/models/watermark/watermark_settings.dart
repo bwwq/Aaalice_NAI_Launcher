@@ -30,6 +30,7 @@ class WatermarkSettingsLoadResult {
 class WatermarkTextStyle {
   const WatermarkTextStyle({
     this.enabled = true,
+    this.autoContrast = true,
     this.text = 'NovelAI',
     this.fontFamily = 'LXGW ZhenKai GB',
     this.colorArgb = 0xFFFFFFFF,
@@ -45,6 +46,7 @@ class WatermarkTextStyle {
   });
 
   final bool enabled;
+  final bool autoContrast;
   final String text;
   final String fontFamily;
   final int colorArgb;
@@ -60,6 +62,7 @@ class WatermarkTextStyle {
 
   WatermarkTextStyle copyWith({
     bool? enabled,
+    bool? autoContrast,
     String? text,
     String? fontFamily,
     int? colorArgb,
@@ -74,6 +77,7 @@ class WatermarkTextStyle {
     double? shadowOffsetYRatio,
   }) => WatermarkTextStyle(
     enabled: enabled ?? this.enabled,
+    autoContrast: autoContrast ?? this.autoContrast,
     text: text ?? this.text,
     fontFamily: fontFamily ?? this.fontFamily,
     colorArgb: colorArgb ?? this.colorArgb,
@@ -90,6 +94,7 @@ class WatermarkTextStyle {
 
   Map<String, Object?> toJson() => {
     'enabled': enabled,
+    'autoContrast': autoContrast,
     'text': text,
     'fontFamily': fontFamily,
     'colorArgb': colorArgb,
@@ -106,18 +111,31 @@ class WatermarkTextStyle {
 }
 
 class WatermarkLogoStyle {
-  const WatermarkLogoStyle({this.enabled = false, this.opacity = 0.85});
+  const WatermarkLogoStyle({
+    this.enabled = false,
+    this.opacity = 0.85,
+    this.autoContrast = true,
+  });
 
   final bool enabled;
   final double opacity;
+  final bool autoContrast;
 
-  WatermarkLogoStyle copyWith({bool? enabled, double? opacity}) =>
-      WatermarkLogoStyle(
-        enabled: enabled ?? this.enabled,
-        opacity: opacity ?? this.opacity,
-      );
+  WatermarkLogoStyle copyWith({
+    bool? enabled,
+    double? opacity,
+    bool? autoContrast,
+  }) => WatermarkLogoStyle(
+    enabled: enabled ?? this.enabled,
+    opacity: opacity ?? this.opacity,
+    autoContrast: autoContrast ?? this.autoContrast,
+  );
 
-  Map<String, Object?> toJson() => {'enabled': enabled, 'opacity': opacity};
+  Map<String, Object?> toJson() => {
+    'enabled': enabled,
+    'opacity': opacity,
+    'autoContrast': autoContrast,
+  };
 }
 
 class WatermarkComposition {
@@ -383,6 +401,7 @@ class _WatermarkJsonReader {
     const fallback = WatermarkTextStyle();
     return WatermarkTextStyle(
       enabled: _bool(value, 'enabled', fallback.enabled),
+      autoContrast: _autoContrast(value),
       text: _string(value, 'text', fallback.text),
       fontFamily: _string(value, 'fontFamily', fallback.fontFamily),
       colorArgb: _argb(value, 'colorArgb', fallback.colorArgb),
@@ -445,9 +464,16 @@ class _WatermarkJsonReader {
     const fallback = WatermarkLogoStyle();
     return WatermarkLogoStyle(
       enabled: _bool(value, 'enabled', fallback.enabled),
+      autoContrast: _autoContrast(value),
       opacity: _double(value, 'opacity', fallback.opacity, 0, 1),
     );
   }
+
+  // An absent additive field is a valid v1 configuration, not a load issue.
+  bool _autoContrast(Map<dynamic, dynamic> value) =>
+      value.containsKey('autoContrast')
+      ? _bool(value, 'autoContrast', true)
+      : true;
 
   WatermarkComposition _composition(Map<dynamic, dynamic> value) {
     const fallback = WatermarkComposition();

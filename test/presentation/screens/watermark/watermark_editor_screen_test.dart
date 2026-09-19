@@ -285,7 +285,9 @@ void main() {
         ),
         home: Scaffold(
           body: WatermarkEditorControls(
-            settings: const WatermarkSettings(),
+            settings: const WatermarkSettings(
+              textStyle: WatermarkTextStyle(autoContrast: false),
+            ),
             layout: const WatermarkSettings().universalLayout,
             selectedLayer: WatermarkEditableLayer.text,
             logoAvailable: false,

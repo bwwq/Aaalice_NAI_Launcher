@@ -14576,6 +14576,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
     return '会员到期日期：$dateString';
   }
+
+  @override
+  String get watermark_autoContrast => '自动适应底色';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -29151,4 +29154,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
     return '會員到期日期：$dateString';
   }
+
+  @override
+  String get watermark_autoContrast => '自動適應底色';
 }

@@ -14838,4 +14838,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
     return 'メンバーシップ有効期限：$dateString';
   }
+
+  @override
+  String get watermark_autoContrast => '背景に合わせて色を自動調整';
 }

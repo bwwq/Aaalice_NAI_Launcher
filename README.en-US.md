@@ -86,6 +86,7 @@ NAI Launcher is built for people who use NovelAI regularly. Generation, editing,
 - Scan only the folders you choose, then find artwork by folder, album, favorite status, Prompt, or generation metadata.
 - Image details separate positive and negative Prompts, pinned tags, character content, and full parameters for all-at-once or selective copying.
 - Batch categorization, favorites, moving, and deletion sit alongside comparison, slideshows, watermarks, redacted copies, and several viewing modes.
+- Text and transparent logo watermarks automatically switch between black and white to suit the area beneath each layer, with a thin contrasting outline. Turn off “Adapt to background” for either layer to restore its original colors. Opaque logos keep their colors and gain a contrasting border.
 - In Settings → Privacy & Sharing, independently enable "Add watermark when copying or dragging" to apply the saved default watermark to an output copy without changing the original. Adding a watermark does not remove metadata. To remove it, also enable Protection Mode and "Remove all metadata when copying or dragging"; metadata is removed before the watermark is added.
 - Desktop gets context menus, hover previews, and drag-and-drop; touch devices get equivalent menus instead of losing features.
 - Persistent sidebars in the local gallery, Vibe library, Precise Reference library, and tag library can be resized by dragging. Each page remembers its width on this device only, outside cloud sync.

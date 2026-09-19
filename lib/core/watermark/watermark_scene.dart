@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/watermark/watermark_settings.dart';
 import 'watermark_font_catalog.dart';
+import 'watermark_contrast.dart';
 
 enum WatermarkLayoutKind { universal, portrait, square, landscape }
 
@@ -78,6 +79,8 @@ class WatermarkScene {
     required Size canvasSize,
     required WatermarkSettings settings,
     ui.Image? logo,
+    WatermarkContrastPixels? background,
+    WatermarkContrastPixels? logoMask,
   }) {
     final layout = layoutFor(settings, canvasSize);
     final textPainter =
@@ -89,7 +92,12 @@ class WatermarkScene {
           )
         : null;
     final logoSize = settings.logoStyle.enabled && logo != null
-        ? _logoSize(logo, layout.logoPlacement, canvasSize)
+        ? _logoSize(
+            logo,
+            layout.logoPlacement,
+            canvasSize,
+            logoMask?.sourceSize,
+          )
         : null;
 
     final specs = <_LayerSpec>[];
@@ -100,13 +108,30 @@ class WatermarkScene {
           size: textPainter.size,
           placement: layout.textPlacement,
           zIndex: layout.textPlacement.zIndex,
-          draw: (offset) => _paintText(
-            canvas,
-            textPainter,
-            offset,
-            settings.textStyle,
-            math.min(canvasSize.width, canvasSize.height),
-          ),
+          draw: (bounds) {
+            final scale = bounds.width / textPainter.width;
+            final shortEdge = math.min(canvasSize.width, canvasSize.height);
+            var style = settings.textStyle;
+            if (style.autoContrast && background != null) {
+              final color = background.foreground(
+                _normalized(bounds, canvasSize),
+              );
+              final outline = color == Colors.white
+                  ? Colors.black
+                  : Colors.white;
+              style = style.copyWith(
+                colorArgb: color.toARGB32(),
+                strokeColorArgb: outline.toARGB32(),
+                shadowColorArgb: outline.toARGB32(),
+                strokeWidthRatio: math.max(style.strokeWidthRatio, 0.002),
+              );
+            }
+            canvas.save();
+            canvas.translate(bounds.left, bounds.top);
+            canvas.scale(scale);
+            _paintText(canvas, textPainter, Offset.zero, style, shortEdge);
+            canvas.restore();
+          },
         ),
       );
     }
@@ -117,11 +142,19 @@ class WatermarkScene {
           size: logoSize,
           placement: layout.logoPlacement,
           zIndex: layout.logoPlacement.zIndex,
-          draw: (offset) => _paintLogo(
+          draw: (bounds) => _paintLogo(
             canvas,
             logo,
-            offset & logoSize,
-            settings.logoStyle.opacity,
+            bounds,
+            settings.logoStyle,
+            settings.logoStyle.autoContrast && background != null
+                ? background.foreground(
+                    _normalized(bounds, canvasSize),
+                    mask: logoMask,
+                  )
+                : null,
+            logoMask,
+            math.min(canvasSize.width, canvasSize.height) * 0.001,
           ),
         ),
       );
@@ -142,13 +175,21 @@ class WatermarkScene {
     final indexes = List<int>.generate(specs.length, (index) => index)
       ..sort((a, b) => specs[a].zIndex.compareTo(specs[b].zIndex));
     for (final index in indexes) {
-      specs[index].draw(bounds[index].topLeft);
+      specs[index].draw(bounds[index]);
     }
+    textPainter?.dispose();
     return WatermarkSceneResult([
       for (var index = 0; index < specs.length; index++)
         WatermarkResolvedLayer(kind: specs[index].kind, bounds: bounds[index]),
     ]);
   }
+
+  static Rect _normalized(Rect bounds, Size size) => Rect.fromLTWH(
+    bounds.left / size.width,
+    bounds.top / size.height,
+    bounds.width / size.width,
+    bounds.height / size.height,
+  );
 
   static TextPainter _buildTextPainter(
     WatermarkTextStyle style,
@@ -168,6 +209,7 @@ class WatermarkScene {
     );
     if (scale < 1) {
       fontSize *= scale;
+      painter.dispose();
       painter = _createTextPainter(style, fontSize)..layout(maxWidth: maxWidth);
     }
     return painter;
@@ -203,11 +245,14 @@ class WatermarkScene {
     ui.Image logo,
     WatermarkPlacement placement,
     Size canvasSize,
+    Size? originalSize,
   ) {
     final shortEdge = math.min(canvasSize.width, canvasSize.height);
-    final longest = math.max(1, math.max(logo.width, logo.height));
+    final width = originalSize?.width ?? logo.width.toDouble();
+    final height = originalSize?.height ?? logo.height.toDouble();
+    final longest = math.max(1, math.max(width, height));
     final scale = placement.sizeRatio * shortEdge / longest;
-    return Size(logo.width * scale, logo.height * scale);
+    return Size(width * scale, height * scale);
   }
 
   static List<Rect> _resolveIndependent(
@@ -364,6 +409,7 @@ class WatermarkScene {
         ellipsis: metrics.ellipsis,
       )..layout(maxWidth: metrics.width);
       stroke.paint(canvas, offset);
+      stroke.dispose();
     }
     final fill = TextPainter(
       text: TextSpan(
@@ -388,21 +434,79 @@ class WatermarkScene {
       ellipsis: metrics.ellipsis,
     )..layout(maxWidth: metrics.width);
     fill.paint(canvas, offset);
+    fill.dispose();
   }
 
   static void _paintLogo(
     Canvas canvas,
     ui.Image logo,
     Rect destination,
-    double opacity,
+    WatermarkLogoStyle style,
+    Color? foreground,
+    WatermarkContrastPixels? logoMask,
+    double outlineWidth,
   ) {
+    final opacity = style.opacity.clamp(0.0, 1.0);
+    if (opacity == 0) return;
+    final hasTransparency = logoMask?.hasTransparency ?? false;
+    final source = Rect.fromLTWH(
+      0,
+      0,
+      logo.width.toDouble(),
+      logo.height.toDouble(),
+    );
+    if (foreground != null) {
+      final outline = foreground == Colors.white ? Colors.black : Colors.white;
+      // Apply opacity once to the complete watermark, not to each stroke copy.
+      canvas.saveLayer(
+        destination.inflate(outlineWidth * 3),
+        Paint()..color = Colors.white.withValues(alpha: opacity),
+      );
+      if (hasTransparency) {
+        final mask = logoMask!;
+        final scale = destination.width / mask.width;
+        canvas.save();
+        canvas.translate(destination.left, destination.top);
+        canvas.scale(scale, destination.height / mask.height);
+        canvas.drawPath(
+          mask.outline,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = outlineWidth * 2 / scale
+            ..strokeCap = StrokeCap.round
+            ..color = outline,
+        );
+        canvas.restore();
+      } else {
+        canvas.drawRect(
+          destination.inflate(outlineWidth * 2),
+          Paint()..color = outline,
+        );
+        canvas.drawRect(
+          destination.inflate(outlineWidth),
+          Paint()..color = foreground,
+        );
+      }
+      canvas.drawImageRect(
+        logo,
+        source,
+        destination,
+        Paint()
+          ..filterQuality = FilterQuality.high
+          ..colorFilter = hasTransparency
+              ? ColorFilter.mode(foreground, BlendMode.srcIn)
+              : null,
+      );
+      canvas.restore();
+      return;
+    }
     canvas.drawImageRect(
       logo,
-      Rect.fromLTWH(0, 0, logo.width.toDouble(), logo.height.toDouble()),
+      source,
       destination,
       Paint()
         ..filterQuality = FilterQuality.high
-        ..color = Colors.white.withValues(alpha: opacity.clamp(0.0, 1.0)),
+        ..color = Colors.white.withValues(alpha: opacity),
     );
   }
 }
@@ -420,5 +524,5 @@ class _LayerSpec {
   final Size size;
   final WatermarkPlacement placement;
   final int zIndex;
-  final void Function(Offset offset) draw;
+  final void Function(Rect bounds) draw;
 }

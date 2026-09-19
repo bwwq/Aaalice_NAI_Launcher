@@ -15246,4 +15246,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
     return 'Subscription expiry: $dateString';
   }
+
+  @override
+  String get watermark_autoContrast => 'Adapt to background';
 }

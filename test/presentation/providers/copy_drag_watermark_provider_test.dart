@@ -175,6 +175,24 @@ void main() {
         .read(watermarkSettingsProvider.notifier)
         .saveDefaults(
           const WatermarkSettings(
+            textStyle: WatermarkTextStyle(autoContrast: false),
+          ),
+        );
+    final manualText = c.read(copyDragWatermarkProvider)!.cacheKey;
+    expect(manualText, isNot(first.cacheKey));
+    await c
+        .read(watermarkSettingsProvider.notifier)
+        .saveDefaults(
+          const WatermarkSettings(
+            textStyle: WatermarkTextStyle(autoContrast: false),
+            logoStyle: WatermarkLogoStyle(autoContrast: false),
+          ),
+        );
+    expect(c.read(copyDragWatermarkProvider)!.cacheKey, isNot(manualText));
+    await c
+        .read(watermarkSettingsProvider.notifier)
+        .saveDefaults(
+          const WatermarkSettings(
             textStyle: WatermarkTextStyle(text: 'NEW SIGNATURE'),
           ),
         );
@@ -185,6 +203,29 @@ void main() {
     final withLogo = c.read(copyDragWatermarkProvider)!.cacheKey;
     expect(withLogo, isNot(first.cacheKey));
   });
+
+  test(
+    'complete old v1 settings can copy without saving defaults again',
+    () async {
+      final json = const WatermarkSettings().toJson();
+      (json['textStyle']! as Map<String, Object?>).remove('autoContrast');
+      (json['logoStyle']! as Map<String, Object?>).remove('autoContrast');
+      await storage.setSetting(StorageKeys.watermarkConfigV1, jsonEncode(json));
+      final c = container();
+      await c
+          .read(shareImageSettingsProvider.notifier)
+          .setWatermarkForCopyAndDrag(true);
+      expect(c.read(watermarkSettingsProvider).loadIssue, isNull);
+      final result = await ImageShareSanitizer.prepareForCopyOrDragInBackground(
+        _sourcePng(),
+        fileName: 'old.png',
+        stripMetadata: true,
+        transform: c.read(copyDragWatermarkProvider),
+      );
+      expect(result.fileName, 'old_watermarked.png');
+      expect(img.decodePng(result.bytes), isNotNull);
+    },
+  );
 
   test(
     'broken settings and missing logos fail instead of exporting original',

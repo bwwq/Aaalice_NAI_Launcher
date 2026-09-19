@@ -26538,6 +26538,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subscription expiry: {date}'**
   String settings_subscriptionExpiresOn(DateTime date);
+
+  /// No description provided for @watermark_autoContrast.
+  ///
+  /// In en, this message translates to:
+  /// **'Adapt to background'**
+  String get watermark_autoContrast;
 }
 
 class _AppLocalizationsDelegate
