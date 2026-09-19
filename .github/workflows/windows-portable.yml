@@ -2,6 +2,9 @@ name: Windows portable build
 run-name: Windows ${{ inputs.build-mode || 'release' }} portable
 
 on:
+  push:
+    branches:
+      - codex/watermark-auto-contrast
   workflow_dispatch:
     inputs:
       build-mode:
