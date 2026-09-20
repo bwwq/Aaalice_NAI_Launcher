@@ -1,3 +1,5 @@
+import '../../../core/cloud_sync/backend/s3_backend_config.dart';
+import '../../../core/cloud_sync/backend/s3_cloud_sync_backend.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -90,6 +92,18 @@ final cloudSyncApplicationServiceProvider =
             CloudSyncBackendKind.webDav => _createWebDavBackend(
               draft,
               namespace,
+            ),
+            CloudSyncBackendKind.s3 => S3CloudSyncBackend(
+              config: S3BackendConfig(
+                endpoint: Uri.parse(draft.serverUrl),
+                bucket: draft.bucket,
+                region: draft.region,
+                namespace: namespace,
+                pathStyle: draft.pathStyle,
+                allowInsecureHttp: draft.allowInsecureHttp,
+              ),
+              accessKey: draft.username,
+              secretKey: draft.secret,
             ),
             CloudSyncBackendKind.github => GitHubCloudSyncBackend(
               owner: draft.owner,
@@ -205,6 +219,9 @@ Directory _cloudSyncLocalRoot(
   final identity = switch (connection.backend) {
     CloudSyncBackendKind.webDav =>
       '${connection.serverUrl}\n${connection.username}\n$namespace',
+    CloudSyncBackendKind.s3 =>
+      '${connection.serverUrl}\n${connection.bucket}\n${connection.region}\n'
+          '${connection.pathStyle}\n${connection.username}\n$namespace',
     CloudSyncBackendKind.github =>
       '${connection.owner}\n${connection.repository}\n'
           '${connection.branch}\n$namespace',

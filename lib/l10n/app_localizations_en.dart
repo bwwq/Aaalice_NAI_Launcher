@@ -15289,4 +15289,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String cloudSync_imageRestoreSummary(int added, int reused, int conflicts) {
     return 'Restore images: $added new, $reused reused, $conflicts name conflicts kept as separate files.';
   }
+
+  @override
+  String get cloudSync_s3Endpoint => 'S3 endpoint';
+
+  @override
+  String get cloudSync_s3Bucket => 'Bucket';
+
+  @override
+  String get cloudSync_s3Region => 'Region';
+
+  @override
+  String get cloudSync_s3Description =>
+      'Manual backup; avoid writing from multiple devices at once. Clean up old backups through your storage provider.';
+
+  @override
+  String get cloudSync_s3PathStyle => 'Use path-style addressing';
+
+  @override
+  String get cloudSync_s3PathStyleDescription =>
+      'Compatible with most self-hosted services. Turn off to use bucket.endpoint addressing.';
 }

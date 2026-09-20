@@ -14617,6 +14617,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String cloudSync_imageRestoreSummary(int added, int reused, int conflicts) {
     return '恢复图片：新增 $added 张，复用 $reused 张，同名保留双方 $conflicts 张。';
   }
+
+  @override
+  String get cloudSync_s3Endpoint => 'S3 服务地址';
+
+  @override
+  String get cloudSync_s3Bucket => '存储桶';
+
+  @override
+  String get cloudSync_s3Region => '区域';
+
+  @override
+  String get cloudSync_s3Description => '手动备份；请勿让多台设备同时写入。旧备份需在存储服务中清理。';
+
+  @override
+  String get cloudSync_s3PathStyle => '使用路径式地址';
+
+  @override
+  String get cloudSync_s3PathStyleDescription => '兼容多数自建服务；关闭后使用“存储桶.服务域名”。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -29233,4 +29251,22 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String cloudSync_imageRestoreSummary(int added, int reused, int conflicts) {
     return '還原圖片：新增 $added 張，沿用 $reused 張，同名保留雙方 $conflicts 張。';
   }
+
+  @override
+  String get cloudSync_s3Endpoint => 'S3 服務位址';
+
+  @override
+  String get cloudSync_s3Bucket => '儲存桶';
+
+  @override
+  String get cloudSync_s3Region => '區域';
+
+  @override
+  String get cloudSync_s3Description => '手動備份；請勿讓多台裝置同時寫入。舊備份需在儲存服務中清理。';
+
+  @override
+  String get cloudSync_s3PathStyle => '使用路徑式位址';
+
+  @override
+  String get cloudSync_s3PathStyleDescription => '相容多數自建服務；關閉後使用「儲存桶.服務網域」。';
 }

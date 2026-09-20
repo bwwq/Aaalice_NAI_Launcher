@@ -17,6 +17,55 @@ import 'package:nai_launcher/presentation/screens/settings/settings_screen.dart'
 import 'package:nai_launcher/presentation/screens/settings/settings_section.dart';
 
 void main() {
+  testWidgets('S3 fields remain reachable at narrow widths and 3x text', (
+    tester,
+  ) async {
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    for (final width in [320.0, 600.0, 840.0, 1180.0, 1600.0]) {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.binding.setSurfaceSize(Size(width, 1000));
+      final port = _FakePort();
+      await tester.pumpWidget(_subject(port: port, textScale: 3));
+      await tester.pumpAndSettle();
+      final chip = find.widgetWithText(ChoiceChip, 'S3');
+      await tester.scrollUntilVisible(chip, 200, scrollable: _pageScrollable);
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+      for (final entry in {
+        'S3 服务地址': 'https://s3.test',
+        'AccessKey': 'access',
+        'SecretKey': 'secret',
+        '存储桶': 'images',
+      }.entries) {
+        final field = _fieldWithLabel(entry.key);
+        await tester.scrollUntilVisible(
+          field,
+          200,
+          scrollable: _pageScrollable,
+        );
+        await tester.enterText(field, entry.value);
+      }
+      expect(
+        tester.widget<TextField>(_fieldWithLabel('SecretKey')).obscureText,
+        isTrue,
+      );
+      final save = find.byKey(const ValueKey('cloud-sync-save-connection'));
+      await tester.scrollUntilVisible(
+        save,
+        200,
+        scrollable: _pageScrollable,
+        maxScrolls: 30,
+      );
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+      expect(port.request!.connection.backend, CloudSyncBackendKind.s3);
+      expect(port.request!.connection.bucket, 'images');
+      expect(port.request!.connection.region, 'us-east-1');
+      expect(port.request!.connection.pathStyle, isTrue);
+      expect(tester.takeException(), isNull, reason: 'width=$width');
+    }
+  });
+
   testWidgets('未连接布局在 320–1600 宽度与 3x 文本下均无 overflow', (tester) async {
     for (final width in [320.0, 600.0, 840.0, 1180.0, 1600.0]) {
       await tester.binding.setSurfaceSize(Size(width, 1200));

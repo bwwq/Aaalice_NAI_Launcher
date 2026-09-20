@@ -28,6 +28,9 @@ class CloudSyncSetup extends ConsumerStatefulWidget {
 
 class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
   final _url = TextEditingController();
+  final _bucket = TextEditingController();
+  final _region = TextEditingController(text: 'us-east-1');
+  var _pathStyle = true;
   final _username = TextEditingController();
   final _secret = TextEditingController();
   final _owner = TextEditingController();
@@ -51,6 +54,8 @@ class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
 
   Iterable<TextEditingController> get _controllers => [
     _url,
+    _bucket,
+    _region,
     _username,
     _secret,
     _owner,
@@ -130,6 +135,9 @@ class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
       backend: _backend,
       keepSnapshots: _keepSnapshots,
       serverUrl: _url.text.trim(),
+      bucket: _bucket.text.trim(),
+      region: _region.text.trim(),
+      pathStyle: _pathStyle,
       username: _username.text.trim(),
       secret: _secret.text,
       owner: _owner.text.trim(),
@@ -143,6 +151,12 @@ class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
   bool get _canConnect => switch (_backend) {
     CloudSyncBackendKind.webDav =>
       _url.text.trim().isNotEmpty &&
+          _username.text.trim().isNotEmpty &&
+          _secret.text.isNotEmpty,
+    CloudSyncBackendKind.s3 =>
+      _url.text.trim().isNotEmpty &&
+          _bucket.text.trim().isNotEmpty &&
+          _region.text.trim().isNotEmpty &&
           _username.text.trim().isNotEmpty &&
           _secret.text.isNotEmpty,
     CloudSyncBackendKind.github =>
@@ -312,6 +326,10 @@ class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
         CloudSyncSetupConfiguration(
           backend: _backend,
           url: _url,
+          bucket: _bucket,
+          region: _region,
+          pathStyle: _pathStyle,
+          onPathStyleChanged: (value) => setState(() => _pathStyle = value),
           username: _username,
           secret: _secret,
           owner: _owner,

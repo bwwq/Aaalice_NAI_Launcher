@@ -26610,6 +26610,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore images: {added} new, {reused} reused, {conflicts} name conflicts kept as separate files.'**
   String cloudSync_imageRestoreSummary(int added, int reused, int conflicts);
+
+  /// No description provided for @cloudSync_s3Endpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'S3 endpoint'**
+  String get cloudSync_s3Endpoint;
+
+  /// No description provided for @cloudSync_s3Bucket.
+  ///
+  /// In en, this message translates to:
+  /// **'Bucket'**
+  String get cloudSync_s3Bucket;
+
+  /// No description provided for @cloudSync_s3Region.
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get cloudSync_s3Region;
+
+  /// No description provided for @cloudSync_s3Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual backup; avoid writing from multiple devices at once. Clean up old backups through your storage provider.'**
+  String get cloudSync_s3Description;
+
+  /// No description provided for @cloudSync_s3PathStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use path-style addressing'**
+  String get cloudSync_s3PathStyle;
+
+  /// No description provided for @cloudSync_s3PathStyleDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Compatible with most self-hosted services. Turn off to use bucket.endpoint addressing.'**
+  String get cloudSync_s3PathStyleDescription;
 }
 
 class _AppLocalizationsDelegate

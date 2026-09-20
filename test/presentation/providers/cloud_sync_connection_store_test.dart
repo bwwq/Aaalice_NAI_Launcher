@@ -10,6 +10,35 @@ import 'package:nai_launcher/presentation/providers/cloud_sync/cloud_sync_connec
 import 'package:nai_launcher/presentation/providers/cloud_sync/cloud_sync_ui_provider.dart';
 
 void main() {
+  test('S3 configuration persists while keys stay in secure storage', () async {
+    final local = _MemoryLocalStorage();
+    final store = CloudSyncConnectionStore(
+      localStorage: local,
+      secureStorage: _MemorySecureStorage(),
+    );
+    const draft = CloudSyncConnectionDraft(
+      backend: CloudSyncBackendKind.s3,
+      serverUrl: 'https://s3.test',
+      bucket: 'images',
+      region: 'region-1',
+      pathStyle: false,
+      username: 'access-private',
+      secret: 'secret-private',
+      path: 'backup',
+    );
+    await store.save(draft.withRetention(7), {CloudSyncDataKind.galleries});
+    final restored = (await store.load())!.draft;
+    expect(restored.bucket, 'images');
+    expect(restored.region, 'region-1');
+    expect(restored.pathStyle, isFalse);
+    expect(restored.keepSnapshots, 7);
+    expect(restored.username, draft.username);
+    expect(restored.secret, draft.secret);
+    final public = local.values[StorageKeys.cloudSyncConfiguration] as String;
+    expect(public, isNot(contains('access-private')));
+    expect(public, isNot(contains('secret-private')));
+  });
+
   test(
     'OAuth account restoration does not read unrelated provider credentials',
     () async {

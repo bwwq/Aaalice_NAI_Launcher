@@ -129,7 +129,7 @@ NAI Launcher is built for people who use NovelAI regularly. Generation, editing,
 
 ### ☁️ Sync and backup
 
-- Supports OneDrive, GitHub, and WebDAV. New Google Drive connections are temporarily disabled pending authorization approval. Connecting an account never uploads, downloads, or overwrites content by itself.
+- Supports OneDrive, GitHub, and WebDAV / S3. New Google Drive connections are temporarily disabled pending authorization approval. Connecting an account never uploads, downloads, or overwrites content by itself.
 - Push, pull, and restore start only when requested, with change previews and conflict handling.
 - Select settings, Prompts and libraries, previews, online-gallery settings and favorites, local albums, Agent Prompts and Skills, and optional Vibe or Precise Reference content independently.
 - Favorite local originals are included by default and can be disabled independently; image bytes and embedded metadata are preserved. Remote gallery originals, credentials, caches, and logs are excluded.
@@ -207,13 +207,13 @@ NAI Launcher does not host your account or artwork on a project-operated server.
 | Generation, image-to-image, inpainting, Vibe encoding | NovelAI, including the Prompt, parameters, and source or reference images required for that request. |
 | Online gallery search and downloads | The third-party gallery you selected. Availability, rate limits, and content rules belong to each site. |
 | AI translation or Agent Chat | The model service you configured. Conversations, attached images, and tool results required by the task may incur provider fees. |
-| Sync and backup | Your selected Google Drive, OneDrive, GitHub, or WebDAV destination. Only explicitly selected content is uploaded. |
+| Sync and backup | Your selected Google Drive, OneDrive, GitHub, or WebDAV / S3 destination. Only explicitly selected content is uploaded. |
 
-- NovelAI Tokens, OAuth access/refresh tokens, WebDAV passwords, and GitHub Tokens use device secure storage and are never written into backups.
+- NovelAI Tokens, OAuth access/refresh tokens, WebDAV passwords, S3 access keys, and GitHub Tokens use device secure storage and are never written into backups.
 - Local Prompts, gallery indexes, tags, resource libraries, and Agent sessions stay on the device by default.
 - New cloud backups encrypt selected content. Legacy backups retain their original format and are labeled accordingly. Favorite local originals, albums, and other content remain independently selectable.
 - Online galleries can contain third-party content. Rating filters do not replace user judgment.
-- WebDAV security depends on the server and transport you configure. Keep a local copy of important data.
+- WebDAV / S3 security depends on the server and transport you configure. Keep a local copy of important data.
 
 ## 🆘 Support and feedback
 

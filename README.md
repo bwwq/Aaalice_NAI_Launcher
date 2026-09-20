@@ -129,7 +129,7 @@ NAI Launcher 面向经常使用 NovelAI 的图像创作者。生成、改图、P
 
 ### ☁️ 同步与备份
 
-- 支持 OneDrive、GitHub 与 WebDAV；Google Drive 因授权审核尚未通过，暂时禁用新增连接入口。连接账号不会自动上传、下载或覆盖内容。
+- 支持 OneDrive、GitHub 与 WebDAV / S3；Google Drive 因授权审核尚未通过，暂时禁用新增连接入口。连接账号不会自动上传、下载或覆盖内容。
 - 推送、拉取和恢复都由你主动开始，并可预览差异与处理冲突。
 - 可分别选择设置、Prompt 与词库、词库预览图、在线画廊设置与收藏、本地相簿、智能代理 Prompt 与 Skill，以及可选的 Vibe、Precise Reference。
 - 本地收藏原图默认纳入备份，可单独关闭；原图和内嵌元数据保持不变。远程图库原图、账号凭据、缓存和日志不上传。
@@ -207,13 +207,13 @@ NAI Launcher 不在项目自有服务器上托管你的账号或作品。只有�
 | 生成、图生图、重绘、Vibe 编码 | NovelAI；包括本次请求所需的 Prompt、参数和源图或参考图。 |
 | 在线画廊搜索与下载 | 你选择的第三方图库；可用性、限流和内容规则由各站点决定。 |
 | AI 翻译或智能代理 | 你配置的模型服务；对话、附加图片和完成任务所需的工具结果可能产生服务费用。 |
-| 同步与备份 | 你选择的 Google Drive、OneDrive、GitHub 或 WebDAV；只上传明确勾选的内容。 |
+| 同步与备份 | 你选择的 Google Drive、OneDrive、GitHub 或 WebDAV / S3；只上传明确勾选的内容。 |
 
-- NovelAI Token、OAuth access/refresh token、WebDAV 密码和 GitHub Token 使用设备安全存储，不会写入备份。
+- NovelAI Token、OAuth access/refresh token、WebDAV 密码、S3 访问密钥和 GitHub Token 使用设备安全存储，不会写入备份。
 - 本地 Prompt、图库索引、标签、资源库和代理会话默认保存在本机。
 - 新云备份加密所选内容，旧备份仍保持原格式并明确标识；备份范围可分别选择本地收藏原图、相簿及其他数据。
 - 在线画廊可能包含第三方内容；分级筛选不能替代用户判断。
-- WebDAV 的安全性取决于你配置的服务器与传输方式，请保留重要数据的本地副本。
+- WebDAV / S3 的安全性取决于你配置的服务器与传输方式，请保留重要数据的本地副本。
 
 ## 🆘 支持与反馈
 

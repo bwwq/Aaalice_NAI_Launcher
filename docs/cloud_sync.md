@@ -10,7 +10,7 @@
 | 同步协调、上传与下载 | [coordinator.dart](../lib/core/cloud_sync/coordinator.dart)、[snapshot_uploader.dart](../lib/core/cloud_sync/snapshot_uploader.dart)、[snapshot_transfer.dart](../lib/core/cloud_sync/snapshot_transfer.dart) |
 | 小对象打包与上传产物 | [snapshot_object_packer.dart](../lib/core/cloud_sync/snapshot_object_packer.dart)、[snapshot_upload_plan.dart](../lib/core/cloud_sync/snapshot_upload_plan.dart) |
 | 有界调度 | [bounded_transfer_scheduler.dart](../lib/core/cloud_sync/bounded_transfer_scheduler.dart) |
-| 后端契约与四种实现 | [backend/](../lib/core/cloud_sync/backend/) |
+| 后端契约与实现 | [backend/](../lib/core/cloud_sync/backend/) |
 | 本地准备与持久化 | [app_cloud_sync_data_source.dart](../lib/data/cloud_sync/app_cloud_sync_data_source.dart)、[verified_blob_store.dart](../lib/data/cloud_sync/verified_blob_store.dart) |
 | 内容类型与适配器 | [content_selection.dart](../lib/core/cloud_sync/content_selection.dart)、[app_cloud_sync_adapters.dart](../lib/data/cloud_sync/app_cloud_sync_adapters.dart) |
 | 业务入口与界面 | [providers/cloud_sync/](../lib/presentation/providers/cloud_sync/)、[screens/cloud_sync/](../lib/presentation/screens/cloud_sync/) |
@@ -54,6 +54,7 @@
 | OneDrive | 已有目录先只读解析，缺失时按明确的 fail 冲突语义创建并处理并发创建；复用分页 inventory；HEAD 保持条件更新，模糊响应读回校验 |
 | Google Drive | 授权审核未通过，新增连接入口暂时禁用；保留已保存连接、备份读取和后端实现。保持 `manualBackupOnly`，不把 version/headRevisionId 当作强 CAS |
 | GitHub | 读取固定 commit/tree；对象通过 Git Database API 组织，tree/commit/ref 一次发布，禁止逐文件 Contents API 替代原子提交 |
+| S3 | AWS SigV4；支持路径式/虚拟主机式地址，ListObjectsV2 分页。默认区域 us-east-1；保存连接仅验证读取。保持手动备份、单并发，写后读回校验，不承诺原子条件提交；旧备份与整个命名空间需在服务控制台删除 |
 | WebDAV | 根据实际 ETag/条件写能力决定模式；能力不足保持手动备份；坚果云单并发，不自动合并或恢复历史 |
 | WebDAV 远端维护 | 不执行自动 GC；缺少可证明安全的删除协调时不能猜测共享对象已无引用 |
 
@@ -89,3 +90,5 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run_cloud_sync_benchmark.p
 - **真实服务**：按用户已明确授权的范围在隔离目标验证，记录账号类型、服务版本、场景、请求与结果；历史文档中的授权描述或通过结论不构成本次执行证据。
 
 本地化变化后重新生成 ARB 输出并运行相关本地化测试；UI 自动化按 [运行验收技能](../.agents/skills/aaalice-runtime-verify/SKILL.md) 执行。所有检查仅报告本次实际结果。
+
+S3 配置服务地址、存储桶、区域、AccessKey、SecretKey 和备份前缀；地址不包含存储桶（路径式由客户端拼接），服务分配了存储桶时直接使用，不新建存储桶。密钥复用系统安全存储，不进入同步内容。请求重试重新签名，跨地址重定向不自动跟随。协议依据：[SigV4](https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html)、[ListObjectsV2](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html)。

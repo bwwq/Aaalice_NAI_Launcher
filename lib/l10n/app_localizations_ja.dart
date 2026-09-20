@@ -14881,4 +14881,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String cloudSync_imageRestoreSummary(int added, int reused, int conflicts) {
     return '画像の復元：新規 $added 枚、再利用 $reused 枚、同名で両方保持 $conflicts 枚。';
   }
+
+  @override
+  String get cloudSync_s3Endpoint => 'S3 エンドポイント';
+
+  @override
+  String get cloudSync_s3Bucket => 'バケット';
+
+  @override
+  String get cloudSync_s3Region => 'リージョン';
+
+  @override
+  String get cloudSync_s3Description =>
+      '手動バックアップです。複数の端末から同時に書き込まないでください。古いバックアップはストレージ側で削除します。';
+
+  @override
+  String get cloudSync_s3PathStyle => 'パス形式のアドレスを使用';
+
+  @override
+  String get cloudSync_s3PathStyleDescription =>
+      '多くの自前サービスに対応します。オフにすると「バケット.エンドポイント」形式を使用します。';
 }

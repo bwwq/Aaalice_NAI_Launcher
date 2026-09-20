@@ -41,6 +41,7 @@ class BackendHttp {
     String method,
     Uri uri, {
     Map<String, String>? headers,
+    Map<String, String> Function()? headersForAttempt,
     Object? data,
     CancelToken? cancelToken,
     int maxResponseBytes = 1024 * 1024,
@@ -98,7 +99,7 @@ class BackendHttp {
           response = await _request(
             normalizedMethod,
             uri,
-            headers: headers,
+            headers: headersForAttempt?.call() ?? headers,
             data: normalizedData,
             cancelToken: effectiveCancelToken,
             maxResponseBytes: maxResponseBytes,

@@ -7331,5 +7331,11 @@
   "cloudSync_imageBackupSummary": "收藏原圖：{count} 張，共 {size} MiB；預計新增上傳（壓縮前）：{upload} MiB。",
   "cloudSync_imageRestoreSummary": "還原圖片：新增 {added} 張，沿用 {reused} 張，同名保留雙方 {conflicts} 張。",
   "@cloudSync_imageBackupSummary": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}, "upload": {"type": "String"}}},
-  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}}
+  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}},
+  "cloudSync_s3Endpoint": "S3 服務位址",
+  "cloudSync_s3Bucket": "儲存桶",
+  "cloudSync_s3Region": "區域",
+  "cloudSync_s3Description": "手動備份；請勿讓多台裝置同時寫入。舊備份需在儲存服務中清理。",
+  "cloudSync_s3PathStyle": "使用路徑式位址",
+  "cloudSync_s3PathStyleDescription": "相容多數自建服務；關閉後使用「儲存桶.服務網域」。"
 }

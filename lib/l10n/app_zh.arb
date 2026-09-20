@@ -7053,5 +7053,11 @@
   "cloudSync_imageBackupSummary": "收藏原图：{count} 张，共 {size} MiB；预计新增上传（压缩前）：{upload} MiB。",
   "cloudSync_imageRestoreSummary": "恢复图片：新增 {added} 张，复用 {reused} 张，同名保留双方 {conflicts} 张。",
   "@cloudSync_imageBackupSummary": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}, "upload": {"type": "String"}}},
-  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}}
+  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}},
+  "cloudSync_s3Endpoint": "S3 服务地址",
+  "cloudSync_s3Bucket": "存储桶",
+  "cloudSync_s3Region": "区域",
+  "cloudSync_s3Description": "手动备份；请勿让多台设备同时写入。旧备份需在存储服务中清理。",
+  "cloudSync_s3PathStyle": "使用路径式地址",
+  "cloudSync_s3PathStyleDescription": "兼容多数自建服务；关闭后使用“存储桶.服务域名”。"
 }

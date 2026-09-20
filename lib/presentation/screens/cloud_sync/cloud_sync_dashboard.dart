@@ -454,6 +454,7 @@ class CloudSyncDashboard extends ConsumerWidget {
   String _backendName(CloudSyncBackendKind? backend) => switch (backend) {
     CloudSyncBackendKind.webDav => 'WebDAV',
     CloudSyncBackendKind.github => 'GitHub',
+    CloudSyncBackendKind.s3 => 'S3',
     CloudSyncBackendKind.googleDrive => 'Google Drive',
     CloudSyncBackendKind.oneDrive => 'OneDrive',
     null => '—',

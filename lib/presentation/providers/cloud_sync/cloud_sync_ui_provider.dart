@@ -7,7 +7,7 @@ import '../../../core/cloud_sync/content_selection.dart';
 import '../../../core/cloud_sync/oauth/cloud_drive_oauth_models.dart';
 import 'cloud_sync_provider_wiring.dart';
 
-enum CloudSyncBackendKind { webDav, github, googleDrive, oneDrive }
+enum CloudSyncBackendKind { webDav, github, googleDrive, oneDrive, s3 }
 
 extension CloudSyncBackendKindX on CloudSyncBackendKind {
   // Keep the implementation and persisted account format while OAuth review
@@ -83,6 +83,9 @@ class CloudSyncConnectionDraft {
   const CloudSyncConnectionDraft({
     required this.backend,
     this.serverUrl = '',
+    this.bucket = '',
+    this.region = 'us-east-1',
+    this.pathStyle = true,
     this.username = '',
     this.secret = '',
     this.owner = '',
@@ -97,6 +100,9 @@ class CloudSyncConnectionDraft {
 
   final CloudSyncBackendKind backend;
   final String serverUrl;
+  final String bucket;
+  final String region;
+  final bool pathStyle;
   final String username;
   final String secret;
   final String owner;
@@ -110,6 +116,9 @@ class CloudSyncConnectionDraft {
   CloudSyncConnectionDraft withRetention(int count) => CloudSyncConnectionDraft(
     backend: backend,
     serverUrl: serverUrl,
+    bucket: bucket,
+    region: region,
+    pathStyle: pathStyle,
     username: username,
     secret: secret,
     owner: owner,

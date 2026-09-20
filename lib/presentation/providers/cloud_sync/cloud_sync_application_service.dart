@@ -658,6 +658,9 @@ bool _sameConnection(
 ) =>
     left.backend == right.backend &&
     left.serverUrl == right.serverUrl &&
+    left.bucket == right.bucket &&
+    left.region == right.region &&
+    left.pathStyle == right.pathStyle &&
     left.username == right.username &&
     left.secret == right.secret &&
     left.owner == right.owner &&

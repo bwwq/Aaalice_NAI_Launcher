@@ -9,6 +9,10 @@ class CloudSyncSetupConfiguration extends StatelessWidget {
     super.key,
     required this.backend,
     required this.url,
+    required this.bucket,
+    required this.region,
+    required this.pathStyle,
+    required this.onPathStyleChanged,
     required this.username,
     required this.secret,
     required this.owner,
@@ -28,6 +32,10 @@ class CloudSyncSetupConfiguration extends StatelessWidget {
 
   final CloudSyncBackendKind backend;
   final TextEditingController url;
+  final TextEditingController bucket;
+  final TextEditingController region;
+  final bool pathStyle;
+  final ValueChanged<bool> onPathStyleChanged;
   final TextEditingController username;
   final TextEditingController secret;
   final TextEditingController owner;
@@ -58,6 +66,7 @@ class CloudSyncSetupConfiguration extends StatelessWidget {
             runSpacing: 8,
             children: [
               _destinationChip(CloudSyncBackendKind.webDav, 'WebDAV'),
+              _destinationChip(CloudSyncBackendKind.s3, 'S3'),
               _destinationChip(CloudSyncBackendKind.github, 'GitHub'),
               Tooltip(
                 message: context.l10n.cloudSync_googleDriveUnavailable,
@@ -76,26 +85,48 @@ class CloudSyncSetupConfiguration extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 20),
-        if (backend == CloudSyncBackendKind.webDav) ...[
+        if (backend == CloudSyncBackendKind.webDav ||
+            backend == CloudSyncBackendKind.s3) ...[
           _fieldGrid([
             CloudSyncField(
               controller: url,
-              label: context.l10n.cloudSync_webDavUrl,
+              label: backend == CloudSyncBackendKind.s3
+                  ? context.l10n.cloudSync_s3Endpoint
+                  : context.l10n.cloudSync_webDavUrl,
               keyboardType: TextInputType.url,
               textInputAction: TextInputAction.next,
             ),
             CloudSyncField(
               controller: username,
-              label: context.l10n.cloudSync_username,
+              label: backend == CloudSyncBackendKind.s3
+                  ? 'AccessKey'
+                  : context.l10n.cloudSync_username,
               textInputAction: TextInputAction.next,
             ),
             CloudSyncField(
               controller: secret,
-              label: context.l10n.cloudSync_password,
+              label: backend == CloudSyncBackendKind.s3
+                  ? 'SecretKey'
+                  : context.l10n.cloudSync_password,
               obscureText: true,
               textInputAction: TextInputAction.done,
             ),
           ]),
+          if (backend == CloudSyncBackendKind.s3) ...[
+            const SizedBox(height: 12),
+            _fieldGrid([
+              CloudSyncField(
+                controller: bucket,
+                label: context.l10n.cloudSync_s3Bucket,
+              ),
+              CloudSyncField(
+                controller: region,
+                label: context.l10n.cloudSync_s3Region,
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Text(context.l10n.cloudSync_s3Description),
+          ],
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
             title: Text(context.l10n.cloudSync_advancedSettings),
@@ -105,6 +136,14 @@ class CloudSyncSetupConfiguration extends StatelessWidget {
                 label: context.l10n.cloudSync_remotePath,
                 textInputAction: TextInputAction.done,
               ),
+              if (backend == CloudSyncBackendKind.s3)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: pathStyle,
+                  onChanged: onPathStyleChanged,
+                  title: Text(context.l10n.cloudSync_s3PathStyle),
+                  subtitle: Text(context.l10n.cloudSync_s3PathStyleDescription),
+                ),
               SwitchListTile(
                 key: const ValueKey('cloud-sync-allow-insecure-http'),
                 contentPadding: EdgeInsets.zero,

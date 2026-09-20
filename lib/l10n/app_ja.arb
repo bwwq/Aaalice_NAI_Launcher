@@ -7009,5 +7009,11 @@
   "cloudSync_imageBackupSummary": "お気に入り原画像：{count} 枚、{size} MiB。圧縮前の追加アップロード見込み：{upload} MiB。",
   "cloudSync_imageRestoreSummary": "画像の復元：新規 {added} 枚、再利用 {reused} 枚、同名で両方保持 {conflicts} 枚。",
   "@cloudSync_imageBackupSummary": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}, "upload": {"type": "String"}}},
-  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}}
+  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}},
+  "cloudSync_s3Endpoint": "S3 エンドポイント",
+  "cloudSync_s3Bucket": "バケット",
+  "cloudSync_s3Region": "リージョン",
+  "cloudSync_s3Description": "手動バックアップです。複数の端末から同時に書き込まないでください。古いバックアップはストレージ側で削除します。",
+  "cloudSync_s3PathStyle": "パス形式のアドレスを使用",
+  "cloudSync_s3PathStyleDescription": "多くの自前サービスに対応します。オフにすると「バケット.エンドポイント」形式を使用します。"
 }
