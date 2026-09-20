@@ -9,6 +9,31 @@ import 'package:nai_launcher/presentation/providers/cloud_sync/cloud_sync_ui_pro
 import 'package:nai_launcher/presentation/screens/cloud_sync/cloud_sync_backup_browser.dart';
 
 void main() {
+  testWidgets('browsing offers a separate preparation step and stays open', (
+    tester,
+  ) async {
+    final port = _Port();
+    await tester.pumpWidget(_subject(port, browsing: true));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('恢复到本机'), findsNothing);
+    final list = find
+        .descendant(
+          of: find.byKey(const ValueKey('backup-browser-list')),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await _reveal(tester, find.text('检查恢复影响'), list);
+    await tester.tap(find.text('检查恢复影响'));
+    await tester.pumpAndSettle();
+    expect(
+      port.restores,
+      1,
+    ); // The port advances preparation; the browser does not dismiss.
+    expect(find.text('备份内容'), findsOneWidget);
+    expect(port.cancels, 0);
+  });
+
   testWidgets('viewing a backup opens contents; closing never restores', (
     tester,
   ) async {
@@ -76,7 +101,7 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('加载中...'), findsOneWidget);
+    expect(find.text('正在读取备份目录…'), findsOneWidget);
     await tester.tap(find.text('关闭'));
     port.pending!.complete();
     await tester.pumpAndSettle();
@@ -85,57 +110,63 @@ void main() {
   });
 }
 
-Widget _subject(_Port port, {double scale = 1}) => ProviderScope(
-  overrides: [
-    cloudSyncUiPortProvider.overrideWithValue(port),
-    cloudSyncUiStateProvider.overrideWithValue(
-      const CloudSyncUiState(
-        pendingPreview: CloudSyncPreviewView(
-          snapshotId: 'old',
-          isRestore: true,
-          changes: [],
-          images: BackupImagePreview(count: 1, originalBytes: 1024, added: 1),
-          contents: [
-            BackupContentItem(
-              group: 'gallery-favorite-images',
-              title: 'garden.png',
-              text: 'flower, blue',
-              bytes: 1024,
+Widget _subject(_Port port, {double scale = 1, bool browsing = false}) =>
+    ProviderScope(
+      overrides: [
+        cloudSyncUiPortProvider.overrideWithValue(port),
+        cloudSyncUiStateProvider.overrideWithValue(
+          CloudSyncUiState(
+            pendingPreview: CloudSyncPreviewView(
+              snapshotId: 'old',
+              isBrowse: browsing,
+              isRestore: true,
+              changes: [],
+              images: const BackupImagePreview(
+                count: 1,
+                originalBytes: 1024,
+                added: 1,
+              ),
+              contents: const [
+                BackupContentItem(
+                  group: 'gallery-favorite-images',
+                  title: 'garden.png',
+                  text: 'flower, blue',
+                  bytes: 1024,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
-  ],
-  child: MaterialApp(
-    locale: const Locale('zh'),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.linear(scale)),
-      child: child!,
-    ),
-    home: Scaffold(
-      body: Builder(
-        builder: (context) => TextButton(
-          child: const Text('open'),
-          onPressed: () => showCloudSyncBackupBrowser(
-            context: context,
-            port: port,
-            snapshot: CloudSyncSnapshotView(
-              id: 'old',
-              createdAt: DateTime(2026, 9, 19),
-              objectCount: 1,
-              encrypted: true,
+      ],
+      child: MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(scale)),
+          child: child!,
+        ),
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              child: const Text('open'),
+              onPressed: () => showCloudSyncBackupBrowser(
+                context: context,
+                port: port,
+                snapshot: CloudSyncSnapshotView(
+                  id: 'old',
+                  createdAt: DateTime(2026, 9, 19),
+                  objectCount: 1,
+                  encrypted: true,
+                ),
+              ),
             ),
           ),
         ),
       ),
-    ),
-  ),
-);
+    );
 
 class _Port implements CloudSyncUiPort {
   int previews = 0, restores = 0, cancels = 0;

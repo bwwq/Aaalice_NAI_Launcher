@@ -1,3 +1,4 @@
+import '../../../core/cloud_sync/operation.dart';
 import '../../../core/cloud_sync/encrypted_cloud_sync_backend.dart';
 import '../../../core/cloud_sync/backend/cloud_sync_backend.dart';
 import '../../../core/cloud_sync/cloud_drive_provider.dart';
@@ -79,7 +80,11 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
   final CloudSyncConflictSelections _conflictSelections =
       CloudSyncConflictSelections();
 
-  void dispose() {}
+  OperationToken? _browseOperation;
+
+  void dispose() {
+    _browseOperation?.cancel();
+  }
 
   Future<void> initialize() async {
     if (_state.deviceName != null) return;
@@ -462,6 +467,8 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
 
   @override
   Future<void> cancel() async {
+    _browseOperation?.cancel();
+    _browseOperation = null;
     _gate.operation?.cancel();
     if (_gate.operation == null) {
       _set(_state.copyWith(clearPendingPreview: true));
@@ -484,9 +491,15 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
   Future<void> previewRestoreSnapshot(String snapshotId) async {
     _state.ensureRestoreAvailable();
     _state.ensureNoPendingPreview();
-    return _gate.run(
-      (operation) => _operations.previewRestore(snapshotId, operation),
-    );
+    return _gate.run((operation) {
+      _browseOperation?.cancel();
+      _browseOperation = operation;
+      return _operations.previewRestore(
+        snapshotId,
+        operation,
+        contentsOnly: true,
+      );
+    });
   }
 
   @override
@@ -498,9 +511,14 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
         StateError('No restore preview is awaiting confirmation.'),
       );
     }
-    return _gate.run(
-      (operation) => _operations.restore(preview.snapshotId!, operation),
-    );
+    return _gate.run((operation) {
+      if (preview.isBrowse) {
+        _browseOperation?.cancel();
+        _browseOperation = null;
+        return _operations.previewRestore(preview.snapshotId!, operation);
+      }
+      return _operations.restore(preview.snapshotId!, operation);
+    });
   }
 
   @override
@@ -591,6 +609,8 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
   }
 
   Future<void> _clearConnection() async {
+    _browseOperation?.cancel();
+    _browseOperation = null;
     final persisted = await _connectionStore.load();
     Object? cleanupError;
     StackTrace? cleanupStack;

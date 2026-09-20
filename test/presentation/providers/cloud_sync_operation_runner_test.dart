@@ -7,6 +7,29 @@ import 'package:nai_launcher/presentation/providers/cloud_sync/cloud_sync_operat
 import 'package:nai_launcher/presentation/providers/cloud_sync/cloud_sync_ui_provider.dart';
 
 void main() {
+  test('browse and full restore preparation are separate operations', () async {
+    final coordinator = _PreviewCoordinator();
+    var state = const CloudSyncUiState();
+    final runner = CloudSyncOperationRunner(
+      coordinator: () => coordinator,
+      readState: () => state,
+      writeState: (value) => state = value,
+      recordError: (_, {bool resetActivity = false}) {},
+      readPendingFfdkjIntent: () => false,
+      persistSyncState: (_, __) async {},
+    );
+    await runner.previewRestore('old', OperationToken(), contentsOnly: true);
+    expect(coordinator.browseCalls, 1);
+    expect(coordinator.prepareCalls, 0);
+    expect(state.pendingPreview!.isBrowse, isTrue);
+    coordinator.result.complete(
+      const RestorePreview(snapshotId: 'old', changes: []),
+    );
+    await runner.previewRestore('old', OperationToken());
+    expect(coordinator.prepareCalls, 1);
+    expect(state.pendingPreview!.isBrowse, isFalse);
+  });
+
   test(
     'cancelled preview does not publish old contents or report an error',
     () async {
@@ -77,10 +100,24 @@ class _PreviewCoordinator extends SyncCoordinator {
         journalStore: _Journal(),
       );
   final result = Completer<RestorePreview>();
+  int browseCalls = 0, prepareCalls = 0;
+  @override
+  Future<RestorePreview> browseBackup(
+    String snapshotId, {
+    OperationToken? token,
+    SyncProgressCallback? onProgress,
+  }) async {
+    browseCalls++;
+    return RestorePreview(snapshotId: snapshotId, changes: const []);
+  }
+
   @override
   Future<RestorePreview> previewRestore(
     String snapshotId, {
     OperationToken? token,
     SyncProgressCallback? onProgress,
-  }) => result.future;
+  }) {
+    prepareCalls++;
+    return result.future;
+  }
 }

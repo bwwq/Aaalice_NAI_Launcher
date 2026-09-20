@@ -49,6 +49,113 @@ class CloudSnapshotTransfer {
     return _decodeAndDownload(snapshotId, read.bytes, token, onProgress);
   }
 
+  /// Read the metadata already committed with the snapshot. Original resources
+  /// remain lazy and are fetched only when a content viewer opens them.
+  Future<CloudSyncSnapshotData> browseId(
+    String snapshotId,
+    OperationToken token,
+    SyncProgressCallback? onProgress,
+  ) async {
+    await token.checkpoint();
+    final read = await backend.readSnapshotManifest(snapshotId);
+    if (read == null) {
+      throw const CloudFormatException('snapshot manifest is missing');
+    }
+    final manifest = SnapshotManifest.decode(read.bytes);
+    if (manifest.snapshotId != snapshotId) {
+      throw const CloudFormatException('snapshot manifest identity mismatch');
+    }
+    return browseManifest(manifest, token, onProgress);
+  }
+
+  Future<CloudSyncSnapshotData> browseManifest(
+    SnapshotManifest manifest,
+    OperationToken token,
+    SyncProgressCallback? onProgress,
+  ) async {
+    final requiredIds = {
+      for (final ref in manifest.records)
+        if (!ref.deleted && ref.kind == 'metadata') ref.objectId!,
+    };
+    final selectedPacks = <String, List<String>>{};
+    for (final pack in manifest.packs.entries) {
+      if (pack.value.any(requiredIds.contains)) {
+        selectedPacks[pack.key] = pack.value;
+        requiredIds.addAll(pack.value);
+      }
+    }
+    final metadata = await downloadManifest(
+      SnapshotManifest(
+        snapshotId: manifest.snapshotId,
+        createdAt: manifest.createdAt,
+        version: manifest.version,
+        packs: selectedPacks,
+        records: manifest.records
+            .where((ref) => ref.deleted || requiredIds.contains(ref.objectId))
+            .toList(),
+      ),
+      token,
+      onProgress,
+    );
+    final sizes = {
+      for (final ref in manifest.records)
+        if (!ref.deleted) ref.objectId!: ref.size!,
+    };
+    final packByMember = {
+      for (final pack in manifest.packs.entries)
+        for (final id in pack.value) id: pack.key,
+    };
+    return CloudSyncSnapshotData([
+      for (final ref in manifest.records)
+        if (metadata.records.containsKey(ref.recordId))
+          metadata.records[ref.recordId]!
+        else
+          CloudSyncRecord(
+            id: ref.recordId,
+            kind: ref.kind,
+            binary: ref.binary,
+            deleted: false,
+            payload: CloudSyncPayload(
+              length: ref.size!,
+              sha256: ref.objectId!,
+              openRead: () async* {
+                final bytes = await token.runInScope(() async {
+                  await token.checkpoint();
+                  final packId = packByMember[ref.objectId];
+                  final id = packId ?? ref.objectId!;
+                  final size = packId == null
+                      ? ref.size!
+                      : manifest.packs[packId]!.fold<int>(
+                          0,
+                          (sum, member) => sum + sizes[member]!,
+                        );
+                  final object = await _readObject(id, size);
+                  await token.checkpoint();
+                  final bytes =
+                      object.bytes ?? await object.payload!.readBytes();
+                  if (packId == null) return bytes;
+                  var offset = 0;
+                  for (final member in manifest.packs[packId]!) {
+                    if (member == ref.objectId) {
+                      return Uint8List.sublistView(
+                        bytes,
+                        offset,
+                        offset + ref.size!,
+                      );
+                    }
+                    offset += sizes[member]!;
+                  }
+                  throw const CloudFormatException(
+                    'packed resource is missing',
+                  );
+                });
+                yield bytes;
+              },
+            ),
+          ),
+    ]);
+  }
+
   Future<CloudSyncSnapshotData> downloadManifest(
     SnapshotManifest manifest,
     OperationToken token,

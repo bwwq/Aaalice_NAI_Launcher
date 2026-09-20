@@ -66,6 +66,7 @@ class CloudSyncPreviewView {
     required this.changes,
     this.snapshotId,
     this.isRestore = false,
+    this.isBrowse = false,
     this.isUpload = false,
     this.images,
     this.contents = const [],
@@ -73,6 +74,7 @@ class CloudSyncPreviewView {
 
   final String? snapshotId;
   final bool isRestore;
+  final bool isBrowse;
   final bool isUpload;
   final BackupImagePreview? images;
   final List<BackupContentItem> contents;

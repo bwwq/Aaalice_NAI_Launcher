@@ -7031,4 +7031,8 @@
   "cloudSync_viewBackupImage": "View image"
 ,
   "cloudSync_backupImageUnavailable": "Image preview unavailable"
+,
+  "cloudSync_prepareRestore": "Review restore changes",
+  "cloudSync_prepareRestoreDescription": "Viewing reads only the backup index. Reviewing restore changes reads the complete backup and may take time. Restoring requires another confirmation.",
+  "cloudSync_loadingBackupIndex": "Reading backup index…"
 }

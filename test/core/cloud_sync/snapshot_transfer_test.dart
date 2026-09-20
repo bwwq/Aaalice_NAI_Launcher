@@ -11,6 +11,82 @@ import 'package:nai_launcher/core/cloud_sync/snapshot_transfer.dart';
 import 'coordinator_test_backend.dart';
 
 void main() {
+  for (final version in [2, 3, 4]) {
+    test(
+      'browse schema $version reads metadata only and loads original on demand',
+      () async {
+        final backend = _ConcurrentReadBackend();
+        final one = Uint8List.fromList([1]);
+        final two = Uint8List.fromList([2]);
+        final original = Uint8List(2 * 1024 * 1024)..[0] = 7;
+        final oneId = sha256.convert(one).toString();
+        final twoId = sha256.convert(two).toString();
+        final imageId = sha256.convert(original).toString();
+        final pack = Uint8List.fromList([...one, ...two]);
+        final packId = sha256.convert(pack).toString();
+        for (final bytes in [one, two, original, pack]) {
+          backend.objects[sha256.convert(bytes).toString()] = CloudObjectRead(
+            bytes: bytes,
+            revision: 'r',
+          );
+        }
+        final manifest = SnapshotManifest(
+          version: version,
+          snapshotId: 'old',
+          createdAt: DateTime.utc(2026),
+          records: [
+            SnapshotRecordRef(
+              recordId: 'a',
+              kind: 'metadata',
+              binary: true,
+              deleted: false,
+              objectId: oneId,
+              size: 1,
+            ),
+            SnapshotRecordRef(
+              recordId: 'b',
+              kind: 'metadata',
+              binary: false,
+              deleted: false,
+              objectId: twoId,
+              size: 1,
+            ),
+            SnapshotRecordRef(
+              recordId: 'c',
+              kind: 'resource',
+              binary: true,
+              deleted: false,
+              objectId: imageId,
+              size: original.length,
+            ),
+          ],
+          packs: version == 2
+              ? {}
+              : {
+                  packId: [oneId, twoId],
+                },
+        );
+        final transfer = CloudSnapshotTransfer(
+          backend: backend,
+          dataSource: _NoopSource(),
+        );
+        final token = OperationToken();
+        final snapshot = await transfer.browseManifest(manifest, token, null);
+        expect(backend.readCalls, version == 2 ? 2 : 1);
+        expect(await snapshot.records['a']!.readBytes(), one);
+        expect(await snapshot.records['c']!.readBytes(), original);
+        expect(backend.readCalls, version == 2 ? 3 : 2);
+        final reads = backend.readCalls;
+        token.cancel();
+        await expectLater(
+          snapshot.records['c']!.readBytes(),
+          throwsA(isA<OperationCancelledException>()),
+        );
+        expect(backend.readCalls, reads);
+      },
+    );
+  }
+
   test(
     'unique objects download concurrently and rebuild manifest order',
     () async {

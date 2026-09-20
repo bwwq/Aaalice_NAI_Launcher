@@ -1,3 +1,7 @@
+import 'dart:math';
+import 'package:nai_launcher/core/cloud_sync/backend/cloud_sync_backend.dart';
+import 'package:nai_launcher/core/cloud_sync/encrypted_backup_cache.dart';
+import 'package:nai_launcher/core/cloud_sync/encrypted_cloud_sync_backend.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -23,6 +27,71 @@ void main() {
   tearDown(() async {
     if (await root.exists()) await root.delete(recursive: true);
   });
+
+  test(
+    'fresh device browses encrypted metadata without original downloads',
+    () async {
+      final remote = _CountingRemote();
+      final legacy = CoordinatorTestBackend();
+      EncryptedCloudSyncBackend client(String name) =>
+          EncryptedCloudSyncBackend(
+            current: remote,
+            legacy: legacy,
+            cache: EncryptedBackupCache(Directory('${root.path}/cipher-$name')),
+          );
+      final adapter = _Adapter('gallery-favorite-images');
+      final random = Random(17);
+      final original = Uint8List.fromList(
+        List.generate(2 * 1024 * 1024, (_) => random.nextInt(256)),
+      );
+      adapter.exported = [
+        PortableSyncRecord(
+          adapterId: adapter.id,
+          id: 'image',
+          kind: 'item',
+          data: {
+            'relativePath': 'garden.png',
+            'tags': ['flower'],
+          },
+          resource: PortableSyncResource(
+            relativePath: 'original.png',
+            length: original.length,
+            openRead: () => Stream.value(original),
+          ),
+        ),
+      ];
+      final writer = AppCloudSyncDataSource(
+        registry: CloudSyncDataAdapterRegistry([adapter]),
+        root: Directory('${root.path}/writer'),
+      );
+      final uploaded = await SyncCoordinator(
+        backend: client('writer'),
+        dataSource: writer,
+        journalStore: JournalStore(File('${root.path}/writer-journal.json')),
+      ).uploadLocal();
+      final freshAdapter = _Adapter('gallery-favorite-images');
+      final reader = AppCloudSyncDataSource(
+        registry: CloudSyncDataAdapterRegistry([freshAdapter]),
+        root: Directory('${root.path}/reader'),
+      );
+      final coordinator = SyncCoordinator(
+        backend: client('reader'),
+        dataSource: reader,
+        journalStore: JournalStore(File('${root.path}/reader-journal.json')),
+      );
+      remote.readBytesCount = 0;
+      final preview = await coordinator.browseBackup(uploaded.snapshotId);
+      expect(preview.contents.single.title, 'garden.png');
+      expect(preview.images!.originalBytes, original.length);
+      expect(freshAdapter.exportCalls, 0);
+      expect(freshAdapter.applyCalls, 0);
+      expect(remote.readBytesCount, lessThan(64 * 1024));
+      final before = remote.readBytesCount;
+      expect(await preview.contents.single.readImage!(), original);
+      expect(remote.readBytesCount, greaterThan(before));
+      expect(freshAdapter.exportCalls, 0);
+    },
+  );
 
   test(
     'backup content preview exposes names, prompts and original bytes without applying',
@@ -1199,3 +1268,13 @@ CloudSyncSnapshotData _replaceMetadata(
           )
         : record,
 ]);
+
+class _CountingRemote extends CoordinatorTestBackend {
+  int readBytesCount = 0;
+  @override
+  Future<CloudObjectRead?> readObject(String id) async {
+    final result = await super.readObject(id);
+    readBytesCount += result?.bytes.length ?? 0;
+    return result;
+  }
+}

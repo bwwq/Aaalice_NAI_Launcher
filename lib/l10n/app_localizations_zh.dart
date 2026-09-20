@@ -14704,6 +14704,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cloudSync_backupImageUnavailable => '图片预览不可用';
+
+  @override
+  String get cloudSync_prepareRestore => '检查恢复影响';
+
+  @override
+  String get cloudSync_prepareRestoreDescription =>
+      '查看只读取备份目录。检查恢复影响需要读取完整备份，耗时取决于备份大小；检查后再次确认才会恢复。';
+
+  @override
+  String get cloudSync_loadingBackupIndex => '正在读取备份目录…';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -29407,4 +29417,14 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get cloudSync_backupImageUnavailable => '圖片預覽無法使用';
+
+  @override
+  String get cloudSync_prepareRestore => '檢查恢復影響';
+
+  @override
+  String get cloudSync_prepareRestoreDescription =>
+      '查看只讀取備份目錄。檢查恢復影響需要讀取完整備份，耗時取決於備份大小；檢查後再次確認才會恢復。';
+
+  @override
+  String get cloudSync_loadingBackupIndex => '正在讀取備份目錄…';
 }

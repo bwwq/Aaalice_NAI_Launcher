@@ -15382,4 +15382,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cloudSync_backupImageUnavailable => 'Image preview unavailable';
+
+  @override
+  String get cloudSync_prepareRestore => 'Review restore changes';
+
+  @override
+  String get cloudSync_prepareRestoreDescription =>
+      'Viewing reads only the backup index. Reviewing restore changes reads the complete backup and may take time. Restoring requires another confirmation.';
+
+  @override
+  String get cloudSync_loadingBackupIndex => 'Reading backup index…';
 }

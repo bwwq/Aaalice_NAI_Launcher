@@ -26772,6 +26772,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Image preview unavailable'**
   String get cloudSync_backupImageUnavailable;
+
+  /// No description provided for @cloudSync_prepareRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Review restore changes'**
+  String get cloudSync_prepareRestore;
+
+  /// No description provided for @cloudSync_prepareRestoreDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewing reads only the backup index. Reviewing restore changes reads the complete backup and may take time. Restoring requires another confirmation.'**
+  String get cloudSync_prepareRestoreDescription;
+
+  /// No description provided for @cloudSync_loadingBackupIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading backup index…'**
+  String get cloudSync_loadingBackupIndex;
 }
 
 class _AppLocalizationsDelegate

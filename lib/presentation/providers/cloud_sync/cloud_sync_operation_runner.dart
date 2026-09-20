@@ -226,19 +226,28 @@ class CloudSyncOperationRunner {
 
   Future<void> previewRestore(
     String snapshotId,
-    OperationToken operation,
-  ) async {
-    readState().ensureNoPendingPreview();
+    OperationToken operation, {
+    bool contentsOnly = false,
+  }) async {
+    final pending = readState().pendingPreview;
+    if (contentsOnly ||
+        pending?.isBrowse != true ||
+        pending?.snapshotId != snapshotId) {
+      readState().ensureNoPendingPreview();
+    }
     final coordinator = _requireCoordinator();
     _start(clearError: false);
     try {
       final preview = await _trace(
         'previewRestore',
-        () => coordinator.previewRestore(
-          snapshotId,
-          token: operation,
-          onProgress: _updateProgress,
-        ),
+        () =>
+            (contentsOnly
+            ? coordinator.browseBackup
+            : coordinator.previewRestore)(
+              snapshotId,
+              token: operation,
+              onProgress: _updateProgress,
+            ),
       );
       final counts = <CloudSyncDataKind, List<int>>{};
       for (final change in preview.changes) {
@@ -255,6 +264,7 @@ class CloudSyncOperationRunner {
           pendingPreview: CloudSyncPreviewView(
             snapshotId: snapshotId,
             isRestore: true,
+            isBrowse: contentsOnly,
             images: preview.images,
             contents: preview.contents,
             changes: [

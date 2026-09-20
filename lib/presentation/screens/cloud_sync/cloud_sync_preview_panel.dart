@@ -27,7 +27,9 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
           : preview.isRestore
           ? context.l10n.cloudSync_restorePreviewTitle
           : context.l10n.cloudSync_mergePreviewTitle,
-      subtitle: preview.isUpload
+      subtitle: preview.isBrowse
+          ? context.l10n.cloudSync_prepareRestoreDescription
+          : preview.isUpload
           ? context.l10n.cloudSync_encryptedDescription
           : preview.isRestore
           ? context.l10n.cloudSync_restorePreviewDescription
@@ -35,6 +37,11 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (state.isBusy) ...[
+            const LinearProgressIndicator(),
+            Text(context.l10n.common_loading),
+            const SizedBox(height: 12),
+          ],
           if (preview.images case final images?) ...[
             Text(
               preview.isRestore
@@ -47,7 +54,7 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
                       ),
                     ),
             ),
-            if (preview.isRestore)
+            if (preview.isRestore && !preview.isBrowse)
               Text(
                 context.l10n.cloudSync_imageRestoreSummary(
                   images.added,
@@ -57,7 +64,7 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
               ),
             const SizedBox(height: 12),
           ],
-          if (preview.isRestore) ...[
+          if (preview.isRestore && !preview.isBrowse) ...[
             Text(context.l10n.cloudSync_localRestoreDescription),
             const SizedBox(height: 12),
           ],
@@ -72,7 +79,7 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
           ],
-          if (preview.changes.isEmpty && !preview.isUpload)
+          if (preview.changes.isEmpty && !preview.isUpload && !preview.isBrowse)
             Text(context.l10n.cloudSync_previewNoChanges)
           else
             for (final row in preview.changes)
@@ -119,7 +126,9 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
                 preview.isRestore ? Icons.restore : Icons.merge_outlined,
               ),
               label: Text(
-                preview.isUpload
+                preview.isBrowse
+                    ? context.l10n.cloudSync_prepareRestore
+                    : preview.isUpload
                     ? context.l10n.cloudSync_confirmUpload
                     : preview.isRestore
                     ? context.l10n.cloudSync_confirmRestore

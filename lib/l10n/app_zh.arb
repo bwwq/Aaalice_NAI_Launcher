@@ -7100,4 +7100,8 @@
   "cloudSync_viewBackupImage": "查看图片"
 ,
   "cloudSync_backupImageUnavailable": "图片预览不可用"
+,
+  "cloudSync_prepareRestore": "检查恢复影响",
+  "cloudSync_prepareRestoreDescription": "查看只读取备份目录。检查恢复影响需要读取完整备份，耗时取决于备份大小；检查后再次确认才会恢复。",
+  "cloudSync_loadingBackupIndex": "正在读取备份目录…"
 }

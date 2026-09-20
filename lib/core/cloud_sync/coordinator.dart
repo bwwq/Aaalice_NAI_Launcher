@@ -276,6 +276,41 @@ class SyncCoordinator {
     return entries;
   }
 
+  Future<RestorePreview> browseBackup(
+    String snapshotId, {
+    OperationToken? token,
+    SyncProgressCallback? onProgress,
+  }) async {
+    final operation = token ?? OperationToken();
+    return operation.runInScope(() async {
+      final snapshot = await _transfer.browseId(
+        snapshotId,
+        operation,
+        onProgress,
+      );
+      final contents = dataSource is CloudBackupContentPreviewSource
+          ? await (dataSource as CloudBackupContentPreviewSource)
+                .previewContents(snapshot)
+          : <BackupContentItem>[];
+      await operation.checkpoint();
+      final images = contents
+          .where((item) => item.group == 'gallery-favorite-images')
+          .toList();
+      return RestorePreview(
+        snapshotId: snapshotId,
+        changes: const [],
+        contents: contents,
+        images: BackupImagePreview(
+          count: images.length,
+          originalBytes: images.fold<int>(
+            0,
+            (sum, item) => sum + (item.bytes ?? 0),
+          ),
+        ),
+      );
+    });
+  }
+
   Future<RestorePreview> previewRestore(
     String snapshotId, {
     OperationToken? token,

@@ -15,6 +15,25 @@ import 'coordinator_test_backend.dart';
 
 void main() {
   test(
+    'browsing does not capture local data or create restore journals',
+    () async {
+      final fixture = await _Fixture.create();
+      addTearDown(fixture.dispose);
+      final uploaded = await fixture.coordinator.uploadLocal();
+      final captures = fixture.source.captureCount;
+      final objectReads = fixture.backend.objectReads;
+      final preview = await fixture.coordinator.browseBackup(
+        uploaded.snapshotId,
+      );
+      expect(preview.snapshotId, uploaded.snapshotId);
+      expect(preview.changes, isEmpty);
+      expect(fixture.source.captureCount, captures);
+      expect(fixture.source.restorePreviews, isEmpty);
+      expect(fixture.backend.objectReads, objectReads);
+    },
+  );
+
+  test(
     'local history restore leaves the cloud HEAD and history untouched',
     () async {
       final fixture = await _Fixture.create();

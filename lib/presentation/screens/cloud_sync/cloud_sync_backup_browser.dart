@@ -63,13 +63,15 @@ class _BrowserState extends ConsumerState<CloudSyncBackupBrowser> {
   String? _restoreError;
 
   Future<void> _restore() async {
+    final browsing =
+        ref.read(cloudSyncUiStateProvider).pendingPreview?.isBrowse == true;
     setState(() {
-      _restoring = true;
+      _restoring = !browsing;
       _restoreError = null;
     });
     try {
       await widget.port.confirmRestoreSnapshot();
-      if (mounted) Navigator.of(context).pop();
+      if (mounted && !browsing) Navigator.of(context).pop();
     } catch (error) {
       if (mounted) setState(() => _restoreError = cloudSyncErrorMessage(error));
     } finally {
@@ -138,7 +140,7 @@ class _BrowserState extends ConsumerState<CloudSyncBackupBrowser> {
                     const SizedBox(height: 12),
                     if (result.connectionState != ConnectionState.done) ...[
                       const LinearProgressIndicator(),
-                      Text(context.l10n.common_loading),
+                      Text(context.l10n.cloudSync_loadingBackupIndex),
                     ] else if (result.data != null)
                       Text(localizeCloudSyncError(context, state.error ?? '')),
                     if (!ready && _restoreError != null)

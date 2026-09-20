@@ -14973,4 +14973,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get cloudSync_backupImageUnavailable => '画像をプレビューできません';
+
+  @override
+  String get cloudSync_prepareRestore => '復元の影響を確認';
+
+  @override
+  String get cloudSync_prepareRestoreDescription =>
+      '閲覧時はバックアップの目録のみ読み込みます。復元の影響を確認する際に全データを読み込むため、サイズに応じて時間がかかります。復元には再度確認が必要です。';
+
+  @override
+  String get cloudSync_loadingBackupIndex => 'バックアップの目録を読み込み中…';
 }
