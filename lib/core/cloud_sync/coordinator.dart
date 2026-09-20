@@ -1,3 +1,4 @@
+import 'backup_content_preview.dart';
 import 'backup_image_preview.dart';
 import 'dart:convert';
 import 'dart:math';
@@ -338,6 +339,10 @@ class SyncCoordinator {
       }
     }
     return RestorePreview(
+      contents: dataSource is CloudBackupContentPreviewSource
+          ? await (dataSource as CloudBackupContentPreviewSource)
+                .previewContents(target)
+          : const [],
       snapshotId: snapshotId,
       changes: changes,
       images: dataSource is CloudBackupImagePreviewSource

@@ -6566,9 +6566,9 @@
   "cloudSync_noSnapshots": "还没有可恢复的备份。",
   "cloudSync_backupItemCount": "包含 {count} 项内容",
   "@cloudSync_backupItemCount": {"placeholders":{"count":{"type":"int"}}},
-  "cloudSync_previewRestore": "查看并恢复",
+  "cloudSync_previewRestore": "查看备份",
   "cloudSync_restorePreviewTitle": "恢复前确认",
-  "cloudSync_restorePreviewDescription": "检查恢复后会新增、更新或删除哪些内容。确认前不会修改当前数据。",
+  "cloudSync_restorePreviewDescription": "此处仅查看备份。选择“恢复到本机”后才会修改本地数据。",
   "cloudSync_mergePreviewTitle": "合并内容确认",
   "cloudSync_mergePreviewDescription": "本机和云端的数据不同。请检查变化并选择要保留的内容。确认前不会修改数据。",
   "cloudSync_previewAwaitingConfirmation": "请先确认下方变化。",
@@ -6579,7 +6579,7 @@
   "@cloudSync_previewCounts": {"placeholders":{"added":{},"modified":{},"deleted":{}}},
   "cloudSync_previewNoChanges": "没有需要应用的变化。",
   "cloudSync_confirmMerge": "确认应用",
-  "cloudSync_confirmRestore": "确认恢复",
+  "cloudSync_confirmRestore": "恢复到本机",
   "cloudSync_ffdkjIntentTitle": "检测到词库设置",
   "cloudSync_ffdkjIntentDescription": "另一台设备安装了 ffdkj 中文词库。词库文件不会通过云端传输。",
   "cloudSync_ffdkjInstallWarning": "是否从 ffdkj 官方来源下载并安装中文词库？",
@@ -7090,4 +7090,14 @@
       }
     }
   }
+,
+  "cloudSync_backupContents": "备份内容"
+,
+  "cloudSync_searchBackupContents": "搜索文件名、提示词或标签"
+,
+  "cloudSync_noBackupContents": "没有匹配的内容"
+,
+  "cloudSync_viewBackupImage": "查看图片"
+,
+  "cloudSync_backupImageUnavailable": "图片预览不可用"
 }

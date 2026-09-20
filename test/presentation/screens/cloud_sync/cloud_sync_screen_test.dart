@@ -44,7 +44,7 @@ void main() {
       final delay = find.byKey(const ValueKey('backup-change-delay'));
       await tester.scrollUntilVisible(delay, 200, scrollable: _pageScrollable);
       expect(delay, findsOneWidget);
-      final restore = find.widgetWithText(TextButton, '查看并恢复');
+      final restore = find.widgetWithText(TextButton, '查看备份');
       await tester.scrollUntilVisible(
         restore,
         300,
@@ -596,7 +596,7 @@ void main() {
     expect(find.text('已连接'), findsNothing);
     expect(find.textContaining('词库文件不会通过云端传输'), findsOneWidget);
     final restorePreview = tester.widget<TextButton>(
-      find.widgetWithText(TextButton, '查看并恢复'),
+      find.widgetWithText(TextButton, '查看备份'),
     );
     expect(restorePreview.onPressed, isNull);
     final confirm = find.byKey(const ValueKey('cloud-sync-confirm-preview'));
@@ -686,7 +686,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       tester
-          .widget<TextButton>(find.widgetWithText(TextButton, '查看并恢复'))
+          .widget<TextButton>(find.widgetWithText(TextButton, '查看备份'))
           .onPressed,
       isNotNull,
     );

@@ -1,3 +1,4 @@
+import 'backup_content_preview.dart';
 import 'backup_image_preview.dart';
 import 'data_source.dart';
 import 'merge.dart';
@@ -50,7 +51,9 @@ class RestorePreview {
     required this.snapshotId,
     required this.changes,
     this.images,
+    this.contents = const [],
   });
+  final List<BackupContentItem> contents;
   final BackupImagePreview? images;
   final String snapshotId;
   final List<SnapshotChange> changes;

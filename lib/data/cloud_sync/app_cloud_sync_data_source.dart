@@ -1,3 +1,4 @@
+import '../../core/cloud_sync/backup_content_preview.dart';
 import '../../core/cloud_sync/backup_image_preview.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -20,6 +21,7 @@ class AppCloudSyncDataSource
     implements
         CloudSyncDataSource,
         CloudBackupImagePreviewSource,
+        CloudBackupContentPreviewSource,
         CloudSyncPayloadMaterializer,
         CloudSyncLocalPayloadResolver,
         CloudSyncPreviewStore,
@@ -94,6 +96,77 @@ class AppCloudSyncDataSource
           .toList(),
       estimate,
     );
+  }
+
+  @override
+  Future<List<BackupContentItem>> previewContents(
+    CloudSyncSnapshotData snapshot,
+  ) async {
+    final decoded = await _decodeSnapshot(snapshot);
+    final items = <BackupContentItem>[];
+    for (final record in decoded.records.values.where(
+      (record) => !record.deleted,
+    )) {
+      var data = record.data;
+      for (final key in ['value', 'entry', 'category', 'record']) {
+        if (data[key] is Map) {
+          data = Map<String, Object?>.from(data[key] as Map);
+          break;
+        }
+      }
+      String textOf(Object? value) => value is String
+          ? value
+          : value is List
+          ? value.whereType<String>().join(', ')
+          : '';
+      final titles = [
+        'relativePath',
+        'name',
+        'title',
+        'tag',
+      ].map((key) => textOf(data[key])).where((v) => v.isNotEmpty);
+      final text = [
+        'value',
+        'customSystemPrompt',
+        'prompt',
+        'positivePrompt',
+        'negativePrompt',
+        'text',
+        'content',
+        'description',
+        'tags',
+      ].map((key) => textOf(data[key])).where((v) => v.isNotEmpty).join('\n');
+      final title = titles.isNotEmpty
+          ? titles.first
+          : (text.isEmpty ? '' : text.split('\n').first);
+      final resource = record.resource;
+      final isImage =
+          record.adapterId == 'gallery-favorite-images' &&
+          resource != null &&
+          resource.length <= 32 * 1024 * 1024;
+      items.add(
+        BackupContentItem(
+          group: record.adapterId,
+          title: title.length > 240 ? title.substring(0, 240) : title,
+          text: text.length > 8000 ? '${text.substring(0, 8000)}…' : text,
+          bytes: resource?.length,
+          readImage: !isImage
+              ? null
+              : () async {
+                  final bytes = BytesBuilder(copy: false);
+                  await for (final chunk in resource.openRead()) {
+                    bytes.add(chunk);
+                    if (bytes.length > 32 * 1024 * 1024)
+                      throw const FormatException(
+                        'Preview image is too large.',
+                      );
+                  }
+                  return bytes.takeBytes();
+                },
+        ),
+      );
+    }
+    return items;
   }
 
   Directory get _base => Directory('${_root.path}/base');

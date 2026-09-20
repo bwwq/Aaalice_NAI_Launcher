@@ -6,9 +6,16 @@ import '../../providers/cloud_sync/cloud_sync_ui_provider.dart';
 import 'cloud_sync_widgets.dart';
 
 class CloudSyncPreviewPanel extends ConsumerWidget {
-  const CloudSyncPreviewPanel({super.key, required this.state});
+  const CloudSyncPreviewPanel({
+    super.key,
+    required this.state,
+    this.onClose,
+    this.onRestore,
+  });
 
   final CloudSyncUiState state;
+  final Future<void> Function()? onClose;
+  final Future<void> Function()? onRestore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -84,7 +91,10 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
           TextButton(
             onPressed: state.isBusy
                 ? null
-                : () => _run(context, ref.read(cloudSyncUiPortProvider).cancel),
+                : () => _run(
+                    context,
+                    onClose ?? ref.read(cloudSyncUiPortProvider).cancel,
+                  ),
             child: Text(context.l10n.cloudSync_cancel),
           ),
           const SizedBox(height: 8),
@@ -97,9 +107,10 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
                   : () => _run(
                       context,
                       preview.isRestore
-                          ? ref
-                                .read(cloudSyncUiPortProvider)
-                                .confirmRestoreSnapshot
+                          ? onRestore ??
+                                ref
+                                    .read(cloudSyncUiPortProvider)
+                                    .confirmRestoreSnapshot
                           : ref
                                 .read(cloudSyncUiPortProvider)
                                 .applyPendingPreview,

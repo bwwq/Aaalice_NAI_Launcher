@@ -1,9 +1,44 @@
+import 'dart:async';
+import 'package:mocktail/mocktail.dart';
+import 'package:nai_launcher/core/cloud_sync/cloud_sync.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nai_launcher/core/cloud_sync/operation.dart';
+import 'package:nai_launcher/core/cloud_sync/backend/cloud_sync_backend.dart';
 import 'package:nai_launcher/presentation/providers/cloud_sync/cloud_sync_operation_runner.dart';
 import 'package:nai_launcher/presentation/providers/cloud_sync/cloud_sync_ui_provider.dart';
 
 void main() {
+  test(
+    'cancelled preview does not publish old contents or report an error',
+    () async {
+      final coordinator = _PreviewCoordinator();
+      var state = const CloudSyncUiState();
+      var errors = 0;
+      final runner = CloudSyncOperationRunner(
+        coordinator: () => coordinator,
+        readState: () => state,
+        writeState: (value) => state = value,
+        recordError: (_, {bool resetActivity = false}) {
+          errors++;
+        },
+        readPendingFfdkjIntent: () => false,
+        persistSyncState: (_, __) async {},
+      );
+      final token = OperationToken();
+      final pending = runner.previewRestore('old', token);
+      final expected = expectLater(
+        pending,
+        throwsA(isA<OperationCancelledException>()),
+      );
+      token.cancel();
+      coordinator.result.complete(
+        const RestorePreview(snapshotId: 'old', changes: []),
+      );
+      await expected;
+      expect(state.pendingPreview, isNull);
+      expect(state.activityStatus, CloudSyncActivityStatus.idle);
+      expect(errors, 0);
+    },
+  );
   test(
     'pending preview blocks every operation that could replace it',
     () async {
@@ -26,4 +61,26 @@ void main() {
       expect(state.pendingPreview, same(pending));
     },
   );
+}
+
+class _Backend extends Mock implements CloudSyncBackend {}
+
+class _Source extends Mock implements CloudSyncDataSource {}
+
+class _Journal extends Mock implements JournalStore {}
+
+class _PreviewCoordinator extends SyncCoordinator {
+  _PreviewCoordinator()
+    : super(
+        backend: _Backend(),
+        dataSource: _Source(),
+        journalStore: _Journal(),
+      );
+  final result = Completer<RestorePreview>();
+  @override
+  Future<RestorePreview> previewRestore(
+    String snapshotId, {
+    OperationToken? token,
+    SyncProgressCallback? onProgress,
+  }) => result.future;
 }

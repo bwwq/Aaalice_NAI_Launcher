@@ -23902,7 +23902,7 @@ abstract class AppLocalizations {
   /// No description provided for @cloudSync_previewRestore.
   ///
   /// In en, this message translates to:
-  /// **'Review and restore'**
+  /// **'View backup'**
   String get cloudSync_previewRestore;
 
   /// No description provided for @cloudSync_restorePreviewTitle.
@@ -23914,7 +23914,7 @@ abstract class AppLocalizations {
   /// No description provided for @cloudSync_restorePreviewDescription.
   ///
   /// In en, this message translates to:
-  /// **'Check what will be added, changed, or removed. Nothing changes until you confirm.'**
+  /// **'Viewing does not change local data. Choose “Restore to this device” to apply this backup.'**
   String get cloudSync_restorePreviewDescription;
 
   /// No description provided for @cloudSync_mergePreviewTitle.
@@ -23968,7 +23968,7 @@ abstract class AppLocalizations {
   /// No description provided for @cloudSync_confirmRestore.
   ///
   /// In en, this message translates to:
-  /// **'Confirm restore'**
+  /// **'Restore to this device'**
   String get cloudSync_confirmRestore;
 
   /// No description provided for @cloudSync_ffdkjIntentTitle.
@@ -26742,6 +26742,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirmation restores selected content locally. The latest cloud backup remains unchanged.'**
   String get cloudSync_localRestoreDescription;
+
+  /// No description provided for @cloudSync_backupContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup contents'**
+  String get cloudSync_backupContents;
+
+  /// No description provided for @cloudSync_searchBackupContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Search filenames, prompts or tags'**
+  String get cloudSync_searchBackupContents;
+
+  /// No description provided for @cloudSync_noBackupContents.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching contents'**
+  String get cloudSync_noBackupContents;
+
+  /// No description provided for @cloudSync_viewBackupImage.
+  ///
+  /// In en, this message translates to:
+  /// **'View image'**
+  String get cloudSync_viewBackupImage;
+
+  /// No description provided for @cloudSync_backupImageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Image preview unavailable'**
+  String get cloudSync_backupImageUnavailable;
 }
 
 class _AppLocalizationsDelegate

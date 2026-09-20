@@ -13391,14 +13391,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get cloudSync_previewRestore => '確認して復元';
+  String get cloudSync_previewRestore => 'バックアップを見る';
 
   @override
   String get cloudSync_restorePreviewTitle => '復元前の確認';
 
   @override
   String get cloudSync_restorePreviewDescription =>
-      '追加・変更・削除される内容を確認します。確定するまで現在のデータは変更されません。';
+      '閲覧だけではローカルデータは変更されません。「この端末に復元」でバックアップを適用します。';
 
   @override
   String get cloudSync_mergePreviewTitle => '統合内容の確認';
@@ -13434,7 +13434,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cloudSync_confirmMerge => '変更を適用';
 
   @override
-  String get cloudSync_confirmRestore => '復元を確定';
+  String get cloudSync_confirmRestore => 'この端末に復元';
 
   @override
   String get cloudSync_ffdkjIntentTitle => '辞書設定が見つかりました';
@@ -14958,4 +14958,19 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get cloudSync_localRestoreDescription =>
       '確認すると選択した内容をこの端末に復元します。クラウドの最新バックアップは変更しません。';
+
+  @override
+  String get cloudSync_backupContents => 'バックアップの内容';
+
+  @override
+  String get cloudSync_searchBackupContents => 'ファイル名・プロンプト・タグを検索';
+
+  @override
+  String get cloudSync_noBackupContents => '一致する内容がありません';
+
+  @override
+  String get cloudSync_viewBackupImage => '画像を見る';
+
+  @override
+  String get cloudSync_backupImageUnavailable => '画像をプレビューできません';
 }

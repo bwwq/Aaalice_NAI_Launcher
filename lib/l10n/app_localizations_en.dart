@@ -13752,14 +13752,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get cloudSync_previewRestore => 'Review and restore';
+  String get cloudSync_previewRestore => 'View backup';
 
   @override
   String get cloudSync_restorePreviewTitle => 'Review before restoring';
 
   @override
   String get cloudSync_restorePreviewDescription =>
-      'Check what will be added, changed, or removed. Nothing changes until you confirm.';
+      'Viewing does not change local data. Choose “Restore to this device” to apply this backup.';
 
   @override
   String get cloudSync_mergePreviewTitle => 'Review merged content';
@@ -13797,7 +13797,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cloudSync_confirmMerge => 'Apply changes';
 
   @override
-  String get cloudSync_confirmRestore => 'Confirm restore';
+  String get cloudSync_confirmRestore => 'Restore to this device';
 
   @override
   String get cloudSync_ffdkjIntentTitle => 'Dictionary setting found';
@@ -15366,4 +15366,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cloudSync_localRestoreDescription =>
       'Confirmation restores selected content locally. The latest cloud backup remains unchanged.';
+
+  @override
+  String get cloudSync_backupContents => 'Backup contents';
+
+  @override
+  String get cloudSync_searchBackupContents =>
+      'Search filenames, prompts or tags';
+
+  @override
+  String get cloudSync_noBackupContents => 'No matching contents';
+
+  @override
+  String get cloudSync_viewBackupImage => 'View image';
+
+  @override
+  String get cloudSync_backupImageUnavailable => 'Image preview unavailable';
 }

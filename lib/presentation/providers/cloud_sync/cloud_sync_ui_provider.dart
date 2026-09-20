@@ -1,3 +1,4 @@
+import '../../../core/cloud_sync/backup_content_preview.dart';
 import '../../../core/cloud_sync/backup_image_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,12 +68,14 @@ class CloudSyncPreviewView {
     this.isRestore = false,
     this.isUpload = false,
     this.images,
+    this.contents = const [],
   });
 
   final String? snapshotId;
   final bool isRestore;
   final bool isUpload;
   final BackupImagePreview? images;
+  final List<BackupContentItem> contents;
   final List<CloudSyncChangeSummary> changes;
   int get conflictSafeDeletionCount =>
       changes.fold(0, (sum, row) => sum + row.deleted);

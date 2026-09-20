@@ -6522,9 +6522,9 @@
   "cloudSync_noSnapshots": "復元できるバックアップはまだありません。",
   "cloudSync_backupItemCount": "{count} 件の内容",
   "@cloudSync_backupItemCount": {"placeholders":{"count":{"type":"int"}}},
-  "cloudSync_previewRestore": "確認して復元",
+  "cloudSync_previewRestore": "バックアップを見る",
   "cloudSync_restorePreviewTitle": "復元前の確認",
-  "cloudSync_restorePreviewDescription": "追加・変更・削除される内容を確認します。確定するまで現在のデータは変更されません。",
+  "cloudSync_restorePreviewDescription": "閲覧だけではローカルデータは変更されません。「この端末に復元」でバックアップを適用します。",
   "cloudSync_mergePreviewTitle": "統合内容の確認",
   "cloudSync_mergePreviewDescription": "このデバイスとクラウドのデータが異なります。変更内容と残すバージョンを確認してください。確定するまでデータは変更されません。",
   "cloudSync_previewAwaitingConfirmation": "先に以下の変更内容を確認してください。",
@@ -6535,7 +6535,7 @@
   "@cloudSync_previewCounts": {"placeholders":{"added":{},"modified":{},"deleted":{}}},
   "cloudSync_previewNoChanges": "適用する変更はありません。",
   "cloudSync_confirmMerge": "変更を適用",
-  "cloudSync_confirmRestore": "復元を確定",
+  "cloudSync_confirmRestore": "この端末に復元",
   "cloudSync_ffdkjIntentTitle": "辞書設定が見つかりました",
   "cloudSync_ffdkjIntentDescription": "別のデバイスに ffdkj 中国語辞書がインストールされています。辞書ファイルはクラウド経由では転送されません。",
   "cloudSync_ffdkjInstallWarning": "ffdkj の公式配布元から中国語辞書をダウンロードしてインストールしますか？",
@@ -7046,4 +7046,14 @@
       }
     }
   }
+,
+  "cloudSync_backupContents": "バックアップの内容"
+,
+  "cloudSync_searchBackupContents": "ファイル名・プロンプト・タグを検索"
+,
+  "cloudSync_noBackupContents": "一致する内容がありません"
+,
+  "cloudSync_viewBackupImage": "画像を見る"
+,
+  "cloudSync_backupImageUnavailable": "画像をプレビューできません"
 }

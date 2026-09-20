@@ -1,3 +1,4 @@
+import 'cloud_sync_backup_browser.dart';
 import 'backup_automation_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -412,7 +413,11 @@ class CloudSyncDashboard extends ConsumerWidget {
                           ? null
                           : () => _runAction(
                               context,
-                              () => port.previewRestoreSnapshot(snapshot.id),
+                              () => showCloudSyncBackupBrowser(
+                                context: context,
+                                port: port,
+                                snapshot: snapshot,
+                              ),
                             ),
                       child: Text(context.l10n.cloudSync_previewRestore),
                     );

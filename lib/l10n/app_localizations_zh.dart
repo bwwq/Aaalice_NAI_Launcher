@@ -13158,14 +13158,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get cloudSync_previewRestore => '查看并恢复';
+  String get cloudSync_previewRestore => '查看备份';
 
   @override
   String get cloudSync_restorePreviewTitle => '恢复前确认';
 
   @override
   String get cloudSync_restorePreviewDescription =>
-      '检查恢复后会新增、更新或删除哪些内容。确认前不会修改当前数据。';
+      '此处仅查看备份。选择“恢复到本机”后才会修改本地数据。';
 
   @override
   String get cloudSync_mergePreviewTitle => '合并内容确认';
@@ -13201,7 +13201,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cloudSync_confirmMerge => '确认应用';
 
   @override
-  String get cloudSync_confirmRestore => '确认恢复';
+  String get cloudSync_confirmRestore => '恢复到本机';
 
   @override
   String get cloudSync_ffdkjIntentTitle => '检测到词库设置';
@@ -14689,6 +14689,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cloudSync_localRestoreDescription => '确认后会将所选内容恢复到本地；云端最新备份保持不变。';
+
+  @override
+  String get cloudSync_backupContents => '备份内容';
+
+  @override
+  String get cloudSync_searchBackupContents => '搜索文件名、提示词或标签';
+
+  @override
+  String get cloudSync_noBackupContents => '没有匹配的内容';
+
+  @override
+  String get cloudSync_viewBackupImage => '查看图片';
+
+  @override
+  String get cloudSync_backupImageUnavailable => '图片预览不可用';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -27846,14 +27861,14 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
-  String get cloudSync_previewRestore => '查看並恢復';
+  String get cloudSync_previewRestore => '查看備份';
 
   @override
   String get cloudSync_restorePreviewTitle => '恢復前確認';
 
   @override
   String get cloudSync_restorePreviewDescription =>
-      '檢查恢復後會新增、更新或刪除哪些內容。確認前不會修改目前資料。';
+      '此處僅查看備份。選擇「恢復到本機」後才會修改本機資料。';
 
   @override
   String get cloudSync_mergePreviewTitle => '合併內容確認';
@@ -27889,7 +27904,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get cloudSync_confirmMerge => '確認套用';
 
   @override
-  String get cloudSync_confirmRestore => '確認恢復';
+  String get cloudSync_confirmRestore => '恢復到本機';
 
   @override
   String get cloudSync_ffdkjIntentTitle => '偵測到詞庫設定';
@@ -29377,4 +29392,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get cloudSync_localRestoreDescription => '確認後會將所選內容還原到本機；雲端最新備份保持不變。';
+
+  @override
+  String get cloudSync_backupContents => '備份內容';
+
+  @override
+  String get cloudSync_searchBackupContents => '搜尋檔名、提示詞或標籤';
+
+  @override
+  String get cloudSync_noBackupContents => '沒有符合的內容';
+
+  @override
+  String get cloudSync_viewBackupImage => '查看圖片';
+
+  @override
+  String get cloudSync_backupImageUnavailable => '圖片預覽無法使用';
 }

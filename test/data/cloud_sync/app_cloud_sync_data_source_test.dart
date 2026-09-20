@@ -25,6 +25,69 @@ void main() {
   });
 
   test(
+    'backup content preview exposes names, prompts and original bytes without applying',
+    () async {
+      final adapter = _Adapter('gallery-favorite-images');
+      adapter.exported = [
+        PortableSyncRecord(
+          adapterId: adapter.id,
+          id: 'stable-image',
+          kind: 'item',
+          data: {
+            'relativePath': 'flowers/original.png',
+            'tags': ['flower', 'blue'],
+          },
+          resource: PortableSyncResource(
+            relativePath: 'original.png',
+            length: 3,
+            openRead: () => Stream.value([1, 2, 3]),
+          ),
+        ),
+        PortableSyncRecord(
+          adapterId: adapter.id,
+          id: 'prompt',
+          kind: 'item',
+          data: {
+            'value': {'name': 'Evening', 'prompt': 'blue sky'},
+          },
+        ),
+        PortableSyncRecord(
+          adapterId: adapter.id,
+          id: 'fixed',
+          kind: 'item',
+          data: {'value': 'fixed beautiful sky'},
+        ),
+        PortableSyncRecord(
+          adapterId: adapter.id,
+          id: 'agent',
+          kind: 'item',
+          data: {'customSystemPrompt': 'help with composition'},
+        ),
+      ];
+      final source = AppCloudSyncDataSource(
+        registry: CloudSyncDataAdapterRegistry([adapter]),
+        root: root,
+      );
+      final snapshot = await source.captureLocal();
+      final items = await source.previewContents(snapshot);
+      expect(items, hasLength(4));
+      final image = items.singleWhere(
+        (item) => item.title == 'flowers/original.png',
+      );
+      expect(image.text, 'flower, blue');
+      expect(image.bytes, 3);
+      expect(await image.readImage!(), [1, 2, 3]);
+      expect(
+        items.singleWhere((item) => item.title == 'Evening').text,
+        'blue sky',
+      );
+      expect(items.any((item) => item.text == 'fixed beautiful sky'), isTrue);
+      expect(items.any((item) => item.text == 'help with composition'), isTrue);
+      expect(adapter.applyCalls, 0);
+    },
+  );
+
+  test(
     'packed download persists original payloads across reconstruction',
     () async {
       final adapter = _Adapter();

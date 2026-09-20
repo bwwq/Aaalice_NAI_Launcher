@@ -6497,9 +6497,9 @@
   "cloudSync_noSnapshots": "No restorable backups yet.",
   "cloudSync_backupItemCount": "Contains {count} items",
   "@cloudSync_backupItemCount": {"placeholders":{"count":{"type":"int"}}},
-  "cloudSync_previewRestore": "Review and restore",
+  "cloudSync_previewRestore": "View backup",
   "cloudSync_restorePreviewTitle": "Review before restoring",
-  "cloudSync_restorePreviewDescription": "Check what will be added, changed, or removed. Nothing changes until you confirm.",
+  "cloudSync_restorePreviewDescription": "Viewing does not change local data. Choose “Restore to this device” to apply this backup.",
   "cloudSync_mergePreviewTitle": "Review merged content",
   "cloudSync_mergePreviewDescription": "This device and the cloud contain different data. Review the changes and choose what to keep. Nothing changes until you confirm.",
   "cloudSync_previewAwaitingConfirmation": "Review and confirm the changes below first.",
@@ -6510,7 +6510,7 @@
   "@cloudSync_previewCounts": {"placeholders":{"added":{},"modified":{},"deleted":{}}},
   "cloudSync_previewNoChanges": "There are no changes to apply.",
   "cloudSync_confirmMerge": "Apply changes",
-  "cloudSync_confirmRestore": "Confirm restore",
+  "cloudSync_confirmRestore": "Restore to this device",
   "cloudSync_ffdkjIntentTitle": "Dictionary setting found",
   "cloudSync_ffdkjIntentDescription": "Another device has the ffdkj Chinese dictionary installed. The dictionary file is not transferred through cloud backup.",
   "cloudSync_ffdkjInstallWarning": "Download and install the Chinese dictionary from the official ffdkj source?",
@@ -7021,4 +7021,14 @@
       }
     }
   }
+,
+  "cloudSync_backupContents": "Backup contents"
+,
+  "cloudSync_searchBackupContents": "Search filenames, prompts or tags"
+,
+  "cloudSync_noBackupContents": "No matching contents"
+,
+  "cloudSync_viewBackupImage": "View image"
+,
+  "cloudSync_backupImageUnavailable": "Image preview unavailable"
 }

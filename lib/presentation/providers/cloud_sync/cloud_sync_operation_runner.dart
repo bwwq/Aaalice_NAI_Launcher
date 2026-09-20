@@ -246,6 +246,7 @@ class CloudSyncOperationRunner {
         final values = counts.putIfAbsent(kind, () => [0, 0, 0]);
         values[change.kind.index]++;
       }
+      await operation.checkpoint();
       final state = readState();
       writeState(
         state.copyWith(
@@ -254,6 +255,8 @@ class CloudSyncOperationRunner {
           pendingPreview: CloudSyncPreviewView(
             snapshotId: snapshotId,
             isRestore: true,
+            images: preview.images,
+            contents: preview.contents,
             changes: [
               for (final entry in counts.entries)
                 CloudSyncChangeSummary(
@@ -266,6 +269,15 @@ class CloudSyncOperationRunner {
           ),
         ),
       );
+    } on OperationCancelledException {
+      writeState(
+        readState().copyWith(
+          activityStatus: CloudSyncActivityStatus.idle,
+          clearProgress: true,
+          clearPendingPreview: true,
+        ),
+      );
+      rethrow;
     } catch (error) {
       recordError(error, resetActivity: true);
       rethrow;
