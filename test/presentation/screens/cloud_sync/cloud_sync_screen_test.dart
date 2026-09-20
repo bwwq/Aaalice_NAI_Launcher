@@ -17,6 +17,45 @@ import 'package:nai_launcher/presentation/screens/settings/settings_screen.dart'
 import 'package:nai_launcher/presentation/screens/settings/settings_section.dart';
 
 void main() {
+  testWidgets(
+    'manual storage exposes local history restore and automation controls',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        _subject(
+          state: _connectedState(activityStatus: CloudSyncActivityStatus.idle)
+              .copyWith(
+                supportsHistory: true,
+                conflicts: const [],
+                clearPendingPreview: true,
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final automatic = find.text('自动备份');
+      await tester.scrollUntilVisible(
+        automatic,
+        300,
+        scrollable: _pageScrollable,
+        maxScrolls: 30,
+      );
+      expect(automatic, findsOneWidget);
+      final delay = find.byKey(const ValueKey('backup-change-delay'));
+      await tester.scrollUntilVisible(delay, 200, scrollable: _pageScrollable);
+      expect(delay, findsOneWidget);
+      final restore = find.widgetWithText(TextButton, '查看并恢复');
+      await tester.scrollUntilVisible(
+        restore,
+        300,
+        scrollable: _pageScrollable,
+        maxScrolls: 30,
+      );
+      expect(tester.widget<TextButton>(restore).onPressed, isNotNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('S3 fields remain reachable at narrow widths and 3x text', (
     tester,
   ) async {
@@ -466,7 +505,7 @@ void main() {
       await tester.pumpWidget(_subject(state: state, port: port));
       await tester.pumpAndSettle();
 
-      expect(find.text('只支持手动推送与拉取'), findsOneWidget);
+      expect(find.text('单向备份模式'), findsOneWidget);
       expect(find.text('GitHub 空间说明'), findsOneWidget);
       expect(find.text('请选择要保留的内容'), findsWidgets);
       expect(find.text('已连接'), findsNothing);
@@ -476,7 +515,7 @@ void main() {
       expect(find.text('暂停'), findsOneWidget);
       expect(find.text('取消'), findsOneWidget);
       expect(find.text('以前的备份'), findsOneWidget);
-      expect(find.text('包含 12 项内容'), findsOneWidget);
+      expect(find.textContaining('包含 12 项内容'), findsOneWidget);
       expect(find.text('大文件会默认保留两个版本，避免丢失。'), findsOneWidget);
       expect(find.text('两者都保留'), findsWidgets);
       expect(find.text('修改加密密码'), findsNothing);
@@ -635,7 +674,7 @@ void main() {
     }
   });
 
-  testWidgets('仅手动备份模式允许显式拉取但禁用历史恢复和合并', (tester) async {
+  testWidgets('单向备份模式允许历史本地恢复但禁用合并', (tester) async {
     await tester.pumpWidget(
       _subject(
         state: _connectedState(
@@ -645,7 +684,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('查看并恢复'), findsNothing);
+    expect(
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, '查看并恢复'))
+          .onPressed,
+      isNotNull,
+    );
     final pull = tester.widget<FilledButton>(
       find.widgetWithText(FilledButton, '从云端拉取'),
     );

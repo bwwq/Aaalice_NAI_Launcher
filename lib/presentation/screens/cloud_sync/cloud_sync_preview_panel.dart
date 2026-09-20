@@ -50,6 +50,10 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
               ),
             const SizedBox(height: 12),
           ],
+          if (preview.isRestore) ...[
+            Text(context.l10n.cloudSync_localRestoreDescription),
+            const SizedBox(height: 12),
+          ],
           if (preview.conflictSafeDeletionCount > 0) ...[
             CloudSyncStatusBanner(
               icon: Icons.warning_amber_rounded,

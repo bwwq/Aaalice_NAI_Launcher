@@ -13355,11 +13355,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cloudSync_operationFailed => 'Cloud sync operation failed';
 
   @override
-  String get cloudSync_manualBackupOnly => 'Manual push and pull only';
+  String get cloudSync_manualBackupOnly => 'One-way backup mode';
 
   @override
   String get cloudSync_manualBackupOnlyDescription =>
-      'This service cannot reliably handle changes from multiple devices at once. Nothing is merged or overwritten automatically; data moves only when you choose push or pull.';
+      'Automatic merging is unavailable. Avoid uploads from multiple devices at once. Restoring a version changes only this device.';
 
   @override
   String get cloudSync_chooseBackupContents => 'Choose backup content';
@@ -15301,7 +15301,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cloudSync_s3Description =>
-      'Manual backup; avoid writing from multiple devices at once. Clean up old backups through your storage provider.';
+      'Avoid uploads from multiple devices at once. Clean up old backups through your storage provider.';
 
   @override
   String get cloudSync_s3PathStyle => 'Use path-style addressing';
@@ -15309,4 +15309,61 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cloudSync_s3PathStyleDescription =>
       'Compatible with most self-hosted services. Turn off to use bucket.endpoint addressing.';
+
+  @override
+  String get cloudSync_automaticBackup => 'Automatic backup';
+
+  @override
+  String get cloudSync_automaticBackupDescription =>
+      'Uploads selected content while the app is running. Never restores automatically. Enable each option independently.';
+
+  @override
+  String get cloudSync_dailyBackup => 'Daily backup';
+
+  @override
+  String get cloudSync_backupTime => 'Run time (local time)';
+
+  @override
+  String get cloudSync_changeBackup => 'Back up after changes';
+
+  @override
+  String get cloudSync_changeBackupDescription =>
+      'Waits after the last edit. Further edits restart the timer; undoing all changes does not upload another copy.';
+
+  @override
+  String get cloudSync_changeDelay => 'Wait after changes';
+
+  @override
+  String cloudSync_delayMinutes(int minutes) {
+    return '$minutes minutes';
+  }
+
+  @override
+  String cloudSync_nextBackup(String time) {
+    return 'Next check: $time';
+  }
+
+  @override
+  String get cloudSync_autoBackupFailed =>
+      'Automatic backup failed. Retrying in 5 minutes; you can cancel this attempt.';
+
+  @override
+  String get cloudSync_cancelPendingBackup => 'Cancel pending backup';
+
+  @override
+  String get cloudSync_backupNow => 'Back up now';
+
+  @override
+  String get cloudSync_minutesRange => '1–1440 minutes';
+
+  @override
+  String get cloudSync_historyLoadDescription =>
+      'Load saved backups, choose a date, then preview and restore locally.';
+
+  @override
+  String get cloudSync_loadHistory => 'Choose backup version';
+
+  @override
+  String get cloudSync_localRestoreDescription =>
+      'Confirmation restores selected content locally. The latest cloud backup remains unchanged.';
 }

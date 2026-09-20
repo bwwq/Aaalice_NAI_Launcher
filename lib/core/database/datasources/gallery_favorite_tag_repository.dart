@@ -1,3 +1,4 @@
+import '../../cloud_sync/backup_change_bus.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../utils/app_logger.dart';
@@ -64,6 +65,7 @@ class SqliteGalleryFavoriteTagRepository
     );
 
     context.markDataChanged();
+    BackupChangeBus.notify('galleryFavorites');
     return isFavorite;
   }
 
@@ -221,6 +223,7 @@ class SqliteGalleryFavoriteTagRepository
     });
 
     context.markDataChanged();
+    BackupChangeBus.notify('galleryFavorites');
   }
 
   @override
@@ -257,6 +260,7 @@ class SqliteGalleryFavoriteTagRepository
     });
 
     context.markDataChanged();
+    BackupChangeBus.notify('galleryFavorites');
   }
 
   @override
@@ -398,6 +402,7 @@ class SqliteGalleryFavoriteTagRepository
     });
 
     context.markDataChanged();
+    BackupChangeBus.notify('galleryFavorites');
   }
 
   String _generateTagId(String tagName) {

@@ -392,6 +392,20 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
     );
   }
 
+  Future<void> pushAutomatically() {
+    _state.ensureNoPendingPreview();
+    if (_coordinator == null) {
+      return Future.error(StateError('Backup connection is not ready.'));
+    }
+    return _gate.run(
+      (operation) => _operations.runSync(
+        operation,
+        direction: CloudSyncInitialAction.upload,
+        skipUnchangedUpload: true,
+      ),
+    );
+  }
+
   @override
   Future<void> pullNow() {
     _state.ensureNoPendingPreview();
@@ -477,11 +491,7 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
 
   @override
   Future<void> confirmRestoreSnapshot() {
-    if (_state.capabilityMode == CloudSyncCapabilityMode.manualBackupOnly) {
-      return Future.error(
-        StateError('Restore is unavailable in manual backup mode.'),
-      );
-    }
+    _state.ensureRestoreAvailable();
     final preview = _state.pendingPreview;
     if (preview == null || !preview.isRestore || preview.snapshotId == null) {
       return Future.error(

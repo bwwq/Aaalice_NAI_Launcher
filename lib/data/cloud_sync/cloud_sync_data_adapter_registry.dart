@@ -1,3 +1,4 @@
+import '../../core/cloud_sync/backup_change_bus.dart';
 import 'cloud_sync_data_adapter.dart';
 import 'portable_sync_record.dart';
 
@@ -52,7 +53,10 @@ class CloudSyncDataAdapterRegistry {
     }
   }
 
-  Future<void> apply(Iterable<PortableSyncRecord> records) async {
+  Future<void> apply(Iterable<PortableSyncRecord> records) =>
+      BackupChangeBus.duringRestore(() => _apply(records));
+
+  Future<void> _apply(Iterable<PortableSyncRecord> records) async {
     final grouped = <String, List<PortableSyncRecord>>{};
     for (final record in records) {
       final adapter = _adapters[record.adapterId];

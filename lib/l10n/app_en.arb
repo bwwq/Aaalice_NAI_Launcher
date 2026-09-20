@@ -6376,8 +6376,8 @@
   "cloudSync_repository": "Repository",
   "cloudSync_branch": "Branch (usually main)",
   "cloudSync_operationFailed": "Cloud sync operation failed",
-  "cloudSync_manualBackupOnly": "Manual push and pull only",
-  "cloudSync_manualBackupOnlyDescription": "This service cannot reliably handle changes from multiple devices at once. Nothing is merged or overwritten automatically; data moves only when you choose push or pull.",
+  "cloudSync_manualBackupOnly": "One-way backup mode",
+  "cloudSync_manualBackupOnlyDescription": "Automatic merging is unavailable. Avoid uploads from multiple devices at once. Restoring a version changes only this device.",
   "cloudSync_chooseBackupContents": "Choose backup content",
   "cloudSync_backupContentDescription": "Only data required for recovery is backed up. Image resources are compressed before upload.",
   "cloudSync_lightweightData": "Lightweight data (default)",
@@ -6988,7 +6988,37 @@
   "cloudSync_s3Endpoint": "S3 endpoint",
   "cloudSync_s3Bucket": "Bucket",
   "cloudSync_s3Region": "Region",
-  "cloudSync_s3Description": "Manual backup; avoid writing from multiple devices at once. Clean up old backups through your storage provider.",
+  "cloudSync_s3Description": "Avoid uploads from multiple devices at once. Clean up old backups through your storage provider.",
   "cloudSync_s3PathStyle": "Use path-style addressing",
-  "cloudSync_s3PathStyleDescription": "Compatible with most self-hosted services. Turn off to use bucket.endpoint addressing."
+  "cloudSync_s3PathStyleDescription": "Compatible with most self-hosted services. Turn off to use bucket.endpoint addressing.",
+  "cloudSync_automaticBackup": "Automatic backup",
+  "cloudSync_automaticBackupDescription": "Uploads selected content while the app is running. Never restores automatically. Enable each option independently.",
+  "cloudSync_dailyBackup": "Daily backup",
+  "cloudSync_backupTime": "Run time (local time)",
+  "cloudSync_changeBackup": "Back up after changes",
+  "cloudSync_changeBackupDescription": "Waits after the last edit. Further edits restart the timer; undoing all changes does not upload another copy.",
+  "cloudSync_changeDelay": "Wait after changes",
+  "cloudSync_delayMinutes": "{minutes} minutes",
+  "cloudSync_nextBackup": "Next check: {time}",
+  "cloudSync_autoBackupFailed": "Automatic backup failed. Retrying in 5 minutes; you can cancel this attempt.",
+  "cloudSync_cancelPendingBackup": "Cancel pending backup",
+  "cloudSync_backupNow": "Back up now",
+  "cloudSync_minutesRange": "1–1440 minutes",
+  "cloudSync_historyLoadDescription": "Load saved backups, choose a date, then preview and restore locally.",
+  "cloudSync_loadHistory": "Choose backup version",
+  "cloudSync_localRestoreDescription": "Confirmation restores selected content locally. The latest cloud backup remains unchanged.",
+  "@cloudSync_delayMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@cloudSync_nextBackup": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

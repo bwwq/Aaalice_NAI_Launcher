@@ -6401,8 +6401,8 @@
   "cloudSync_repository": "リポジトリ",
   "cloudSync_branch": "ブランチ（通常は main）",
   "cloudSync_operationFailed": "クラウド同期操作に失敗しました",
-  "cloudSync_manualBackupOnly": "手動プッシュとプルのみ",
-  "cloudSync_manualBackupOnlyDescription": "このサービスでは複数デバイスからの同時変更を安全に処理できません。自動的な統合や上書きは行わず、選択したプッシュまたはプルだけを実行します。",
+  "cloudSync_manualBackupOnly": "一方向バックアップ",
+  "cloudSync_manualBackupOnlyDescription": "自動マージは利用できません。複数端末から同時にアップロードしないでください。履歴の復元はこの端末のみ変更します。",
   "cloudSync_chooseBackupContents": "バックアップ内容を選択",
   "cloudSync_backupContentDescription": "復元に必要なデータだけを保存し、画像リソースはアップロード前に圧縮します。",
   "cloudSync_lightweightData": "軽量データ（既定）",
@@ -7013,7 +7013,37 @@
   "cloudSync_s3Endpoint": "S3 エンドポイント",
   "cloudSync_s3Bucket": "バケット",
   "cloudSync_s3Region": "リージョン",
-  "cloudSync_s3Description": "手動バックアップです。複数の端末から同時に書き込まないでください。古いバックアップはストレージ側で削除します。",
+  "cloudSync_s3Description": "複数端末から同時にアップロードしないでください。古いバックアップはストレージ側で削除します。",
   "cloudSync_s3PathStyle": "パス形式のアドレスを使用",
-  "cloudSync_s3PathStyleDescription": "多くの自前サービスに対応します。オフにすると「バケット.エンドポイント」形式を使用します。"
+  "cloudSync_s3PathStyleDescription": "多くの自前サービスに対応します。オフにすると「バケット.エンドポイント」形式を使用します。",
+  "cloudSync_automaticBackup": "自動バックアップ",
+  "cloudSync_automaticBackupDescription": "アプリの実行中に選択した内容をアップロードします。自動で復元しません。各方式を個別に有効化できます。",
+  "cloudSync_dailyBackup": "毎日定時にバックアップ",
+  "cloudSync_backupTime": "実行時刻（現地時間）",
+  "cloudSync_changeBackup": "変更後にバックアップ",
+  "cloudSync_changeBackupDescription": "最後の変更から待機します。追加の変更で計時をやり直し、変更をすべて取り消した場合はアップロードしません。",
+  "cloudSync_changeDelay": "変更後の待ち時間",
+  "cloudSync_delayMinutes": "{minutes} 分",
+  "cloudSync_nextBackup": "次回の確認：{time}",
+  "cloudSync_autoBackupFailed": "自動バックアップに失敗しました。5 分後に再試行します。今回の実行はキャンセルできます。",
+  "cloudSync_cancelPendingBackup": "今回のバックアップをキャンセル",
+  "cloudSync_backupNow": "今すぐバックアップ",
+  "cloudSync_minutesRange": "1～1440 分",
+  "cloudSync_historyLoadDescription": "保存済みバックアップを読み込み、日付を選んでプレビューし、この端末に復元します。",
+  "cloudSync_loadHistory": "バックアップの版を選択",
+  "cloudSync_localRestoreDescription": "確認すると選択した内容をこの端末に復元します。クラウドの最新バックアップは変更しません。",
+  "@cloudSync_delayMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@cloudSync_nextBackup": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

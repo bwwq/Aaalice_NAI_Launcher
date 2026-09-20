@@ -1,3 +1,4 @@
+import '../../cloud_sync/backup_change_bus.dart';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -150,6 +151,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
     });
 
     context.markDataChanged();
+    BackupChangeBus.notify('galleryAlbums');
     AppLogger.i('Created album: $name ($id)', 'GalleryDS');
     return id;
   }
@@ -201,6 +203,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
     );
     if (updated > 0) {
       context.markDataChanged();
+      BackupChangeBus.notify('galleryAlbums');
       return true;
     }
     return false;
@@ -224,6 +227,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
     });
     if (deleted > 0) {
       context.markDataChanged();
+      BackupChangeBus.notify('galleryAlbums');
       AppLogger.i('Deleted album: $albumId', 'GalleryDS');
       return true;
     }
@@ -339,6 +343,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
     });
     if (inserted > 0) {
       context.markDataChanged();
+      BackupChangeBus.notify('galleryAlbums');
     }
     return inserted;
   }
@@ -359,6 +364,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
     });
     if (removed > 0) {
       context.markDataChanged();
+      BackupChangeBus.notify('galleryAlbums');
     }
     return removed;
   }
@@ -450,6 +456,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
       await db.delete(GalleryTables.albums);
     });
     context.markDataChanged();
+    BackupChangeBus.notify('galleryAlbums');
   }
 
   @override
@@ -524,6 +531,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
       await batch.commit(noResult: true);
     });
     context.markDataChanged();
+    BackupChangeBus.notify('galleryAlbums');
   }
 
   @override
@@ -619,6 +627,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
       await batch.commit(noResult: true);
     });
     context.markDataChanged();
+    BackupChangeBus.notify('galleryAlbums');
   }
 
   /// 合并调用方传入的 pending 与记录自带的 pending（去重）
@@ -765,6 +774,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
 
       if (outcome.bound > 0) {
         context.markDataChanged();
+        BackupChangeBus.notify('galleryAlbums');
       }
       remaining += outcome.remaining;
     }
@@ -927,6 +937,7 @@ class SqliteGalleryAlbumRepository implements GalleryAlbumRepository {
       await batch.commit(noResult: true);
     });
     context.markDataChanged();
+    BackupChangeBus.notify('galleryAlbums');
     return true;
   }
 

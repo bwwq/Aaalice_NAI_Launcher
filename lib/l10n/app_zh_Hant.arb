@@ -6723,8 +6723,8 @@
   "cloudSync_repository": "儲存庫",
   "cloudSync_branch": "分支（通常為 main）",
   "cloudSync_operationFailed": "雲端同步操作失敗",
-  "cloudSync_manualBackupOnly": "只支援手動推送與拉取",
-  "cloudSync_manualBackupOnlyDescription": "此服務無法可靠處理多台裝置同時修改。這裡不會自動合併或覆蓋，只按你的選擇推送或拉取。",
+  "cloudSync_manualBackupOnly": "單向備份模式",
+  "cloudSync_manualBackupOnlyDescription": "此服務不支援自動合併。請勿多台裝置同時上傳；還原歷史版本只修改本機。",
   "cloudSync_chooseBackupContents": "選擇備份內容",
   "cloudSync_backupContentDescription": "僅備份恢復所需的資料；圖片資源會在上傳前壓縮。",
   "cloudSync_lightweightData": "輕量資料（預設）",
@@ -7335,7 +7335,37 @@
   "cloudSync_s3Endpoint": "S3 服務位址",
   "cloudSync_s3Bucket": "儲存桶",
   "cloudSync_s3Region": "區域",
-  "cloudSync_s3Description": "手動備份；請勿讓多台裝置同時寫入。舊備份需在儲存服務中清理。",
+  "cloudSync_s3Description": "請勿多台裝置同時上傳。舊備份需在儲存服務中清理。",
   "cloudSync_s3PathStyle": "使用路徑式位址",
-  "cloudSync_s3PathStyleDescription": "相容多數自建服務；關閉後使用「儲存桶.服務網域」。"
+  "cloudSync_s3PathStyleDescription": "相容多數自建服務；關閉後使用「儲存桶.服務網域」。",
+  "cloudSync_automaticBackup": "自動備份",
+  "cloudSync_automaticBackupDescription": "僅在軟體執行期間上傳已選內容；不會自動還原。兩種方式可獨立啟用。",
+  "cloudSync_dailyBackup": "每天定時備份",
+  "cloudSync_backupTime": "執行時間（本機時間）",
+  "cloudSync_changeBackup": "變動後備份",
+  "cloudSync_changeBackupDescription": "從最後一次修改開始等待；連續修改會重新計時，復原後沒有內容變化則不上傳。",
+  "cloudSync_changeDelay": "變動後的等待時間",
+  "cloudSync_delayMinutes": "{minutes} 分鐘",
+  "cloudSync_nextBackup": "下次檢查：{time}",
+  "cloudSync_autoBackupFailed": "自動備份未成功，5 分鐘後重試。也可取消本次。",
+  "cloudSync_cancelPendingBackup": "取消本次備份",
+  "cloudSync_backupNow": "立即備份",
+  "cloudSync_minutesRange": "1–1440 分鐘",
+  "cloudSync_historyLoadDescription": "載入已儲存的備份，選擇日期後預覽並還原到本機。",
+  "cloudSync_loadHistory": "選擇歷史版本",
+  "cloudSync_localRestoreDescription": "確認後會將所選內容還原到本機；雲端最新備份保持不變。",
+  "@cloudSync_delayMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@cloudSync_nextBackup": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

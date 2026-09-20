@@ -350,14 +350,19 @@ class SyncCoordinator {
 
   Future<SyncOutcome> restore(
     String oldSnapshotId, {
+    bool localOnly = false,
     OperationToken? token,
     SyncProgressCallback? onProgress,
   }) async {
     final cancellation = token ?? OperationToken();
     if (!identical(OperationToken.current, cancellation)) {
       return cancellation.runInScope(
-        () =>
-            restore(oldSnapshotId, token: cancellation, onProgress: onProgress),
+        () => restore(
+          oldSnapshotId,
+          localOnly: localOnly,
+          token: cancellation,
+          onProgress: onProgress,
+        ),
       );
     }
     await _recoverPending(cancellation, onProgress);
@@ -379,7 +384,7 @@ class SyncCoordinator {
       await _deleteRestorePreviews();
       throw const CloudPreviewStaleException();
     }
-    final newId = _newId('snapshot');
+    final newId = localOnly ? oldSnapshotId : _newId('snapshot');
     final journal = await _runner.prepare(
       operationId: _newId('restore'),
       operation: JournalOperation.restore,
@@ -390,7 +395,7 @@ class SyncCoordinator {
         target: restored,
       ),
       expectedRevision: head?.revision,
-      uploadRequired: true,
+      uploadRequired: !localOnly,
     );
     await _deleteRestorePreviews();
     final target = await _runner.run(
@@ -399,11 +404,16 @@ class SyncCoordinator {
       recovering: false,
       onProgress: onProgress,
     );
-    return SyncOutcome(snapshotId: newId, uploaded: true, snapshot: target);
+    return SyncOutcome(
+      snapshotId: newId,
+      uploaded: !localOnly,
+      snapshot: target,
+    );
   }
 
   Future<SyncOutcome> uploadLocal({
     bool requirePreview = false,
+    bool skipUnchanged = false,
     OperationToken? token,
     SyncProgressCallback? onProgress,
   }) async {
@@ -414,6 +424,7 @@ class SyncCoordinator {
           token: cancellation,
           onProgress: onProgress,
           requirePreview: requirePreview,
+          skipUnchanged: skipUnchanged,
         ),
       );
     }
@@ -423,6 +434,16 @@ class SyncCoordinator {
     onProgress?.call(const SyncProgress(phase: SyncPhase.scanning));
     onProgress?.call(const SyncProgress(phase: SyncPhase.hashing));
     final local = await dataSource.captureLocal();
+    if (skipUnchanged && head != null) {
+      final base = await dataSource.readBase();
+      if (base != null && _sameSnapshot(local, base)) {
+        return SyncOutcome(
+          snapshotId: SnapshotHead.decode(head.bytes).snapshotId,
+          uploaded: false,
+          snapshot: local,
+        );
+      }
+    }
     if (requirePreview) {
       final preview = _pendingSyncPreview;
       if (preview == null ||

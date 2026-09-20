@@ -1,3 +1,4 @@
+import 'presentation/providers/cloud_sync/backup_automation_provider.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -83,6 +84,9 @@ class _AppBootstrapEffectsState extends ConsumerState<AppBootstrapEffects>
         _mountInjectedEffects();
       } else {
         unawaited(_mountProductionIdleEffects());
+      }
+      if (widget.cloudSyncLifecycle == null && !usesTestOverrides) {
+        ref.read(backupAutomationProvider);
       }
       unawaited(_restoreCloudBackupConnection());
     });

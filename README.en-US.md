@@ -130,6 +130,7 @@ NAI Launcher is built for people who use NovelAI regularly. Generation, editing,
 ### ☁️ Sync and backup
 
 - Supports OneDrive, GitHub, and WebDAV / S3. New Google Drive connections are temporarily disabled pending authorization approval. Connecting an account never uploads, downloads, or overwrites content by itself.
+- Preview and restore historical backups locally. Optional daily schedules and configurable delays after edits run while the app is open; both are off by default.
 - Push, pull, and restore start only when requested, with change previews and conflict handling.
 - Select settings, Prompts and libraries, previews, online-gallery settings and favorites, local albums, Agent Prompts and Skills, and optional Vibe or Precise Reference content independently.
 - Favorite local originals are included by default and can be disabled independently; image bytes and embedded metadata are preserved. Remote gallery originals, credentials, caches, and logs are excluded.

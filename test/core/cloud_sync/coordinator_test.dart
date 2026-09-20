@@ -15,6 +15,55 @@ import 'coordinator_test_backend.dart';
 
 void main() {
   test(
+    'local history restore leaves the cloud HEAD and history untouched',
+    () async {
+      final fixture = await _Fixture.create();
+      addTearDown(fixture.dispose);
+      final first = await fixture.coordinator.uploadLocal();
+      fixture.source.local = CloudSyncSnapshotData([
+        _record('note', [9]),
+      ]);
+      await fixture.coordinator.uploadLocal();
+      final head = fixture.backend.head!;
+      final history = await fixture.coordinator.history();
+      await fixture.coordinator.previewRestore(first.snapshotId);
+      final restored = await fixture.coordinator.restore(
+        first.snapshotId,
+        localOnly: true,
+      );
+      expect(restored.uploaded, isFalse);
+      expect(restored.snapshotId, first.snapshotId);
+      expect(fixture.backend.head!.bytes, head.bytes);
+      expect(fixture.backend.head!.revision, head.revision);
+      expect((await fixture.coordinator.history()).length, history.length);
+      expect(fixture.source.local.records['note']!.bytes, [1, 2, 3]);
+    },
+  );
+
+  test(
+    'automatic upload skips content that was unchanged or reverted',
+    () async {
+      final fixture = await _Fixture.create();
+      addTearDown(fixture.dispose);
+      final initial = await fixture.coordinator.uploadLocal();
+      final count = fixture.backend.events.length;
+      final unchanged = await fixture.coordinator.uploadLocal(
+        skipUnchanged: true,
+      );
+      expect(unchanged.uploaded, isFalse);
+      expect(unchanged.snapshotId, initial.snapshotId);
+      expect(fixture.backend.events.length, count);
+      fixture.source.local = CloudSyncSnapshotData([
+        _record('note', [9]),
+      ]);
+      final changed = await fixture.coordinator.uploadLocal(
+        skipUnchanged: true,
+      );
+      expect(changed.uploaded, isTrue);
+    },
+  );
+
+  test(
     'direct coordinator calls scope their OperationToken into backends',
     () async {
       final fixture = await _Fixture.create();

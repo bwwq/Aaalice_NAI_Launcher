@@ -1,3 +1,4 @@
+import 'backup_automation_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -95,6 +96,9 @@ class CloudSyncDashboard extends ConsumerWidget {
                 ? null
                 : () => _editContentSelection(context, ref, port),
           ),
+        ),
+        BackupAutomationPanel(
+          busy: state.isBusy || state.needsPreviewConfirmation,
         ),
         CloudSyncRetentionControl(
           value: state.keepSnapshots,
@@ -384,43 +388,44 @@ class CloudSyncDashboard extends ConsumerWidget {
       icon: const Icon(Icons.refresh_rounded),
     ),
     child: !state.supportsHistory || state.snapshots.isEmpty
-        ? Text(context.l10n.cloudSync_noSnapshots)
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.l10n.cloudSync_historyLoadDescription),
+              TextButton.icon(
+                onPressed: state.isBusy || state.needsPreviewConfirmation
+                    ? null
+                    : () => _runAction(context, port.refreshHistory),
+                icon: const Icon(Icons.history),
+                label: Text(context.l10n.cloudSync_loadHistory),
+              ),
+            ],
+          )
         : Column(
             children: [
               for (final snapshot in state.snapshots)
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final action =
-                        state.capabilityMode ==
-                            CloudSyncCapabilityMode.manualBackupOnly
-                        ? null
-                        : TextButton(
-                            style: _buttonStyle,
-                            onPressed:
-                                state.isBusy || state.needsPreviewConfirmation
-                                ? null
-                                : () => _runAction(
-                                    context,
-                                    () => port.previewRestoreSnapshot(
-                                      snapshot.id,
-                                    ),
-                                  ),
-                            child: Text(context.l10n.cloudSync_previewRestore),
-                          );
+                    final action = TextButton(
+                      style: _buttonStyle,
+                      onPressed: state.isBusy || state.needsPreviewConfirmation
+                          ? null
+                          : () => _runAction(
+                              context,
+                              () => port.previewRestoreSnapshot(snapshot.id),
+                            ),
+                      child: Text(context.l10n.cloudSync_previewRestore),
+                    );
                     final details = ListTile(
                       contentPadding: EdgeInsets.zero,
                       minTileHeight: 56,
-                      title: Text(
-                        context.l10n.cloudSync_backupItemCount(
-                          snapshot.objectCount,
-                        ),
-                      ),
+                      title: Text(_date(snapshot.createdAt)),
                       subtitle: Text(
-                        '${_date(snapshot.createdAt)}${snapshot.encrypted ? '' : '\n${context.l10n.cloudSync_legacyUnencrypted}'}',
+                        '${context.l10n.cloudSync_backupItemCount(snapshot.objectCount)}${snapshot.encrypted ? '' : '\n${context.l10n.cloudSync_legacyUnencrypted}'}',
                       ),
                       trailing: constraints.maxWidth >= 520 ? action : null,
                     );
-                    if (action == null || constraints.maxWidth >= 520) {
+                    if (constraints.maxWidth >= 520) {
                       return details;
                     }
                     return Column(

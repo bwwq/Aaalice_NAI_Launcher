@@ -85,6 +85,7 @@ class CloudSyncOperationRunner {
     OperationToken operation, {
     CloudSyncInitialAction? direction,
     bool requireUploadPreview = false,
+    bool skipUnchangedUpload = false,
   }) async {
     final coordinator = _requireCoordinator();
     _start();
@@ -94,6 +95,7 @@ class CloudSyncOperationRunner {
         () async => switch (direction) {
           CloudSyncInitialAction.upload => await coordinator.uploadLocal(
             requirePreview: requireUploadPreview,
+            skipUnchanged: skipUnchangedUpload,
             token: operation,
             onProgress: _updateProgress,
           ),
@@ -157,7 +159,7 @@ class CloudSyncOperationRunner {
     try {
       final history = await _trace(
         'history',
-        () => _requireCoordinator().history(),
+        () => _requireCoordinator().history(limit: 100),
       );
       writeState(
         readState().copyWith(
@@ -274,10 +276,11 @@ class CloudSyncOperationRunner {
     final coordinator = _requireCoordinator();
     _start();
     try {
-      final outcome = await _trace(
+      await _trace(
         'restore',
         () => coordinator.restore(
           snapshotId,
+          localOnly: true,
           token: operation,
           onProgress: _updateProgress,
         ),
@@ -288,13 +291,14 @@ class CloudSyncOperationRunner {
         state.copyWith(
           activityStatus: CloudSyncActivityStatus.idle,
           lastSync: lastSync,
-          remoteRevision: outcome.snapshotId,
           clearProgress: true,
           clearPendingPreview: true,
           pendingFfdkjInstall: readPendingFfdkjIntent(),
         ),
       );
-      await persistSyncState(outcome.snapshotId, lastSync);
+      if (state.remoteRevision != null) {
+        await persistSyncState(state.remoteRevision!, lastSync);
+      }
     } catch (error) {
       _recordOperationError(error);
       rethrow;

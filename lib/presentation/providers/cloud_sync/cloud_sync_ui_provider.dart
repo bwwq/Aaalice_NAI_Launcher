@@ -348,8 +348,7 @@ class CloudSyncUiState {
   }
 
   void ensureRestoreAvailable() {
-    if (capabilityMode == CloudSyncCapabilityMode.manualBackupOnly ||
-        !supportsHistory) {
+    if (!supportsHistory) {
       throw StateError('Snapshot restore is unavailable on this backend.');
     }
   }

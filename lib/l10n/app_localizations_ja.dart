@@ -13008,11 +13008,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cloudSync_operationFailed => 'クラウド同期操作に失敗しました';
 
   @override
-  String get cloudSync_manualBackupOnly => '手動プッシュとプルのみ';
+  String get cloudSync_manualBackupOnly => '一方向バックアップ';
 
   @override
   String get cloudSync_manualBackupOnlyDescription =>
-      'このサービスでは複数デバイスからの同時変更を安全に処理できません。自動的な統合や上書きは行わず、選択したプッシュまたはプルだけを実行します。';
+      '自動マージは利用できません。複数端末から同時にアップロードしないでください。履歴の復元はこの端末のみ変更します。';
 
   @override
   String get cloudSync_chooseBackupContents => 'バックアップ内容を選択';
@@ -14893,7 +14893,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get cloudSync_s3Description =>
-      '手動バックアップです。複数の端末から同時に書き込まないでください。古いバックアップはストレージ側で削除します。';
+      '複数端末から同時にアップロードしないでください。古いバックアップはストレージ側で削除します。';
 
   @override
   String get cloudSync_s3PathStyle => 'パス形式のアドレスを使用';
@@ -14901,4 +14901,61 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get cloudSync_s3PathStyleDescription =>
       '多くの自前サービスに対応します。オフにすると「バケット.エンドポイント」形式を使用します。';
+
+  @override
+  String get cloudSync_automaticBackup => '自動バックアップ';
+
+  @override
+  String get cloudSync_automaticBackupDescription =>
+      'アプリの実行中に選択した内容をアップロードします。自動で復元しません。各方式を個別に有効化できます。';
+
+  @override
+  String get cloudSync_dailyBackup => '毎日定時にバックアップ';
+
+  @override
+  String get cloudSync_backupTime => '実行時刻（現地時間）';
+
+  @override
+  String get cloudSync_changeBackup => '変更後にバックアップ';
+
+  @override
+  String get cloudSync_changeBackupDescription =>
+      '最後の変更から待機します。追加の変更で計時をやり直し、変更をすべて取り消した場合はアップロードしません。';
+
+  @override
+  String get cloudSync_changeDelay => '変更後の待ち時間';
+
+  @override
+  String cloudSync_delayMinutes(int minutes) {
+    return '$minutes 分';
+  }
+
+  @override
+  String cloudSync_nextBackup(String time) {
+    return '次回の確認：$time';
+  }
+
+  @override
+  String get cloudSync_autoBackupFailed =>
+      '自動バックアップに失敗しました。5 分後に再試行します。今回の実行はキャンセルできます。';
+
+  @override
+  String get cloudSync_cancelPendingBackup => '今回のバックアップをキャンセル';
+
+  @override
+  String get cloudSync_backupNow => '今すぐバックアップ';
+
+  @override
+  String get cloudSync_minutesRange => '1～1440 分';
+
+  @override
+  String get cloudSync_historyLoadDescription =>
+      '保存済みバックアップを読み込み、日付を選んでプレビューし、この端末に復元します。';
+
+  @override
+  String get cloudSync_loadHistory => 'バックアップの版を選択';
+
+  @override
+  String get cloudSync_localRestoreDescription =>
+      '確認すると選択した内容をこの端末に復元します。クラウドの最新バックアップは変更しません。';
 }

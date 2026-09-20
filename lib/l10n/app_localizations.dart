@@ -23206,13 +23206,13 @@ abstract class AppLocalizations {
   /// No description provided for @cloudSync_manualBackupOnly.
   ///
   /// In en, this message translates to:
-  /// **'Manual push and pull only'**
+  /// **'One-way backup mode'**
   String get cloudSync_manualBackupOnly;
 
   /// No description provided for @cloudSync_manualBackupOnlyDescription.
   ///
   /// In en, this message translates to:
-  /// **'This service cannot reliably handle changes from multiple devices at once. Nothing is merged or overwritten automatically; data moves only when you choose push or pull.'**
+  /// **'Automatic merging is unavailable. Avoid uploads from multiple devices at once. Restoring a version changes only this device.'**
   String get cloudSync_manualBackupOnlyDescription;
 
   /// No description provided for @cloudSync_chooseBackupContents.
@@ -26632,7 +26632,7 @@ abstract class AppLocalizations {
   /// No description provided for @cloudSync_s3Description.
   ///
   /// In en, this message translates to:
-  /// **'Manual backup; avoid writing from multiple devices at once. Clean up old backups through your storage provider.'**
+  /// **'Avoid uploads from multiple devices at once. Clean up old backups through your storage provider.'**
   String get cloudSync_s3Description;
 
   /// No description provided for @cloudSync_s3PathStyle.
@@ -26646,6 +26646,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compatible with most self-hosted services. Turn off to use bucket.endpoint addressing.'**
   String get cloudSync_s3PathStyleDescription;
+
+  /// No description provided for @cloudSync_automaticBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup'**
+  String get cloudSync_automaticBackup;
+
+  /// No description provided for @cloudSync_automaticBackupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads selected content while the app is running. Never restores automatically. Enable each option independently.'**
+  String get cloudSync_automaticBackupDescription;
+
+  /// No description provided for @cloudSync_dailyBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily backup'**
+  String get cloudSync_dailyBackup;
+
+  /// No description provided for @cloudSync_backupTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Run time (local time)'**
+  String get cloudSync_backupTime;
+
+  /// No description provided for @cloudSync_changeBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up after changes'**
+  String get cloudSync_changeBackup;
+
+  /// No description provided for @cloudSync_changeBackupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Waits after the last edit. Further edits restart the timer; undoing all changes does not upload another copy.'**
+  String get cloudSync_changeBackupDescription;
+
+  /// No description provided for @cloudSync_changeDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait after changes'**
+  String get cloudSync_changeDelay;
+
+  /// No description provided for @cloudSync_delayMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes'**
+  String cloudSync_delayMinutes(int minutes);
+
+  /// No description provided for @cloudSync_nextBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Next check: {time}'**
+  String cloudSync_nextBackup(String time);
+
+  /// No description provided for @cloudSync_autoBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup failed. Retrying in 5 minutes; you can cancel this attempt.'**
+  String get cloudSync_autoBackupFailed;
+
+  /// No description provided for @cloudSync_cancelPendingBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel pending backup'**
+  String get cloudSync_cancelPendingBackup;
+
+  /// No description provided for @cloudSync_backupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get cloudSync_backupNow;
+
+  /// No description provided for @cloudSync_minutesRange.
+  ///
+  /// In en, this message translates to:
+  /// **'1–1440 minutes'**
+  String get cloudSync_minutesRange;
+
+  /// No description provided for @cloudSync_historyLoadDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Load saved backups, choose a date, then preview and restore locally.'**
+  String get cloudSync_historyLoadDescription;
+
+  /// No description provided for @cloudSync_loadHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose backup version'**
+  String get cloudSync_loadHistory;
+
+  /// No description provided for @cloudSync_localRestoreDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation restores selected content locally. The latest cloud backup remains unchanged.'**
+  String get cloudSync_localRestoreDescription;
 }
 
 class _AppLocalizationsDelegate

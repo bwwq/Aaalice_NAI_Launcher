@@ -12787,11 +12787,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cloudSync_operationFailed => '云同步操作失败';
 
   @override
-  String get cloudSync_manualBackupOnly => '只支持手动推送与拉取';
+  String get cloudSync_manualBackupOnly => '单向备份模式';
 
   @override
   String get cloudSync_manualBackupOnlyDescription =>
-      '此服务无法可靠处理多台设备同时修改。这里不会自动合并或覆盖，只按你的选择推送或拉取。';
+      '此服务不支持自动合并。请勿多台设备同时上传；恢复历史版本只修改本地。';
 
   @override
   String get cloudSync_chooseBackupContents => '选择备份内容';
@@ -14628,13 +14628,67 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cloudSync_s3Region => '区域';
 
   @override
-  String get cloudSync_s3Description => '手动备份；请勿让多台设备同时写入。旧备份需在存储服务中清理。';
+  String get cloudSync_s3Description => '请勿多台设备同时上传。旧备份需在存储服务中清理。';
 
   @override
   String get cloudSync_s3PathStyle => '使用路径式地址';
 
   @override
   String get cloudSync_s3PathStyleDescription => '兼容多数自建服务；关闭后使用“存储桶.服务域名”。';
+
+  @override
+  String get cloudSync_automaticBackup => '自动备份';
+
+  @override
+  String get cloudSync_automaticBackupDescription =>
+      '仅在软件运行期间上传已选内容；不会自动恢复。两种方式可独立启用。';
+
+  @override
+  String get cloudSync_dailyBackup => '每天定时备份';
+
+  @override
+  String get cloudSync_backupTime => '执行时间（本地时间）';
+
+  @override
+  String get cloudSync_changeBackup => '变动后备份';
+
+  @override
+  String get cloudSync_changeBackupDescription =>
+      '从最后一次修改开始等待；连续修改会重新计时，撤销后没有内容变化则不上传。';
+
+  @override
+  String get cloudSync_changeDelay => '变动后的等待时间';
+
+  @override
+  String cloudSync_delayMinutes(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String cloudSync_nextBackup(String time) {
+    return '下次检查：$time';
+  }
+
+  @override
+  String get cloudSync_autoBackupFailed => '自动备份未成功，5 分钟后重试。也可取消本次。';
+
+  @override
+  String get cloudSync_cancelPendingBackup => '取消本次备份';
+
+  @override
+  String get cloudSync_backupNow => '立即备份';
+
+  @override
+  String get cloudSync_minutesRange => '1–1440 分钟';
+
+  @override
+  String get cloudSync_historyLoadDescription => '加载已保存的备份，选择日期后预览并恢复到本地。';
+
+  @override
+  String get cloudSync_loadHistory => '选择历史版本';
+
+  @override
+  String get cloudSync_localRestoreDescription => '确认后会将所选内容恢复到本地；云端最新备份保持不变。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -27421,11 +27475,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get cloudSync_operationFailed => '雲端同步操作失敗';
 
   @override
-  String get cloudSync_manualBackupOnly => '只支援手動推送與拉取';
+  String get cloudSync_manualBackupOnly => '單向備份模式';
 
   @override
   String get cloudSync_manualBackupOnlyDescription =>
-      '此服務無法可靠處理多台裝置同時修改。這裡不會自動合併或覆蓋，只按你的選擇推送或拉取。';
+      '此服務不支援自動合併。請勿多台裝置同時上傳；還原歷史版本只修改本機。';
 
   @override
   String get cloudSync_chooseBackupContents => '選擇備份內容';
@@ -29262,11 +29316,65 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get cloudSync_s3Region => '區域';
 
   @override
-  String get cloudSync_s3Description => '手動備份；請勿讓多台裝置同時寫入。舊備份需在儲存服務中清理。';
+  String get cloudSync_s3Description => '請勿多台裝置同時上傳。舊備份需在儲存服務中清理。';
 
   @override
   String get cloudSync_s3PathStyle => '使用路徑式位址';
 
   @override
   String get cloudSync_s3PathStyleDescription => '相容多數自建服務；關閉後使用「儲存桶.服務網域」。';
+
+  @override
+  String get cloudSync_automaticBackup => '自動備份';
+
+  @override
+  String get cloudSync_automaticBackupDescription =>
+      '僅在軟體執行期間上傳已選內容；不會自動還原。兩種方式可獨立啟用。';
+
+  @override
+  String get cloudSync_dailyBackup => '每天定時備份';
+
+  @override
+  String get cloudSync_backupTime => '執行時間（本機時間）';
+
+  @override
+  String get cloudSync_changeBackup => '變動後備份';
+
+  @override
+  String get cloudSync_changeBackupDescription =>
+      '從最後一次修改開始等待；連續修改會重新計時，復原後沒有內容變化則不上傳。';
+
+  @override
+  String get cloudSync_changeDelay => '變動後的等待時間';
+
+  @override
+  String cloudSync_delayMinutes(int minutes) {
+    return '$minutes 分鐘';
+  }
+
+  @override
+  String cloudSync_nextBackup(String time) {
+    return '下次檢查：$time';
+  }
+
+  @override
+  String get cloudSync_autoBackupFailed => '自動備份未成功，5 分鐘後重試。也可取消本次。';
+
+  @override
+  String get cloudSync_cancelPendingBackup => '取消本次備份';
+
+  @override
+  String get cloudSync_backupNow => '立即備份';
+
+  @override
+  String get cloudSync_minutesRange => '1–1440 分鐘';
+
+  @override
+  String get cloudSync_historyLoadDescription => '載入已儲存的備份，選擇日期後預覽並還原到本機。';
+
+  @override
+  String get cloudSync_loadHistory => '選擇歷史版本';
+
+  @override
+  String get cloudSync_localRestoreDescription => '確認後會將所選內容還原到本機；雲端最新備份保持不變。';
 }
