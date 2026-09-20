@@ -7318,5 +7318,18 @@
       }
     }
   },
-  "watermark_autoContrast": "自動適應底色"
+  "watermark_autoContrast": "自動適應底色",
+  "cloudSync_favoriteOriginals": "本機收藏原圖",
+  "cloudSync_favoriteOriginalsDescription": "備份本機圖庫中收藏的原圖、收藏時間與標籤。",
+  "cloudSync_keepSnapshots": "保留最近備份數",
+  "cloudSync_retentionDescription": "新備份成功後保留最近 1～100 份；無法安全清理時會提示。",
+  "cloudSync_encryptedDescription": "備份內容已加密，重新安裝軟體後連接雲端即可還原。軟體內建還原能力，不需保管密碼。",
+  "cloudSync_legacyUnencrypted": "未加密的舊備份",
+  "cloudSync_cleanupPending": "舊備份待清理",
+  "cloudSync_previewUpload": "預覽本次備份",
+  "cloudSync_confirmUpload": "確認備份",
+  "cloudSync_imageBackupSummary": "收藏原圖：{count} 張，共 {size} MiB；預計新增上傳（壓縮前）：{upload} MiB。",
+  "cloudSync_imageRestoreSummary": "還原圖片：新增 {added} 張，沿用 {reused} 張，同名保留雙方 {conflicts} 張。",
+  "@cloudSync_imageBackupSummary": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}, "upload": {"type": "String"}}},
+  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}}
 }

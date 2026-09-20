@@ -8,6 +8,7 @@ class CloudSyncContentSelection {
     this.includeOnlineGallerySettings = true,
     this.includeOnlineGalleryFavorites = true,
     this.includeGalleryAlbums = true,
+    this.includeGalleryFavoriteImages = true,
     this.includeAgentSystemPrompt = true,
     this.includeSkills = true,
     this.includeVibes = false,
@@ -15,7 +16,7 @@ class CloudSyncContentSelection {
     this.selectedSkillIds = const {},
   });
 
-  static const int currentSchemaVersion = 2;
+  static const int currentSchemaVersion = 3;
   static const int maxSelectedSkills = 500;
 
   final bool includeSettings;
@@ -24,6 +25,7 @@ class CloudSyncContentSelection {
   final bool includeOnlineGallerySettings;
   final bool includeOnlineGalleryFavorites;
   final bool includeGalleryAlbums;
+  final bool includeGalleryFavoriteImages;
   final bool includeAgentSystemPrompt;
   final bool includeSkills;
   final bool includeVibes;
@@ -37,6 +39,7 @@ class CloudSyncContentSelection {
     includeOnlineGallerySettings,
     includeOnlineGalleryFavorites,
     includeGalleryAlbums,
+    includeGalleryFavoriteImages,
     includeAgentSystemPrompt,
     includeSkills,
     includeVibes,
@@ -50,6 +53,7 @@ class CloudSyncContentSelection {
     bool? includeOnlineGallerySettings,
     bool? includeOnlineGalleryFavorites,
     bool? includeGalleryAlbums,
+    bool? includeGalleryFavoriteImages,
     bool? includeAgentSystemPrompt,
     bool? includeSkills,
     bool? includeVibes,
@@ -64,6 +68,8 @@ class CloudSyncContentSelection {
     includeOnlineGalleryFavorites:
         includeOnlineGalleryFavorites ?? this.includeOnlineGalleryFavorites,
     includeGalleryAlbums: includeGalleryAlbums ?? this.includeGalleryAlbums,
+    includeGalleryFavoriteImages:
+        includeGalleryFavoriteImages ?? this.includeGalleryFavoriteImages,
     includeAgentSystemPrompt:
         includeAgentSystemPrompt ?? this.includeAgentSystemPrompt,
     includeSkills: includeSkills ?? this.includeSkills,
@@ -86,6 +92,7 @@ class CloudSyncContentSelection {
       'includeOnlineGallerySettings': includeOnlineGallerySettings,
       'includeOnlineGalleryFavorites': includeOnlineGalleryFavorites,
       'includeGalleryAlbums': includeGalleryAlbums,
+      'includeGalleryFavoriteImages': includeGalleryFavoriteImages,
       'includeAgentSystemPrompt': includeAgentSystemPrompt,
       'includeSkills': includeSkills,
       'includeVibes': includeVibes,
@@ -103,8 +110,14 @@ class CloudSyncContentSelection {
     }
     final version = value['version'] as int;
     if (version == 1) return _decodeV1(value);
-    if (version != currentSchemaVersion ||
-        value.keys.any((key) => !_v2Keys.contains(key)) ||
+    if ((version != 2 && version != currentSchemaVersion) ||
+        value.keys.any(
+          (key) =>
+              !_v2Keys.contains(key) && key != 'includeGalleryFavoriteImages',
+        ) ||
+        (version == 3 && value['includeGalleryFavoriteImages'] is! bool) ||
+        (value.containsKey('includeGalleryFavoriteImages') &&
+            value['includeGalleryFavoriteImages'] is! bool) ||
         _boolKeys.any((key) => value[key] is! bool) ||
         value['selectedSkillIds'] is! List) {
       throw const FormatException('Invalid cloud backup content selection.');
@@ -118,6 +131,8 @@ class CloudSyncContentSelection {
       includeOnlineGalleryFavorites:
           value['includeOnlineGalleryFavorites']! as bool,
       includeGalleryAlbums: value['includeGalleryAlbums']! as bool,
+      includeGalleryFavoriteImages:
+          value['includeGalleryFavoriteImages'] as bool? ?? true,
       includeAgentSystemPrompt: value['includeAgentSystemPrompt']! as bool,
       includeSkills: value['includeSkills']! as bool,
       includeVibes: value['includeVibes']! as bool,

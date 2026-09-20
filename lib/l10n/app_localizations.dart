@@ -26544,6 +26544,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Adapt to background'**
   String get watermark_autoContrast;
+
+  /// No description provided for @cloudSync_favoriteOriginals.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite original images'**
+  String get cloudSync_favoriteOriginals;
+
+  /// No description provided for @cloudSync_favoriteOriginalsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up original images favorited in the local gallery, favorite dates, and tags.'**
+  String get cloudSync_favoriteOriginalsDescription;
+
+  /// No description provided for @cloudSync_keepSnapshots.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent backups to keep'**
+  String get cloudSync_keepSnapshots;
+
+  /// No description provided for @cloudSync_retentionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep 1–100 recent backups after a successful upload. Pending cleanup is reported.'**
+  String get cloudSync_retentionDescription;
+
+  /// No description provided for @cloudSync_encryptedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup contents are encrypted. Reinstall the app and reconnect to restore; built-in recovery requires no password.'**
+  String get cloudSync_encryptedDescription;
+
+  /// No description provided for @cloudSync_legacyUnencrypted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unencrypted legacy backup'**
+  String get cloudSync_legacyUnencrypted;
+
+  /// No description provided for @cloudSync_cleanupPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Old backups awaiting cleanup'**
+  String get cloudSync_cleanupPending;
+
+  /// No description provided for @cloudSync_previewUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview this backup'**
+  String get cloudSync_previewUpload;
+
+  /// No description provided for @cloudSync_confirmUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm backup'**
+  String get cloudSync_confirmUpload;
+
+  /// No description provided for @cloudSync_imageBackupSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite originals: {count}, {size} MiB. Estimated new upload before compression: {upload} MiB.'**
+  String cloudSync_imageBackupSummary(int count, String size, String upload);
+
+  /// No description provided for @cloudSync_imageRestoreSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore images: {added} new, {reused} reused, {conflicts} name conflicts kept as separate files.'**
+  String cloudSync_imageRestoreSummary(int added, int reused, int conflicts);
 }
 
 class _AppLocalizationsDelegate

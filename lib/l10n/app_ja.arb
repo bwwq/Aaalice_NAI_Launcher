@@ -6996,5 +6996,18 @@
       }
     }
   },
-  "watermark_autoContrast": "背景に合わせて色を自動調整"
+  "watermark_autoContrast": "背景に合わせて色を自動調整",
+  "cloudSync_favoriteOriginals": "ローカルのお気に入り原画像",
+  "cloudSync_favoriteOriginalsDescription": "ローカルギャラリーのお気に入り原画像、登録日時、タグをバックアップします。",
+  "cloudSync_keepSnapshots": "保持するバックアップ数",
+  "cloudSync_retentionDescription": "新しいバックアップの成功後、最新の1～100件を保持します。削除できない場合は通知します。",
+  "cloudSync_encryptedDescription": "バックアップ内容は暗号化されます。アプリを再インストールして接続すると復元できます。パスワードの保管は不要です。",
+  "cloudSync_legacyUnencrypted": "暗号化されていない旧バックアップ",
+  "cloudSync_cleanupPending": "古いバックアップの削除待ち",
+  "cloudSync_previewUpload": "今回のバックアップを確認",
+  "cloudSync_confirmUpload": "バックアップを確定",
+  "cloudSync_imageBackupSummary": "お気に入り原画像：{count} 枚、{size} MiB。圧縮前の追加アップロード見込み：{upload} MiB。",
+  "cloudSync_imageRestoreSummary": "画像の復元：新規 {added} 枚、再利用 {reused} 枚、同名で両方保持 {conflicts} 枚。",
+  "@cloudSync_imageBackupSummary": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}, "upload": {"type": "String"}}},
+  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}}
 }

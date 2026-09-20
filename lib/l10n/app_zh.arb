@@ -7040,5 +7040,18 @@
       }
     }
   },
-  "watermark_autoContrast": "自动适应底色"
+  "watermark_autoContrast": "自动适应底色",
+  "cloudSync_favoriteOriginals": "本地收藏原图",
+  "cloudSync_favoriteOriginalsDescription": "备份本地图库中收藏的原图、收藏时间和标签。",
+  "cloudSync_keepSnapshots": "保留最近备份数",
+  "cloudSync_retentionDescription": "新备份成功后保留最近 1～100 份；无法安全清理时会提示。",
+  "cloudSync_encryptedDescription": "备份内容已加密，重装软件后连接网盘即可恢复。软件内置恢复能力，不需要保管密码。",
+  "cloudSync_legacyUnencrypted": "未加密的旧备份",
+  "cloudSync_cleanupPending": "旧备份待清理",
+  "cloudSync_previewUpload": "预览本次备份",
+  "cloudSync_confirmUpload": "确认备份",
+  "cloudSync_imageBackupSummary": "收藏原图：{count} 张，共 {size} MiB；预计新增上传（压缩前）：{upload} MiB。",
+  "cloudSync_imageRestoreSummary": "恢复图片：新增 {added} 张，复用 {reused} 张，同名保留双方 {conflicts} 张。",
+  "@cloudSync_imageBackupSummary": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}, "upload": {"type": "String"}}},
+  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}}
 }

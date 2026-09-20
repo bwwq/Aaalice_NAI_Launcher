@@ -15,6 +15,11 @@ String cloudSyncV3Namespace(String configuredPath) {
   return namespace;
 }
 
+String cloudSyncV4Namespace(String configuredPath) {
+  final legacy = cloudSyncV3Namespace(configuredPath);
+  return '${legacy.substring(0, legacy.length - 3)}-v4';
+}
+
 class CloudNamespace {
   const CloudNamespace._();
 

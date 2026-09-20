@@ -1,3 +1,4 @@
+import '../../../core/cloud_sync/backup_image_preview.dart';
 import '../../../core/cloud_sync/coordinator.dart';
 import '../../../core/cloud_sync/merge.dart';
 import '../../../core/cloud_sync/operation.dart';
@@ -48,9 +49,42 @@ class CloudSyncOperationRunner {
     );
   }
 
+  Future<void> previewUpload(OperationToken operation) async {
+    final coordinator = _requireCoordinator();
+    _start();
+    try {
+      final preview = await coordinator.preview(
+        token: operation,
+        onProgress: _updateProgress,
+      );
+      final source = coordinator.dataSource;
+      final images = source is CloudBackupImagePreviewSource
+          ? await (source as CloudBackupImagePreviewSource).previewImages(
+              preview.localSnapshot,
+              remote: preview.remoteSnapshot,
+            )
+          : null;
+      writeState(
+        readState().copyWith(
+          activityStatus: CloudSyncActivityStatus.idle,
+          clearProgress: true,
+          pendingPreview: CloudSyncPreviewView(
+            changes: const [],
+            isUpload: true,
+            images: images,
+          ),
+        ),
+      );
+    } catch (error) {
+      _recordOperationError(error);
+      rethrow;
+    }
+  }
+
   Future<void> runSync(
     OperationToken operation, {
     CloudSyncInitialAction? direction,
+    bool requireUploadPreview = false,
   }) async {
     final coordinator = _requireCoordinator();
     _start();
@@ -59,6 +93,7 @@ class CloudSyncOperationRunner {
         'sync',
         () async => switch (direction) {
           CloudSyncInitialAction.upload => await coordinator.uploadLocal(
+            requirePreview: requireUploadPreview,
             token: operation,
             onProgress: _updateProgress,
           ),
@@ -99,6 +134,7 @@ class CloudSyncOperationRunner {
                   state.snapshots,
                   CloudSyncSnapshotView(
                     id: outcome.snapshotId,
+                    encrypted: true,
                     createdAt: lastSync,
                     objectCount: outcome.snapshot.records.length,
                   ),
@@ -129,6 +165,7 @@ class CloudSyncOperationRunner {
               .map(
                 (entry) => CloudSyncSnapshotView(
                   id: entry.id,
+                  encrypted: entry.encrypted,
                   createdAt: entry.createdAt,
                   objectCount: entry.objectCount,
                 ),

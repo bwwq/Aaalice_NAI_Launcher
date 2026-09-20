@@ -1,3 +1,4 @@
+import '../../core/cloud_sync/backup_image_preview.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -18,6 +19,7 @@ import 'portable_sync_record.dart';
 class AppCloudSyncDataSource
     implements
         CloudSyncDataSource,
+        CloudBackupImagePreviewSource,
         CloudSyncPayloadMaterializer,
         CloudSyncLocalPayloadResolver,
         CloudSyncPreviewStore,
@@ -61,6 +63,38 @@ class AppCloudSyncDataSource
   Future<DecodedPortableSnapshot> _decodeSnapshot(
     CloudSyncSnapshotData snapshot,
   ) => _decodedSnapshots[snapshot] ??= _codec.decode(snapshot);
+
+  @override
+  Future<BackupImagePreview> previewImages(
+    CloudSyncSnapshotData snapshot, {
+    CloudSyncSnapshotData? remote,
+  }) async {
+    final adapter = _registry.adapter('gallery-favorite-images');
+    if (adapter == null ||
+        adapter is! GalleryFavoritePreviewAdapter ||
+        !_registry.adapterIds.contains(adapter.id)) {
+      return const BackupImagePreview();
+    }
+    final decoded = await _decodeSnapshot(snapshot);
+    final known = {
+      for (final record in remote?.records.values ?? <CloudSyncRecord>[])
+        if (record.payload != null) record.payload!.sha256,
+    };
+    final payloads = {
+      for (final record in snapshot.records.values)
+        if (record.payload != null)
+          record.payload!.sha256: record.payload!.length,
+    };
+    final estimate = payloads.entries
+        .where((entry) => !known.contains(entry.key))
+        .fold<int>(0, (sum, entry) => sum + entry.value);
+    return (adapter as GalleryFavoritePreviewAdapter).preview(
+      decoded.records.values
+          .where((record) => record.adapterId == adapter.id)
+          .toList(),
+      estimate,
+    );
+  }
 
   Directory get _base => Directory('${_root.path}/base');
   File get _verificationCache =>

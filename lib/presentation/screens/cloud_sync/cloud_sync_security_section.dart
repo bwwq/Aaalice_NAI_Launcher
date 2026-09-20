@@ -18,6 +18,8 @@ class CloudSyncSecuritySection extends ConsumerWidget {
       title: context.l10n.cloudSync_connectionManagement,
       child: Column(
         children: [
+          Text(context.l10n.cloudSync_encryptedDescription),
+          const SizedBox(height: 12),
           if (state.supportsDelete)
             ListTile(
               key: const ValueKey('cloud-sync-rebuild-compact-backup'),

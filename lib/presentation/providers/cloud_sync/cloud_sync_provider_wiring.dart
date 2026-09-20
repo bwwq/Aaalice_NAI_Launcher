@@ -14,6 +14,9 @@ import '../../../core/cloud_sync/backend/webdav_cloud_sync_backend.dart';
 import '../../../core/cloud_sync/backend/webdav_backend_config.dart';
 import '../../../core/cloud_sync/cloud_drive_provider.dart';
 import '../../../core/cloud_sync/coordinator.dart';
+import '../../../core/cloud_sync/backend/cloud_sync_backend.dart';
+import '../../../core/cloud_sync/encrypted_cloud_sync_backend.dart';
+import '../../../core/cloud_sync/encrypted_backup_cache.dart';
 import '../../../core/cloud_sync/content_selection.dart';
 import '../../../core/cloud_sync/journal.dart';
 import '../../../core/cloud_sync/oauth/cloud_drive_oauth_factory.dart';
@@ -83,8 +86,7 @@ final cloudSyncApplicationServiceProvider =
         onState: (state) =>
             ref.read(cloudSyncApplicationStateProvider.notifier).state = state,
         backendFactory: (draft) {
-          final namespace = cloudSyncV3Namespace(draft.path);
-          return switch (draft.backend) {
+          CloudSyncBackend create(String namespace) => switch (draft.backend) {
             CloudSyncBackendKind.webDav => _createWebDavBackend(
               draft,
               namespace,
@@ -104,6 +106,18 @@ final cloudSyncApplicationServiceProvider =
                     namespace: namespace,
                   ),
           };
+          return EncryptedCloudSyncBackend(
+            current: create(cloudSyncV4Namespace(draft.path)),
+            legacy: create(cloudSyncV3Namespace(draft.path)),
+            cache: EncryptedBackupCache.lazy(() async {
+              final root = _cloudSyncLocalRoot(
+                await getApplicationSupportDirectory(),
+                draft,
+              );
+              return Directory('${root.path}/encrypted');
+            }),
+            keepSnapshots: draft.keepSnapshots,
+          );
         },
         coordinatorFactory:
             (backend, scope, contentSelection, connection) async {
@@ -199,7 +213,7 @@ Directory _cloudSyncLocalRoot(
   };
   final connectionHash = sha256.convert(utf8.encode(identity));
   return Directory(
-    '${support.path}/cloud-sync-v3/providers/'
+    '${support.path}/cloud-sync-v4/providers/'
     '${connection.backend.name}/$connectionHash',
   );
 }
@@ -235,6 +249,10 @@ bool isCloudSyncAdapterInScope(
   }
   if (id == 'online-gallery-favorites') {
     return contentSelection.includeOnlineGalleryFavorites &&
+        scope.contains(CloudSyncDataKind.galleries);
+  }
+  if (id == 'gallery-favorite-images') {
+    return contentSelection.includeGalleryFavoriteImages &&
         scope.contains(CloudSyncDataKind.galleries);
   }
   if (id == 'gallery-albums') {

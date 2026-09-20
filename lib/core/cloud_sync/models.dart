@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart' as crypto;
 
 const cloudSyncProtocol = 'aaalice-cloud-sync';
-const cloudSyncSchemaVersion = 3;
+const cloudSyncSchemaVersion = 4;
 
 /// Hard limit for each object sent to or received from a backend.
 const maxCloudObjectBytes = 4 * 1024 * 1024;
@@ -138,7 +138,7 @@ class SnapshotManifest {
            (id, entries) => MapEntry(id, List<String>.unmodifiable(entries)),
          ),
        ) {
-    if (version != 2 && version != cloudSyncSchemaVersion) {
+    if (version != 2 && version != 3 && version != cloudSyncSchemaVersion) {
       throw const CloudFormatException('unsupported manifest version');
     }
     _requireIdentity(snapshotId, 'snapshotId');
@@ -191,7 +191,8 @@ class SnapshotManifest {
   final Map<String, List<String>> packs;
 
   factory SnapshotManifest.decode(List<int> bytes) {
-    if (bytes.length > 1024 * 1024) {
+    if (bytes.length > 1024 * 1024 &&
+        (jsonDecode(utf8.decode(bytes)) as Map)['version'] != 4) {
       throw const CloudFormatException('manifest is too large');
     }
     try {
@@ -212,7 +213,7 @@ class SnapshotManifest {
       'snapshotId',
       'createdAt',
       'records',
-      if (value['version'] == cloudSyncSchemaVersion) 'packs',
+      if (value['version'] != 2) 'packs',
     });
     final rawRecords = json['records'];
     if (rawRecords is! List) {
@@ -245,7 +246,7 @@ class SnapshotHead {
     required this.updatedAt,
     this.version = cloudSyncSchemaVersion,
   }) {
-    if (version != 2 && version != cloudSyncSchemaVersion) {
+    if (version != 2 && version != 3 && version != cloudSyncSchemaVersion) {
       throw const CloudFormatException('unsupported head version');
     }
     _requireIdentity(snapshotId, 'snapshotId');

@@ -14579,6 +14579,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get watermark_autoContrast => '自动适应底色';
+
+  @override
+  String get cloudSync_favoriteOriginals => '本地收藏原图';
+
+  @override
+  String get cloudSync_favoriteOriginalsDescription => '备份本地图库中收藏的原图、收藏时间和标签。';
+
+  @override
+  String get cloudSync_keepSnapshots => '保留最近备份数';
+
+  @override
+  String get cloudSync_retentionDescription => '新备份成功后保留最近 1～100 份；无法安全清理时会提示。';
+
+  @override
+  String get cloudSync_encryptedDescription =>
+      '备份内容已加密，重装软件后连接网盘即可恢复。软件内置恢复能力，不需要保管密码。';
+
+  @override
+  String get cloudSync_legacyUnencrypted => '未加密的旧备份';
+
+  @override
+  String get cloudSync_cleanupPending => '旧备份待清理';
+
+  @override
+  String get cloudSync_previewUpload => '预览本次备份';
+
+  @override
+  String get cloudSync_confirmUpload => '确认备份';
+
+  @override
+  String cloudSync_imageBackupSummary(int count, String size, String upload) {
+    return '收藏原图：$count 张，共 $size MiB；预计新增上传（压缩前）：$upload MiB。';
+  }
+
+  @override
+  String cloudSync_imageRestoreSummary(int added, int reused, int conflicts) {
+    return '恢复图片：新增 $added 张，复用 $reused 张，同名保留双方 $conflicts 张。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -29157,4 +29195,42 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get watermark_autoContrast => '自動適應底色';
+
+  @override
+  String get cloudSync_favoriteOriginals => '本機收藏原圖';
+
+  @override
+  String get cloudSync_favoriteOriginalsDescription => '備份本機圖庫中收藏的原圖、收藏時間與標籤。';
+
+  @override
+  String get cloudSync_keepSnapshots => '保留最近備份數';
+
+  @override
+  String get cloudSync_retentionDescription => '新備份成功後保留最近 1～100 份；無法安全清理時會提示。';
+
+  @override
+  String get cloudSync_encryptedDescription =>
+      '備份內容已加密，重新安裝軟體後連接雲端即可還原。軟體內建還原能力，不需保管密碼。';
+
+  @override
+  String get cloudSync_legacyUnencrypted => '未加密的舊備份';
+
+  @override
+  String get cloudSync_cleanupPending => '舊備份待清理';
+
+  @override
+  String get cloudSync_previewUpload => '預覽本次備份';
+
+  @override
+  String get cloudSync_confirmUpload => '確認備份';
+
+  @override
+  String cloudSync_imageBackupSummary(int count, String size, String upload) {
+    return '收藏原圖：$count 張，共 $size MiB；預計新增上傳（壓縮前）：$upload MiB。';
+  }
+
+  @override
+  String cloudSync_imageRestoreSummary(int added, int reused, int conflicts) {
+    return '還原圖片：新增 $added 張，沿用 $reused 張，同名保留雙方 $conflicts 張。';
+  }
 }

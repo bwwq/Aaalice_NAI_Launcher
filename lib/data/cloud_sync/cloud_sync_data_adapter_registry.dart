@@ -68,8 +68,9 @@ class CloudSyncDataAdapterRegistry {
     for (final entry in grouped.entries) {
       await _adapters[entry.key]!.preflight(entry.value);
     }
-    for (final entry in grouped.entries) {
-      await _adapters[entry.key]!.apply(entry.value);
+    for (final adapter in adapters) {
+      final group = grouped[adapter.id];
+      if (group != null) await adapter.apply(group);
     }
     if (grouped.isNotEmpty) {
       await _afterApply?.call(Set.unmodifiable(grouped.keys.toSet()));

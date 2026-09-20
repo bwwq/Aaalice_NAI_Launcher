@@ -165,6 +165,31 @@ abstract interface class ReadOnlyCloudSyncBackendValidation {
   Future<void> validateConnectionReadOnly();
 }
 
+/// Establishes the durable transport plan before verifying upload checkpoints.
+abstract interface class CloudSnapshotUploadTransport {
+  Future<void> prepareSnapshotUpload(String snapshotId, OperationToken token);
+}
+
+class CloudNamespaceRetention {
+  const CloudNamespaceRetention({
+    required this.snapshotIds,
+    required this.objectIds,
+    this.deleteHead = false,
+  });
+  final Set<String> snapshotIds;
+  final Set<String> objectIds;
+  final bool deleteHead;
+}
+
+/// Opt in only when deletion and publication are serialized by one atomic
+/// provider revision, including all namespaces in this retention operation.
+abstract interface class AtomicCloudSnapshotPruningBackend {
+  Future<void> pruneSnapshots(
+    String expectedRevision,
+    Map<CloudSyncBackend, CloudNamespaceRetention> retained,
+  );
+}
+
 abstract interface class CloudSyncBackend {
   Future<CloudBackendCapability> testCapability();
 

@@ -14841,4 +14841,44 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get watermark_autoContrast => '背景に合わせて色を自動調整';
+
+  @override
+  String get cloudSync_favoriteOriginals => 'ローカルのお気に入り原画像';
+
+  @override
+  String get cloudSync_favoriteOriginalsDescription =>
+      'ローカルギャラリーのお気に入り原画像、登録日時、タグをバックアップします。';
+
+  @override
+  String get cloudSync_keepSnapshots => '保持するバックアップ数';
+
+  @override
+  String get cloudSync_retentionDescription =>
+      '新しいバックアップの成功後、最新の1～100件を保持します。削除できない場合は通知します。';
+
+  @override
+  String get cloudSync_encryptedDescription =>
+      'バックアップ内容は暗号化されます。アプリを再インストールして接続すると復元できます。パスワードの保管は不要です。';
+
+  @override
+  String get cloudSync_legacyUnencrypted => '暗号化されていない旧バックアップ';
+
+  @override
+  String get cloudSync_cleanupPending => '古いバックアップの削除待ち';
+
+  @override
+  String get cloudSync_previewUpload => '今回のバックアップを確認';
+
+  @override
+  String get cloudSync_confirmUpload => 'バックアップを確定';
+
+  @override
+  String cloudSync_imageBackupSummary(int count, String size, String upload) {
+    return 'お気に入り原画像：$count 枚、$size MiB。圧縮前の追加アップロード見込み：$upload MiB。';
+  }
+
+  @override
+  String cloudSync_imageRestoreSummary(int added, int reused, int conflicts) {
+    return '画像の復元：新規 $added 枚、再利用 $reused 枚、同名で両方保持 $conflicts 枚。';
+  }
 }

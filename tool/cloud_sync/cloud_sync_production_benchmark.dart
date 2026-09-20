@@ -1,6 +1,9 @@
+import 'package:nai_launcher/core/cloud_sync/encrypted_backup_cache.dart';
+import 'package:nai_launcher/core/cloud_sync/encrypted_cloud_sync_backend.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:nai_launcher/core/cloud_sync/backend/cloud_sync_backend.dart';
@@ -46,6 +49,18 @@ Future<void> main(List<String> arguments) async {
   }
 
   final backend = _DiskBenchmarkBackend(Directory('${runRoot.path}/remote'));
+  final encrypted = arguments.contains('--encrypted');
+  CloudSyncBackend transport(String device) => encrypted
+      ? EncryptedCloudSyncBackend(
+          current: backend,
+          legacy: _DiskBenchmarkBackend(Directory('${runRoot.path}/legacy')),
+          cache: EncryptedBackupCache(
+            Directory('${runRoot.path}/$device-ciphertext'),
+          ),
+        )
+      : backend;
+  final writer = transport('writer');
+  final reader = transport('fresh-reader');
   final producerAdapter = _BenchmarkAdapter(
     exportResource: true,
     logicalBytes: logicalBytes,
@@ -55,7 +70,7 @@ Future<void> main(List<String> arguments) async {
     root: Directory('${runRoot.path}/producer'),
   );
   final coordinator = SyncCoordinator(
-    backend: backend,
+    backend: writer,
     dataSource: producer,
     journalStore: JournalStore(File('${runRoot.path}/producer-journal.json')),
   );
@@ -87,7 +102,7 @@ Future<void> main(List<String> arguments) async {
     registry: CloudSyncDataAdapterRegistry([consumerAdapter]),
     root: Directory('${runRoot.path}/consumer'),
   );
-  final remoteHead = await backend.readHead();
+  final remoteHead = await reader.readHead();
   if (remoteHead == null) throw StateError('benchmark HEAD is missing');
   final head = SnapshotHead.decode(remoteHead.bytes);
 
@@ -95,7 +110,7 @@ Future<void> main(List<String> arguments) async {
   final downloadWatch = Stopwatch()..start();
   await CloudSyncTelemetry.trace('production-1gib-download-apply', () async {
     final target = await CloudSnapshotTransfer(
-      backend: backend,
+      backend: reader,
       dataSource: consumer,
     ).downloadHead(head, OperationToken(), null);
     final local = await consumer.captureLocal();
@@ -135,8 +150,12 @@ Future<void> main(List<String> arguments) async {
 
   final report = <String, Object?>{
     'schemaVersion': 2,
+    'encrypted': encrypted,
+    'freshDeviceRestore': encrypted,
+    'maxRssBytes': ProcessInfo.maxRss,
     'generatedAt': DateTime.now().toUtc().toIso8601String(),
     'scenario': 'production-1gib-roundtrip',
+    'sourcePattern': 'seeded-random-with-sequence-markers',
     'logicalBytes': logicalBytes,
     'defaultOneGiBExecuted': logicalBytes == _oneGiB,
     'productionPath': const [
@@ -262,8 +281,12 @@ final class _BenchmarkAdapter extends ValidatingCloudSyncDataAdapter {
 
   Stream<List<int>> _deterministicBytes(int length) async* {
     final chunks = length ~/ _sourceChunkBytes;
+    final random = Random(20260920);
     for (var index = 0; index < chunks; index++) {
       final bytes = Uint8List(_sourceChunkBytes);
+      for (var offset = 4; offset < bytes.length; offset++) {
+        bytes[offset] = random.nextInt(256);
+      }
       bytes[0] = index & 0xff;
       bytes[1] = (index >> 8) & 0xff;
       bytes[2] = (index >> 16) & 0xff;

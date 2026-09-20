@@ -2,7 +2,8 @@
 param(
     [ValidateRange(60, 600)]
     [int]$TimeoutSeconds = 600,
-    [string]$Output = 'tool/.tmp/cloud-sync-benchmark/report.json'
+    [string]$Output = 'tool/.tmp/cloud-sync-benchmark/report.json',
+    [switch]$Encrypted
 )
 
 $ErrorActionPreference = 'Stop'
@@ -123,6 +124,7 @@ try {
         '--ready', $readyPath,
         '--go', $goPath
     )
+    if ($Encrypted) { $runArguments += '--encrypted' }
     $process = Start-Process -FilePath $benchmarkExe -ArgumentList $runArguments -NoNewWindow -PassThru
     while (-not (Test-Path -LiteralPath $readyPath)) {
         if ($process.HasExited) { throw "Production benchmark exited before its memory baseline was established." }
@@ -167,13 +169,18 @@ try {
     }
 
     $oneGiB = 1GB
+    # Encrypted objects contain ZIP data: wire size is not the restored size.
+    $minimumTransferBytes = if ($Encrypted) { 1 } else { $oneGiB }
+    if ($Encrypted -and (-not $production.encrypted -or -not $production.freshDeviceRestore)) {
+        throw 'Encrypted benchmark did not exercise a fresh-device restore.'
+    }
     if (-not $production.defaultOneGiBExecuted -or
         [int64]$production.logicalBytes -ne $oneGiB -or
         [int64]$production.sourceOpens -ne 1 -or
         [int64]$production.uploadHashPasses -ne [int64]$production.payloadCount -or
         [int64]$production.downloadHashPasses -ne [int64]$production.payloadCount -or
-        [int64]$production.uploadedObjectBytes -lt $oneGiB -or
-        [int64]$production.downloadedObjectBytes -lt $oneGiB -or
+        [int64]$production.uploadedObjectBytes -lt $minimumTransferBytes -or
+        [int64]$production.downloadedObjectBytes -lt $minimumTransferBytes -or
         [int64]$production.appliedBytes -ne $oneGiB) {
         throw 'Production benchmark did not prove the default 1 GiB single-read/single-hash round trip.'
     }

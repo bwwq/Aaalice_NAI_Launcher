@@ -15,15 +15,41 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
     final preview = state.pendingPreview!;
     final hasUnresolved = state.conflicts.any((item) => item.choice == null);
     return CloudSyncSection(
-      title: preview.isRestore
+      title: preview.isUpload
+          ? context.l10n.cloudSync_previewUpload
+          : preview.isRestore
           ? context.l10n.cloudSync_restorePreviewTitle
           : context.l10n.cloudSync_mergePreviewTitle,
-      subtitle: preview.isRestore
+      subtitle: preview.isUpload
+          ? context.l10n.cloudSync_encryptedDescription
+          : preview.isRestore
           ? context.l10n.cloudSync_restorePreviewDescription
           : context.l10n.cloudSync_mergePreviewDescription,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (preview.images case final images?) ...[
+            Text(
+              preview.isRestore
+                  ? '${context.l10n.cloudSync_favoriteOriginals}: ${images.count}, ${(images.originalBytes / 1048576).toStringAsFixed(1)} MiB'
+                  : context.l10n.cloudSync_imageBackupSummary(
+                      images.count,
+                      (images.originalBytes / 1048576).toStringAsFixed(1),
+                      (images.estimatedUploadBytes / 1048576).toStringAsFixed(
+                        1,
+                      ),
+                    ),
+            ),
+            if (preview.isRestore)
+              Text(
+                context.l10n.cloudSync_imageRestoreSummary(
+                  images.added,
+                  images.reused,
+                  images.nameConflicts,
+                ),
+              ),
+            const SizedBox(height: 12),
+          ],
           if (preview.conflictSafeDeletionCount > 0) ...[
             CloudSyncStatusBanner(
               icon: Icons.warning_amber_rounded,
@@ -35,7 +61,7 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
           ],
-          if (preview.changes.isEmpty)
+          if (preview.changes.isEmpty && !preview.isUpload)
             Text(context.l10n.cloudSync_previewNoChanges)
           else
             for (final row in preview.changes)
@@ -51,6 +77,12 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
                   ),
                 ),
               ),
+          TextButton(
+            onPressed: state.isBusy
+                ? null
+                : () => _run(context, ref.read(cloudSyncUiPortProvider).cancel),
+            child: Text(context.l10n.cloudSync_cancel),
+          ),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
@@ -72,7 +104,9 @@ class CloudSyncPreviewPanel extends ConsumerWidget {
                 preview.isRestore ? Icons.restore : Icons.merge_outlined,
               ),
               label: Text(
-                preview.isRestore
+                preview.isUpload
+                    ? context.l10n.cloudSync_confirmUpload
+                    : preview.isRestore
                     ? context.l10n.cloudSync_confirmRestore
                     : context.l10n.cloudSync_confirmMerge,
               ),

@@ -19,6 +19,7 @@ class GitHubCloudSyncBackend
     implements
         CloudSyncBackend,
         CloudObjectInventoryBackend,
+        AtomicCloudSnapshotPruningBackend,
         ConcurrentCloudObjectUploadBackend {
   GitHubCloudSyncBackend({
     required this.owner,
@@ -403,6 +404,75 @@ class GitHubCloudSyncBackend
             .toList()
           ..sort((a, b) => b.compareTo(a));
     return ids.take(limit).toList(growable: false);
+  }
+
+  @override
+  Future<void> pruneSnapshots(
+    String expectedRevision,
+    Map<CloudSyncBackend, CloudNamespaceRetention> retained,
+  ) async {
+    final view = await _refreshView();
+    final expected = _HeadRevision.parse(expectedRevision);
+    final head = view.inventory['$_root/HEAD.json'];
+    if (expected == null ||
+        view.base?.commit != expected.commit ||
+        head?.sha != expected.file) {
+      throw const CloudBackendException(
+        CloudBackendErrorKind.conflict,
+        'Backup changed before cleanup',
+      );
+    }
+    final removals = <Map<String, Object?>>[];
+    for (final item in retained.entries) {
+      final backend = item.key;
+      if (backend is! GitHubCloudSyncBackend ||
+          backend.owner != owner ||
+          backend.repository != repository ||
+          backend.branch != branch) {
+        throw const CloudBackendException(
+          CloudBackendErrorKind.conflict,
+          'Cleanup namespaces do not share a transaction',
+        );
+      }
+      final root = backend._root;
+      for (final path in view.inventory.keys) {
+        var remove = false;
+        if (path.startsWith('$root/objects/')) {
+          final id = path.substring('$root/objects/'.length);
+          remove =
+              RegExp(r'^[0-9a-f]{64}$').hasMatch(id) &&
+              !item.value.objectIds.contains(id);
+        } else if (path.startsWith('$root/snapshots/') &&
+            path.endsWith('.json')) {
+          final id = path.substring('$root/snapshots/'.length, path.length - 5);
+          remove = !id.contains('/') && !item.value.snapshotIds.contains(id);
+        } else if (path == '$root/HEAD.json') {
+          remove = item.value.deleteHead;
+        }
+        if (remove) {
+          removals.add({
+            'path': path,
+            'mode': '100644',
+            'type': 'blob',
+            'sha': null,
+          });
+        }
+      }
+    }
+    if (removals.isEmpty) return;
+    await _api.commitTree(
+      base: view.base!,
+      entries: removals,
+      message: 'cloud-sync: retain recent backups',
+    );
+    _view = null;
+    _staging = null;
+    _verifiedObjectRevisions.clear();
+    for (final backend in retained.keys.whereType<GitHubCloudSyncBackend>()) {
+      backend._view = null;
+      backend._staging = null;
+      backend._verifiedObjectRevisions.clear();
+    }
   }
 
   @override

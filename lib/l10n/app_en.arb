@@ -6971,5 +6971,18 @@
       }
     }
   },
-  "watermark_autoContrast": "Adapt to background"
+  "watermark_autoContrast": "Adapt to background",
+  "cloudSync_favoriteOriginals": "Favorite original images",
+  "cloudSync_favoriteOriginalsDescription": "Back up original images favorited in the local gallery, favorite dates, and tags.",
+  "cloudSync_keepSnapshots": "Recent backups to keep",
+  "cloudSync_retentionDescription": "Keep 1–100 recent backups after a successful upload. Pending cleanup is reported.",
+  "cloudSync_encryptedDescription": "Backup contents are encrypted. Reinstall the app and reconnect to restore; built-in recovery requires no password.",
+  "cloudSync_legacyUnencrypted": "Unencrypted legacy backup",
+  "cloudSync_cleanupPending": "Old backups awaiting cleanup",
+  "cloudSync_previewUpload": "Preview this backup",
+  "cloudSync_confirmUpload": "Confirm backup",
+  "cloudSync_imageBackupSummary": "Favorite originals: {count}, {size} MiB. Estimated new upload before compression: {upload} MiB.",
+  "cloudSync_imageRestoreSummary": "Restore images: {added} new, {reused} reused, {conflicts} name conflicts kept as separate files.",
+  "@cloudSync_imageBackupSummary": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}, "upload": {"type": "String"}}},
+  "@cloudSync_imageRestoreSummary": {"placeholders": {"added": {"type": "int"}, "reused": {"type": "int"}, "conflicts": {"type": "int"}}}
 }

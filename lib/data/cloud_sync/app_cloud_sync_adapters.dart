@@ -22,6 +22,8 @@ import 'cloud_sync_data_adapter_registry.dart';
 import 'agent_cloud_sync_adapters.dart';
 import 'ffdkj_install_intent_adapter.dart';
 import 'gallery_album_cloud_sync_adapter.dart';
+import 'gallery_favorite_backup_store.dart';
+import 'gallery_favorite_images_adapter.dart';
 import 'online_favorites_cloud_sync_adapter.dart';
 import 'portable_sync_record.dart';
 import 'precise_ref_cloud_sync_adapter.dart';
@@ -55,6 +57,7 @@ CloudSyncDataAdapterRegistry createAppCloudSyncAdapterRegistry({
   AgentSkillsCloudSyncAdapter? agentSkills,
 }) {
   final galleryDataSource = GalleryDataSource();
+  final favoriteStore = GalleryFavoriteBackupStore(galleryDataSource);
   Future<List<GalleryAlbumRecord>> galleryAlbumRecords() =>
       galleryDataSource.albums.getAlbums();
 
@@ -108,6 +111,10 @@ CloudSyncDataAdapterRegistry createAppCloudSyncAdapterRegistry({
     ),
     PromptAssistantProfileCloudSyncAdapter(localStorage),
     OnlineFavoritesCloudSyncAdapter(onlineFavorites),
+    GalleryFavoriteImagesAdapter(
+      store: favoriteStore,
+      getRootPath: GalleryFolderRepository.instance.getRootPath,
+    ),
     GalleryAlbumCloudSyncAdapter(
       readAlbums: () async => [
         for (final record in await galleryAlbumRecords())
@@ -121,7 +128,10 @@ CloudSyncDataAdapterRegistry createAppCloudSyncAdapterRegistry({
           for (final import in imports) {
             for (final path in import.imagePaths) {
               absolutePathByRelative[path] =
-                  GalleryAlbumSidecarService.toAbsolutePath(rootPath, path);
+                  GalleryAlbumSidecarService.toAbsolutePath(
+                    rootPath,
+                    await favoriteStore.restoredPath(path),
+                  );
             }
           }
         }
@@ -161,7 +171,7 @@ CloudSyncDataAdapterRegistry createAppCloudSyncAdapterRegistry({
                   ? album.coverPath
                   : GalleryAlbumSidecarService.toAbsolutePath(
                       rootPath,
-                      album.coverPath!,
+                      await favoriteStore.restoredPath(album.coverPath!),
                     ),
               pendingPaths: pendingPaths,
               createdAt: album.createdAt,

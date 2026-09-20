@@ -1,3 +1,4 @@
+import '../../../core/cloud_sync/encrypted_cloud_sync_backend.dart';
 import '../../../core/cloud_sync/backend/cloud_sync_backend.dart';
 import '../../../core/cloud_sync/cloud_drive_provider.dart';
 import '../../../core/cloud_sync/coordinator.dart';
@@ -86,6 +87,13 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
   }
 
   void _set(CloudSyncUiState value) {
+    final backend = _backend;
+    if (backend is EncryptedCloudSyncBackend) {
+      value = value.copyWith(
+        keepSnapshots: backend.keepSnapshots,
+        pendingCleanup: backend.pendingCleanup,
+      );
+    }
     _state = value;
     _onState(value);
   }
@@ -139,6 +147,9 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
           ? _matchingTestedWebDavBackend(connection)
           : null;
       final backend = tested?.backend ?? _backendFactory(connection);
+      if (backend is EncryptedCloudSyncBackend) {
+        backend.keepSnapshots = connection.keepSnapshots;
+      }
       final useReadOnlyValidation =
           tested == null &&
           readOnlyWebDavValidation &&
@@ -362,6 +373,12 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
   }
 
   @override
+  Future<void> previewUpload() {
+    _state.ensureNoPendingPreview();
+    return _gate.run(_operations.previewUpload);
+  }
+
+  @override
   Future<void> pushNow() {
     _state.ensureNoPendingPreview();
     if (_coordinator == null) {
@@ -394,6 +411,15 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
 
   @override
   Future<void> applyPendingPreview() {
+    if (_state.pendingPreview?.isUpload == true) {
+      return _gate.run(
+        (operation) => _operations.runSync(
+          operation,
+          direction: CloudSyncInitialAction.upload,
+          requireUploadPreview: true,
+        ),
+      );
+    }
     if (_state.capabilityMode == CloudSyncCapabilityMode.manualBackupOnly) {
       return Future.error(
         StateError('Merge is unavailable in manual backup mode.'),
@@ -421,7 +447,13 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
   );
 
   @override
-  Future<void> cancel() async => _gate.operation?.cancel();
+  Future<void> cancel() async {
+    _gate.operation?.cancel();
+    if (_gate.operation == null) {
+      _set(_state.copyWith(clearPendingPreview: true));
+    }
+  }
+
   @override
   Future<void> pause() async {
     _gate.operation?.pause();
@@ -476,6 +508,26 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
       _errorReporter.record(error);
       rethrow;
     }
+  });
+
+  @override
+  Future<void> updateRetention(int count) => _gate.run((_) async {
+    _state.ensureNoPendingPreview();
+    if (count < 1 || count > 100) {
+      throw const FormatException('Backup count must be 1–100');
+    }
+    final persisted = await _connectionStore.load();
+    if (persisted == null) throw StateError('No backup connection');
+    await _connectionStore.save(
+      persisted.draft.withRetention(count),
+      persisted.dataKinds,
+      contentSelection: persisted.contentSelection,
+      remoteRevision: persisted.remoteRevision,
+      lastSync: persisted.lastSync,
+    );
+    final backend = _backend;
+    if (backend is EncryptedCloudSyncBackend) backend.keepSnapshots = count;
+    _set(_state.copyWith(keepSnapshots: count));
   });
 
   @override

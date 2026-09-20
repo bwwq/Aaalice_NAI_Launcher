@@ -1,4 +1,12 @@
+import '../../core/cloud_sync/backup_image_preview.dart';
 import 'portable_sync_record.dart';
+
+abstract interface class GalleryFavoritePreviewAdapter {
+  Future<BackupImagePreview> preview(
+    List<PortableSyncRecord> records,
+    int estimatedBytes,
+  );
+}
 
 class CloudSyncPreflightException implements Exception {
   const CloudSyncPreflightException(this.message);

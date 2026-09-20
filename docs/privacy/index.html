@@ -49,7 +49,7 @@
       <h2>5. 存储、安全与共享</h2>
       <ul>
         <li>OAuth access token、refresh token、NovelAI Token、WebDAV 密码和 GitHub Token 保存在设备安全存储中，不会写入云备份。</li>
-        <li>云备份内容采用明文快照，不提供端到端加密。用户应确保所选云端账号及存储空间权限符合自己的隐私需求。</li>
+        <li>新备份内容采用加密分卷，可选包含本地收藏原图；旧明文备份保持原格式。软件内置恢复密钥，不属于只有用户能解密的端到端加密。用户应确保所选云端账号及存储空间权限符合自己的隐私需求。</li>
         <li>本项目不会向广告商出售或出租用户数据，也不会将 Google 用户数据转移给第三方用于广告。</li>
         <li>只有为完成用户主动选择的功能所必需的第三方服务才会接收相应数据；这些服务对数据的处理受其各自政策约束。</li>
       </ul>
@@ -66,7 +66,7 @@
         <p class="meta">Effective: September 4, 2026</p>
         <p>NAI Launcher is an open-source, third-party NovelAI client. The project does not operate its own server for hosting user accounts or artwork. Prompts, gallery indexes, tags, settings, generation records, and Agent sessions remain on the user’s device by default.</p>
         <p>When a user connects Google Drive, the app uses basic OpenID identity and email data to identify the connected account and requests <code>drive.appdata</code> access to create, read, update, and delete NAI Launcher backups in Google Drive’s app-private hidden storage. It does not request access to ordinary Drive files. OneDrive similarly uses <code>Files.ReadWrite.AppFolder</code> for app-private storage.</p>
-        <p>Cloud transfers occur only when the user explicitly starts an upload, download, restore, or deletion. OAuth tokens remain in device secure storage and are excluded from backups. Backup snapshots are not end-to-end encrypted. Google user data is not sold, used for advertising, or transferred for advertising purposes.</p>
+        <p>Cloud transfers occur only when the user explicitly starts an upload, download, restore, or deletion. OAuth tokens remain in device secure storage and are excluded from backups. New snapshots use encrypted volumes and may include selected favorite local originals. Recovery keys are built into the app, so this is not user-exclusive end-to-end encryption. Legacy backups retain their original format. Google user data is not sold, used for advertising, or transferred for advertising purposes.</p>
         <p>Disconnecting in the app deletes that connection’s OAuth tokens, OpenID account identifier, and display email from device secure storage. Google authorization is also revoked when supported. Existing cloud backups remain until the user deletes them in the app or from the provider’s app-data storage. General questions may use <a href="https://github.com/Aaalice233/Aaalice_NAI_Launcher/issues">GitHub Issues</a>; private privacy or deletion requests may be sent to <a href="mailto:ljk2515448788ljk@gmail.com">ljk2515448788ljk@gmail.com</a>. Never post credentials or private content publicly.</p>
       </section>
     </article>

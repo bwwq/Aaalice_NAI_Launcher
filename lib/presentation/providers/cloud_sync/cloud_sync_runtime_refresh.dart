@@ -9,6 +9,7 @@ import '../fixed_tags_provider.dart';
 import '../font_provider.dart';
 import '../font_scale_provider.dart';
 import '../gallery_album_provider.dart';
+import '../local_gallery_provider.dart';
 import '../generation/generation_settings_notifiers.dart';
 import '../history_click_behavior_provider.dart';
 import '../image_save_settings_provider.dart';
@@ -100,6 +101,9 @@ Future<void> refreshCloudSyncRuntime(Ref ref, Set<String> adapterIds) async {
   }
   if (adapterIds.contains('online-gallery-favorites')) {
     ref.invalidate(onlineGalleryLocalFavoritesProvider);
+  }
+  if (adapterIds.contains('gallery-favorite-images')) {
+    await ref.read(localGalleryNotifierProvider.notifier).refresh(scan: false);
   }
   if (adapterIds.contains('gallery-albums')) {
     await ref.read(galleryAlbumNotifierProvider.notifier).refresh();

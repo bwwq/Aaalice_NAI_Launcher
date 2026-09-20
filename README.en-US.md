@@ -132,8 +132,8 @@ NAI Launcher is built for people who use NovelAI regularly. Generation, editing,
 - Supports OneDrive, GitHub, and WebDAV. New Google Drive connections are temporarily disabled pending authorization approval. Connecting an account never uploads, downloads, or overwrites content by itself.
 - Push, pull, and restore start only when requested, with change previews and conflict handling.
 - Select settings, Prompts and libraries, previews, online-gallery settings and favorites, local albums, Agent Prompts and Skills, and optional Vibe or Precise Reference content independently.
-- Original local and remote gallery images, credentials, caches, and logs never enter a backup.
-- Backups use readable plain data and need no separate recovery key. Check the destination's permissions before syncing.
+- Favorite local originals are included by default and can be disabled independently; image bytes and embedded metadata are preserved. Remote gallery originals, credentials, caches, and logs are excluded.
+- Selected content uses encrypted volumes and incremental uploads. Reinstall the app and reconnect to restore without retaining a password. Built-in recovery does not prevent a software holder from decrypting backups. Keep 5 recent backups by default, configurable from 1 to 100; pending cleanup is shown when reliable deletion is unavailable.
 
 ## 🖼️ Interface preview
 
@@ -211,7 +211,7 @@ NAI Launcher does not host your account or artwork on a project-operated server.
 
 - NovelAI Tokens, OAuth access/refresh tokens, WebDAV passwords, and GitHub Tokens use device secure storage and are never written into backups.
 - Local Prompts, gallery indexes, tags, resource libraries, and Agent sessions stay on the device by default.
-- Cloud backups store selected data in plaintext. Local gallery image files are not uploaded; albums, categories, and membership references can sync as lightweight data.
+- New cloud backups encrypt selected content. Legacy backups retain their original format and are labeled accordingly. Favorite local originals, albums, and other content remain independently selectable.
 - Online galleries can contain third-party content. Rating filters do not replace user judgment.
 - WebDAV security depends on the server and transport you configure. Keep a local copy of important data.
 

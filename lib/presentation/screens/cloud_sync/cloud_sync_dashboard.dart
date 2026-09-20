@@ -13,6 +13,7 @@ import 'cloud_sync_ffdkj_prompt.dart';
 import 'cloud_sync_preview_panel.dart';
 import 'cloud_sync_security_section.dart';
 import 'cloud_sync_widgets.dart';
+import 'cloud_sync_retention_control.dart';
 
 class CloudSyncDashboard extends ConsumerWidget {
   const CloudSyncDashboard({super.key, required this.state});
@@ -93,6 +94,30 @@ class CloudSyncDashboard extends ConsumerWidget {
             onTap: state.isBusy || state.needsPreviewConfirmation
                 ? null
                 : () => _editContentSelection(context, ref, port),
+          ),
+        ),
+        CloudSyncRetentionControl(
+          value: state.keepSnapshots,
+          onChanged: state.isBusy || state.needsPreviewConfirmation
+              ? null
+              : (value) =>
+                    _runAction(context, () => port.updateRetention(value)),
+        ),
+        if (state.pendingCleanup > 0)
+          CloudSyncStatusBanner(
+            icon: Icons.history_outlined,
+            title: context.l10n.cloudSync_cleanupPending,
+            message: '${state.pendingCleanup}',
+          ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: const ValueKey('cloud-sync-preview-upload'),
+            onPressed: state.isBusy || state.needsPreviewConfirmation
+                ? null
+                : () => _runAction(context, port.previewUpload),
+            icon: const Icon(Icons.preview_outlined),
+            label: Text(context.l10n.cloudSync_previewUpload),
           ),
         ),
         _syncActions(context, port),
@@ -390,7 +415,9 @@ class CloudSyncDashboard extends ConsumerWidget {
                           snapshot.objectCount,
                         ),
                       ),
-                      subtitle: Text(_date(snapshot.createdAt)),
+                      subtitle: Text(
+                        '${_date(snapshot.createdAt)}${snapshot.encrypted ? '' : '\n${context.l10n.cloudSync_legacyUnencrypted}'}',
+                      ),
                       trailing: constraints.maxWidth >= 520 ? action : null,
                     );
                     if (action == null || constraints.maxWidth >= 520) {

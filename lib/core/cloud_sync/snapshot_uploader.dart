@@ -37,7 +37,17 @@ class ResumableSnapshotUploader {
     required JournalCheckpoint checkpoint,
     SyncProgressCallback? onProgress,
   }) async {
-    var current = journal;
+    if (backend is CloudSnapshotUploadTransport) {
+      await (backend as CloudSnapshotUploadTransport).prepareSnapshotUpload(
+        journal.snapshotId,
+        token,
+      );
+    }
+    // Encrypted providers can stage blobs until HEAD publication (GitHub).
+    // Re-inventory on restart instead of trusting unpublished checkpoints.
+    var current = backend is CloudSnapshotUploadTransport
+        ? journal.copyWith(completedObjectIds: const [], now: now())
+        : journal;
     final plan = await SnapshotUploadPlan.prepare(
       dataSource: dataSource,
       snapshot: snapshot,

@@ -15,6 +15,7 @@ import '../../providers/cloud_sync/cloud_sync_flight_gate.dart';
 import '../../providers/cloud_sync/cloud_sync_provider_wiring.dart';
 import '../../providers/cloud_sync/cloud_sync_ui_provider.dart';
 import 'cloud_sync_content_selection_dialog.dart';
+import 'cloud_sync_retention_control.dart';
 import 'cloud_sync_setup_configuration.dart';
 import 'cloud_sync_widgets.dart';
 
@@ -35,6 +36,7 @@ class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
   final _path = TextEditingController(text: 'aaalice-sync');
   var _backend = CloudSyncBackendKind.webDav;
   var _busy = false;
+  var _keepSnapshots = 5;
   var _authorizingOAuth = false;
   var _allowInsecureHttp = false;
   CloudSyncConnectionDraft? _oauthDraft;
@@ -118,6 +120,7 @@ class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
     if (_backend.usesOAuth && oauth != null) {
       return CloudSyncConnectionDraft(
         backend: _backend,
+        keepSnapshots: _keepSnapshots,
         path: _path.text.trim().isEmpty ? 'aaalice-sync' : _path.text.trim(),
         accountId: oauth.accountId,
         accountLabel: oauth.accountLabel,
@@ -125,6 +128,7 @@ class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
     }
     return CloudSyncConnectionDraft(
       backend: _backend,
+      keepSnapshots: _keepSnapshots,
       serverUrl: _url.text.trim(),
       username: _username.text.trim(),
       secret: _secret.text,
@@ -326,6 +330,10 @@ class _CloudSyncSetupState extends ConsumerState<CloudSyncSetup> {
           onCancelOAuth: _cancelOAuth,
         ),
         _dataScope(),
+        CloudSyncRetentionControl(
+          value: _keepSnapshots,
+          onChanged: (value) => setState(() => _keepSnapshots = value),
+        ),
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {

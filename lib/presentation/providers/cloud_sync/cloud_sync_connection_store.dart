@@ -94,6 +94,7 @@ class CloudSyncConnectionStore {
         'allowInsecureHttp': draft.allowInsecureHttp,
         'accountId': draft.accountId,
         'accountLabel': draft.accountLabel,
+        'keepSnapshots': draft.keepSnapshots,
         'dataKinds': dataKinds
             .where(cloudSyncSelectableDataKinds.contains)
             .map((value) => value.name)
@@ -186,6 +187,7 @@ class CloudSyncConnectionStore {
         allowInsecureHttp: public['allowInsecureHttp'] as bool? ?? false,
         accountId: public['accountId'] as String? ?? '',
         accountLabel: public['accountLabel'] as String? ?? '',
+        keepSnapshots: _retention(public['keepSnapshots']),
       ),
       dataKinds: storedKinds == null
           ? cloudSyncSelectableDataKinds
@@ -198,6 +200,14 @@ class CloudSyncConnectionStore {
       remoteRevision: public['remoteRevision'] as String?,
       lastSync: DateTime.tryParse(public['lastSync'] as String? ?? ''),
     );
+  }
+
+  static int _retention(Object? value) {
+    if (value == null) return 5;
+    if (value is! int || value < 1 || value > 100) {
+      throw const FormatException('Invalid backup retention');
+    }
+    return value;
   }
 
   Future<void> clear() async {

@@ -15249,4 +15249,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get watermark_autoContrast => 'Adapt to background';
+
+  @override
+  String get cloudSync_favoriteOriginals => 'Favorite original images';
+
+  @override
+  String get cloudSync_favoriteOriginalsDescription =>
+      'Back up original images favorited in the local gallery, favorite dates, and tags.';
+
+  @override
+  String get cloudSync_keepSnapshots => 'Recent backups to keep';
+
+  @override
+  String get cloudSync_retentionDescription =>
+      'Keep 1–100 recent backups after a successful upload. Pending cleanup is reported.';
+
+  @override
+  String get cloudSync_encryptedDescription =>
+      'Backup contents are encrypted. Reinstall the app and reconnect to restore; built-in recovery requires no password.';
+
+  @override
+  String get cloudSync_legacyUnencrypted => 'Unencrypted legacy backup';
+
+  @override
+  String get cloudSync_cleanupPending => 'Old backups awaiting cleanup';
+
+  @override
+  String get cloudSync_previewUpload => 'Preview this backup';
+
+  @override
+  String get cloudSync_confirmUpload => 'Confirm backup';
+
+  @override
+  String cloudSync_imageBackupSummary(int count, String size, String upload) {
+    return 'Favorite originals: $count, $size MiB. Estimated new upload before compression: $upload MiB.';
+  }
+
+  @override
+  String cloudSync_imageRestoreSummary(int added, int reused, int conflicts) {
+    return 'Restore images: $added new, $reused reused, $conflicts name conflicts kept as separate files.';
+  }
 }

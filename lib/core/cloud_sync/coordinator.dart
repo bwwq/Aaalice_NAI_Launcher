@@ -1,3 +1,4 @@
+import 'backup_image_preview.dart';
 import 'dart:convert';
 import 'dart:math';
 
@@ -263,6 +264,7 @@ class SyncCoordinator {
       entries.add(
         SnapshotHistoryEntry(
           id: id,
+          encrypted: read.revision.startsWith('v4:'),
           createdAt: manifest.createdAt,
           objectCount: manifest.records
               .where((record) => !record.deleted)
@@ -335,7 +337,15 @@ class SyncCoordinator {
         );
       }
     }
-    return RestorePreview(snapshotId: snapshotId, changes: changes);
+    return RestorePreview(
+      snapshotId: snapshotId,
+      changes: changes,
+      images: dataSource is CloudBackupImagePreviewSource
+          ? await (dataSource as CloudBackupImagePreviewSource).previewImages(
+              target,
+            )
+          : null,
+    );
   }
 
   Future<SyncOutcome> restore(
@@ -393,13 +403,18 @@ class SyncCoordinator {
   }
 
   Future<SyncOutcome> uploadLocal({
+    bool requirePreview = false,
     OperationToken? token,
     SyncProgressCallback? onProgress,
   }) async {
     final cancellation = token ?? OperationToken();
     if (!identical(OperationToken.current, cancellation)) {
       return cancellation.runInScope(
-        () => uploadLocal(token: cancellation, onProgress: onProgress),
+        () => uploadLocal(
+          token: cancellation,
+          onProgress: onProgress,
+          requirePreview: requirePreview,
+        ),
       );
     }
     await _recoverPending(cancellation, onProgress);
@@ -408,6 +423,17 @@ class SyncCoordinator {
     onProgress?.call(const SyncProgress(phase: SyncPhase.scanning));
     onProgress?.call(const SyncProgress(phase: SyncPhase.hashing));
     final local = await dataSource.captureLocal();
+    if (requirePreview) {
+      final preview = _pendingSyncPreview;
+      if (preview == null ||
+          preview.remoteRevision != head?.revision ||
+          preview.local.records.length != local.records.length ||
+          local.records.entries.any(
+            (entry) => preview.local.records[entry.key] != entry.value,
+          )) {
+        throw const CloudPreviewStaleException();
+      }
+    }
     final snapshotId = _newId('snapshot');
     final journal = await _runner.prepare(
       operationId: _newId('upload'),
@@ -424,6 +450,8 @@ class SyncCoordinator {
       recovering: false,
       onProgress: onProgress,
     );
+    _pendingSyncPreview = null;
+    await _deleteSyncPreview();
     return SyncOutcome(
       snapshotId: snapshotId,
       uploaded: true,

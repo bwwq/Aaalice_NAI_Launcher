@@ -1,3 +1,4 @@
+import 'backup_image_preview.dart';
 import 'data_source.dart';
 import 'merge.dart';
 import 'operation.dart';
@@ -45,7 +46,12 @@ class SnapshotChange {
 }
 
 class RestorePreview {
-  const RestorePreview({required this.snapshotId, required this.changes});
+  const RestorePreview({
+    required this.snapshotId,
+    required this.changes,
+    this.images,
+  });
+  final BackupImagePreview? images;
   final String snapshotId;
   final List<SnapshotChange> changes;
 }
@@ -83,7 +89,9 @@ class SnapshotHistoryEntry {
     required this.id,
     required this.createdAt,
     required this.objectCount,
+    this.encrypted = false,
   });
+  final bool encrypted;
   final String id;
   final DateTime createdAt;
   final int objectCount;

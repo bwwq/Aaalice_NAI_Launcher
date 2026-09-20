@@ -157,6 +157,18 @@ class _CloudSyncContentSelectionBodyState
                   title: context.l10n.cloudSync_optionalResources,
                   children: [
                     _toggle(
+                      key: 'gallery-favorite-images',
+                      title: context.l10n.cloudSync_favoriteOriginals,
+                      subtitle:
+                          context.l10n.cloudSync_favoriteOriginalsDescription,
+                      value: _selection.includeGalleryFavoriteImages,
+                      onChanged: (value) => _update(
+                        _selection.copyWith(
+                          includeGalleryFavoriteImages: value,
+                        ),
+                      ),
+                    ),
+                    _toggle(
                       key: 'vibes',
                       title: context.l10n.cloudSync_vibes,
                       subtitle: context.l10n.cloudSync_largeResourceDescription,

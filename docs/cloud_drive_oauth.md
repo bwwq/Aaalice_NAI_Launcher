@@ -103,7 +103,7 @@ Release workflow 要求先设置 GitHub Actions repository variables：`GOOGLE_D
 ## 数据与账号隔离
 
 - Google 只写隐藏 `appDataFolder`，OneDrive 只写 `/special/approot` 下的 `aaalice-sync`；两者都不会请求或扫描普通网盘文件。
-- 两个 provider 复用同一套明文不可变 object/manifest + 小型 HEAD 协议和现有同步数据 allowlist，不创建 `KEY.json`，也不要求恢复密钥。
+- 两个 provider 复用 schema 4 加密分卷、加密清单及小型 HEAD；每份快照的密钥封装单独作为对象保存。软件内置恢复密钥，不要求用户保管密码或本机密钥；凭据仍排除在备份外。
 - 保存连接只验证并保存配置，不会自动上传、拉取或恢复待处理同步；所有数据传输都必须由用户点击对应操作触发。
 - OAuth token、WebDAV/GitHub 凭据、设备配置、缓存、索引、队列和日志都不进入备份。断开账号会撤销（Google）或删除（Microsoft）OAuth session，但不会删除远端数据；“删除云端备份”始终使用独立高风险确认。
 

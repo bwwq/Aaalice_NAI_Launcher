@@ -105,16 +105,29 @@ class GalleryAlbumSidecarService {
 
   /// 绝对路径 -> 相对图库根目录的 '/' 分隔路径；不在根目录下时返回 null
   static String? toRelativePath(String rootPath, String absolutePath) {
-    final normalizedRoot = p.normalize(rootPath);
-    final normalized = p.normalize(absolutePath);
-    if (!p.isWithin(normalizedRoot, normalized)) return null;
-    return p.relative(normalized, from: normalizedRoot).replaceAll('\\', '/');
+    final context = _pathContext(rootPath);
+    final normalizedRoot = context.normalize(rootPath);
+    final normalized = context.normalize(absolutePath);
+    if (!context.isWithin(normalizedRoot, normalized)) return null;
+    return context
+        .relative(normalized, from: normalizedRoot)
+        .replaceAll('\\', '/');
   }
 
   /// 相对路径 -> 绝对路径
   static String toAbsolutePath(String rootPath, String relativePath) {
-    return p.joinAll([p.normalize(rootPath), ...relativePath.split('/')]);
+    final context = _pathContext(rootPath);
+    return context.joinAll([
+      context.normalize(rootPath),
+      ...relativePath.split('/'),
+    ]);
   }
+
+  static p.Context _pathContext(String root) => p.Context(
+    style: RegExp(r'^[A-Za-z]:[\\/]').hasMatch(root) || root.startsWith(r'\\')
+        ? p.Style.windows
+        : p.Style.posix,
+  );
 
   /// 校验成员/封面引用是否为图库根目录内的规范化相对路径。
   ///

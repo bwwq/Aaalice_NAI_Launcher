@@ -1,3 +1,4 @@
+import '../../../core/cloud_sync/backup_image_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -64,10 +65,14 @@ class CloudSyncPreviewView {
     required this.changes,
     this.snapshotId,
     this.isRestore = false,
+    this.isUpload = false,
+    this.images,
   });
 
   final String? snapshotId;
   final bool isRestore;
+  final bool isUpload;
+  final BackupImagePreview? images;
   final List<CloudSyncChangeSummary> changes;
   int get conflictSafeDeletionCount =>
       changes.fold(0, (sum, row) => sum + row.deleted);
@@ -87,7 +92,8 @@ class CloudSyncConnectionDraft {
     this.allowInsecureHttp = false,
     this.accountId = '',
     this.accountLabel = '',
-  });
+    this.keepSnapshots = 5,
+  }) : assert(keepSnapshots >= 1 && keepSnapshots <= 100);
 
   final CloudSyncBackendKind backend;
   final String serverUrl;
@@ -100,6 +106,21 @@ class CloudSyncConnectionDraft {
   final bool allowInsecureHttp;
   final String accountId;
   final String accountLabel;
+  final int keepSnapshots;
+  CloudSyncConnectionDraft withRetention(int count) => CloudSyncConnectionDraft(
+    backend: backend,
+    serverUrl: serverUrl,
+    username: username,
+    secret: secret,
+    owner: owner,
+    repository: repository,
+    branch: branch,
+    path: path,
+    allowInsecureHttp: allowInsecureHttp,
+    accountId: accountId,
+    accountLabel: accountLabel,
+    keepSnapshots: count,
+  );
 }
 
 @immutable
@@ -213,8 +234,10 @@ class CloudSyncSnapshotView {
     required this.id,
     required this.createdAt,
     required this.objectCount,
+    this.encrypted = false,
   });
 
+  final bool encrypted;
   final String id;
   final DateTime createdAt;
   final int objectCount;
@@ -271,6 +294,8 @@ class CloudSyncUiState {
     this.pendingPreview,
     this.pendingFfdkjInstall = false,
     this.contentSelection = const CloudSyncContentSelection(),
+    this.keepSnapshots = 5,
+    this.pendingCleanup = 0,
     this.error,
   });
 
@@ -295,6 +320,8 @@ class CloudSyncUiState {
   final CloudSyncPreviewView? pendingPreview;
   final bool pendingFfdkjInstall;
   final CloudSyncContentSelection contentSelection;
+  final int keepSnapshots;
+  final int pendingCleanup;
   final String? error;
 
   bool get isConnected =>
@@ -340,6 +367,8 @@ class CloudSyncUiState {
     CloudSyncPreviewView? pendingPreview,
     bool? pendingFfdkjInstall,
     CloudSyncContentSelection? contentSelection,
+    int? keepSnapshots,
+    int? pendingCleanup,
     String? error,
     bool clearProgress = false,
     bool clearError = false,
@@ -371,6 +400,8 @@ class CloudSyncUiState {
         : pendingPreview ?? this.pendingPreview,
     pendingFfdkjInstall: pendingFfdkjInstall ?? this.pendingFfdkjInstall,
     contentSelection: contentSelection ?? this.contentSelection,
+    keepSnapshots: keepSnapshots ?? this.keepSnapshots,
+    pendingCleanup: pendingCleanup ?? this.pendingCleanup,
     error: clearError ? null : error ?? this.error,
   );
 }
@@ -396,6 +427,8 @@ abstract interface class CloudSyncUiPort {
 
   Future<void> pushNow();
 
+  Future<void> previewUpload();
+
   Future<void> pullNow();
 
   Future<void> applyPendingPreview();
@@ -416,6 +449,8 @@ abstract interface class CloudSyncUiPort {
 
   Future<void> updateContentSelection(CloudSyncContentSelection selection);
 
+  Future<void> updateRetention(int count);
+
   Future<void> rebuildCompactBackup();
 
   Future<void> disconnect();
@@ -433,6 +468,12 @@ abstract interface class CloudSyncUiPort {
 /// Test/embedding adapter whose operations are unsupported unless overridden.
 class CloudSyncUiPortAdapter implements CloudSyncUiPort {
   const CloudSyncUiPortAdapter();
+
+  @override
+  Future<void> previewUpload() => _unavailable();
+
+  @override
+  Future<void> updateRetention(int count) => _unavailable();
 
   @override
   Future<CloudSyncCapabilityResult> testConnection(

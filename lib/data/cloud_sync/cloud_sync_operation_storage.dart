@@ -266,7 +266,7 @@ class CloudSyncOperationStorage {
     List<int> bytes,
   ) async {
     _validateArtifactName(name);
-    if (bytes.length > maxCloudObjectBytes) {
+    if (name != 'manifest.json' && bytes.length > maxCloudObjectBytes) {
       throw const CloudFormatException('upload artifact is too large');
     }
     final directory = upload(operationId);
@@ -295,7 +295,7 @@ class CloudSyncOperationStorage {
     _validateArtifactName(name);
     final file = File('${upload(operationId).path}/$name');
     if (!await file.exists()) return null;
-    if (await file.length() > maxCloudObjectBytes) {
+    if (name != 'manifest.json' && await file.length() > maxCloudObjectBytes) {
       throw const CloudFormatException('upload artifact is too large');
     }
     return file.readAsBytes();
