@@ -3,7 +3,8 @@ param(
     [ValidateRange(60, 600)]
     [int]$TimeoutSeconds = 600,
     [string]$Output = 'tool/.tmp/cloud-sync-benchmark/report.json',
-    [switch]$Encrypted
+    [switch]$Encrypted,
+    [switch]$IndexedIncremental
 )
 
 $ErrorActionPreference = 'Stop'
@@ -70,6 +71,23 @@ function Wait-BoundedProcess {
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $reportPath = if ([System.IO.Path]::IsPathRooted($Output)) { $Output } else { Join-Path $repoRoot $Output }
+if ($IndexedIncremental) {
+    $previousBenchmark = $env:CLOUD_INDEX_BENCHMARK
+    $previousReport = $env:CLOUD_INDEX_REPORT
+    try {
+        $env:CLOUD_INDEX_BENCHMARK = '1'
+        $env:CLOUD_INDEX_REPORT = $reportPath
+        & (Join-Path $repoRoot 'scripts/run_flutter_tests.ps1') `
+            -Path 'test/core/cloud_sync/indexed_backup_transfer_test.dart' `
+            -TimeoutSeconds $TimeoutSeconds -Concurrency 1 -NoPub -NoTestAssets
+        if ($LASTEXITCODE -ne 0) { throw 'Indexed incremental benchmark failed.' }
+        return
+    }
+    finally {
+        $env:CLOUD_INDEX_BENCHMARK = $previousBenchmark
+        $env:CLOUD_INDEX_REPORT = $previousReport
+    }
+}
 $reportDirectory = Split-Path -Parent $reportPath
 $syntheticReportPath = "$reportPath.synthetic.json"
 $benchmarkExe = Join-Path $reportDirectory 'cloud_sync_production_benchmark.exe'

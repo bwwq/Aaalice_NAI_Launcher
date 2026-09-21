@@ -70,6 +70,7 @@ class OneDriveApiClient {
   }
 
   static const String _appRoot = 'me/drive/special/approot';
+  String get verificationScope => _graphBase.toString();
 
   final Future<String> Function() _accessTokenProvider;
   final Dio _dio;

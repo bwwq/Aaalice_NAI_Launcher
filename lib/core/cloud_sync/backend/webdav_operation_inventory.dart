@@ -57,6 +57,9 @@ class WebDavOperationInventory {
     if (response.statusCode == 404) {
       return CloudObjectInventoryResult.empty();
     }
+    if (response.statusCode == 405 || response.statusCode == 501) {
+      return CloudObjectInventoryResult.empty();
+    }
     if (response.statusCode != 207) {
       throw _invalid('读取 WebDAV 对象清单失败（HTTP ${response.statusCode ?? 0}）。');
     }
@@ -119,15 +122,16 @@ class WebDavOperationInventory {
             .getElement('getetag', namespace: 'DAV:')
             ?.innerText
             .trim();
-        if (!_isStrongEtag(etag)) continue;
+        if (!CloudObjectNaming.isContentAddressedId(name)) continue;
         urisByObjectId[name] = resolved;
         candidates.add(
           CloudObjectInventoryCandidate(
             objectId: name,
             size: length,
-            revision: etag!,
-            verificationRevision:
-                'webdav:$verificationScope:${resolved.toString()}:$etag',
+            revision: etag ?? '',
+            verificationRevision: _isStrongEtag(etag)
+                ? 'webdav:$verificationScope:${resolved.toString()}:$etag'
+                : null,
           ),
         );
       }
@@ -140,10 +144,11 @@ class WebDavOperationInventory {
     final effectiveTrustedRevisions = {...trustedRevisions};
     for (final candidate in candidates) {
       final inMemory = verifiedObjectRevisions[candidate.objectId];
-      if (inMemory == candidate.revision ||
-          inMemory == candidate.verificationRevision) {
+      if (candidate.verificationRevision != null &&
+          (inMemory == candidate.revision ||
+              inMemory == candidate.verificationRevision)) {
         effectiveTrustedRevisions[candidate.objectId] =
-            candidate.verificationRevision;
+            candidate.verificationRevision!;
       }
     }
     final result = await verifyCloudObjectInventory(
@@ -156,7 +161,11 @@ class WebDavOperationInventory {
         final content = await http.request(
           'GET',
           urisByObjectId[candidate.objectId]!,
-          headers: {...headers, 'If-Match': candidate.revision},
+          headers: {
+            ...headers,
+            if (candidate.verificationRevision != null)
+              'If-Match': candidate.revision,
+          },
           maxResponseBytes: maxCloudObjectResponseBytes,
         );
         if (content.statusCode == 412) {
@@ -169,8 +178,9 @@ class WebDavOperationInventory {
           throw _invalid('读取 WebDAV 不可变对象失败（HTTP ${content.statusCode ?? 0}）。');
         }
         CloudSyncTelemetry.recordHashPass();
-        if (sha256.convert(BackendHttp.bytesOf(content)).toString() !=
-            candidate.objectId) {
+        if (BackendHttp.bytesOf(content).length != candidate.size ||
+            sha256.convert(BackendHttp.bytesOf(content)).toString() !=
+                candidate.objectId) {
           throw const CloudBackendException(
             CloudBackendErrorKind.conflict,
             'WebDAV 已存在内容不一致的不可变对象。',

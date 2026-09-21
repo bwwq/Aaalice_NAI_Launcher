@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import '../operation.dart';
+import '../models.dart';
 
 const maxCloudHeadResponseBytes = 64 * 1024;
 const maxCloudManifestResponseBytes = 1024 * 1024 + 64;
@@ -37,10 +38,18 @@ class CloudBackendCapability {
 }
 
 class CloudObjectRead {
-  const CloudObjectRead({required this.bytes, required this.revision});
+  const CloudObjectRead({
+    required this.bytes,
+    required this.revision,
+    this.verificationRevision,
+  });
 
   final Uint8List bytes;
   final String revision;
+
+  /// Portable proof tied to this object's location and verified provider version.
+  /// Never a credential, credential digest, or an unscoped ETag.
+  final String? verificationRevision;
 }
 
 class CloudHeadRead extends CloudObjectRead {
@@ -48,9 +57,10 @@ class CloudHeadRead extends CloudObjectRead {
 }
 
 class CloudCommitResult {
-  const CloudCommitResult({required this.revision});
+  const CloudCommitResult({required this.revision, this.verificationRevision});
 
   final String revision;
+  final String? verificationRevision;
 }
 
 enum CloudBackendErrorKind {
@@ -167,7 +177,10 @@ abstract interface class ReadOnlyCloudSyncBackendValidation {
 
 /// Establishes the durable transport plan before verifying upload checkpoints.
 abstract interface class CloudSnapshotUploadTransport {
-  Future<void> prepareSnapshotUpload(String snapshotId, OperationToken token);
+  Future<SnapshotManifest?> prepareSnapshotUpload(
+    String snapshotId,
+    OperationToken token,
+  );
 }
 
 class CloudNamespaceRetention {

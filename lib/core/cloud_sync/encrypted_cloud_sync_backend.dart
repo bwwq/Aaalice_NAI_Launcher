@@ -6,6 +6,7 @@ import 'package:cryptography/cryptography.dart';
 import 'backend/cloud_sync_backend.dart';
 import 'encrypted_backup_cache.dart';
 import 'encrypted_backup_codec.dart';
+import 'encrypted_object_reuse.dart';
 import 'models.dart';
 import 'operation.dart';
 
@@ -31,6 +32,11 @@ class EncryptedCloudSyncBackend
   int keepSnapshots;
   final _objects = <String, Map<String, dynamic>>{};
   final _uploaded = <String>{};
+  final _verifiedParts = <String, Map<String, dynamic>>{};
+  bool _frozenSnapshot = false;
+  Map<String, dynamic>? _frozenObjects;
+  String? _uploadPlanGroup;
+  final _pinnedObjects = <String>{};
   final _snapshotObjects = <String, Set<String>>{};
   Set<String>? _readingPages;
   bool _legacyRead = false;
@@ -59,18 +65,32 @@ class EncryptedCloudSyncBackend
   }
 
   @override
-  Future<void> prepareSnapshotUpload(
+  Future<SnapshotManifest?> prepareSnapshotUpload(
     String snapshotId,
     OperationToken token,
   ) async {
     _token = token;
     _uploaded.clear();
+    _verifiedParts.clear();
+    _objects.clear();
+    final pending = await cache.readPlan('snapshots', snapshotId);
+    _uploadPlanGroup = 'upload-$snapshotId';
+    _pinnedObjects.clear();
+    _frozenSnapshot = pending != null;
+    _frozenObjects = (pending?['objects'] as Map?)?.cast<String, dynamic>();
+    SnapshotManifest? baseline;
     final head = await current.readHead();
     if (head != null) {
       final logical = SnapshotHead.decode(await _decodeHead(head.bytes));
-      await _readEncryptedManifest(logical.snapshotId);
+      final read = await _readEncryptedManifest(logical.snapshotId);
+      if (read == null) {
+        throw const CloudFormatException('Committed snapshot is missing');
+      }
+      logical.verifyManifest(read.bytes);
+      baseline = SnapshotManifest.decode(read.bytes);
     }
     _legacyRead = false;
+    return baseline;
   }
 
   @override
@@ -207,6 +227,7 @@ class EncryptedCloudSyncBackend
     _objects[objectId] = plan;
     final key = SecretKey(base64Decode(plan['key'] as String));
     final buffer = BytesBuilder(copy: false);
+    final metadata = <String, dynamic>{};
     for (final id in (plan['parts'] as List).cast<String>()) {
       final remote = await current.readObject(id);
       if (remote == null) return null;
@@ -216,11 +237,20 @@ class EncryptedCloudSyncBackend
       buffer.add(
         await EncryptedBackupCodec.openAndDecompress(remote.bytes, key),
       );
+      metadata[id] = {
+        'size': remote.bytes.length,
+        if (remote.verificationRevision case final String proof)
+          'verificationRevision': proof,
+      };
     }
     final bytes = buffer.takeBytes();
     if (bytes.length != plan['length'] ||
         EncryptedBackupCodec.hash(bytes) != objectId) {
       throw const CloudFormatException('Decrypted object checksum mismatch');
+    }
+    plan['partMetadata'] = metadata;
+    for (final entry in metadata.entries) {
+      _recordVerifiedPart(entry.key, entry.value as Map<String, dynamic>);
     }
     return CloudObjectRead(
       bytes: bytes,
@@ -235,32 +265,34 @@ class EncryptedCloudSyncBackend
     OperationToken? token,
     CloudObjectInventoryProgressCallback? onProgress,
   }) async {
-    final revisions = <String, String>{};
-    var done = 0;
-    var bytesDone = 0;
-    final total = expectedObjects.values.fold<int>(0, (a, b) => a + b);
     for (final entry in expectedObjects.entries) {
       await token?.checkpoint();
-      final plan = _objects[entry.key];
-      if (plan != null && plan['length'] == entry.value) {
-        final read = await readObject(entry.key);
-        if (read != null) revisions[entry.key] = read.revision;
-      }
-      done++;
-      bytesDone += entry.value;
-      onProgress?.call(
-        CloudObjectInventoryProgress(
-          objectsCompleted: done,
-          objectsTotal: expectedObjects.length,
-          bytesCompleted: bytesDone,
-          bytesTotal: total,
-        ),
-      );
+      final frozen = _frozenObjects?[entry.key];
+      final pinned = _uploadPlanGroup == null
+          ? null
+          : await cache.readPlan(_uploadPlanGroup!, entry.key);
+      if (pinned != null) _pinnedObjects.add(entry.key);
+      final cached = await cache.readPlan('objects', entry.key);
+      final plan = frozen is Map
+          ? Map<String, dynamic>.from(frozen)
+          : pinned ??
+                (_frozenSnapshot ? cached : _objects[entry.key] ?? cached);
+      if (plan != null) _objects[entry.key] = plan;
     }
-    return CloudObjectInventoryResult(
-      existingObjectIds: revisions.keys.toSet(),
-      verifiedRevisions: revisions,
+    return verifyEncryptedObjects(
+      backend: current,
+      expectedObjects: expectedObjects,
+      plans: _objects,
+      readLogicalObject: readObject,
+      verifiedPart: _recordVerifiedPart,
+      token: token,
+      onProgress: onProgress,
     );
+  }
+
+  void _recordVerifiedPart(String id, Map<String, dynamic> metadata) {
+    _uploaded.add(id);
+    _verifiedParts[id] = metadata;
   }
 
   @override
@@ -275,7 +307,31 @@ class EncryptedCloudSyncBackend
         'Object checksum mismatch before encryption',
       );
     }
-    var plan = await cache.readPlan('objects', objectId);
+    final pinned = _uploadPlanGroup == null
+        ? null
+        : await cache.readPlan(_uploadPlanGroup!, objectId);
+    if (pinned != null) _pinnedObjects.add(objectId);
+    var plan =
+        pinned ??
+        _objects[objectId] ??
+        await cache.readPlan('objects', objectId);
+    if (plan != null &&
+        !_frozenSnapshot &&
+        !_pinnedObjects.contains(objectId)) {
+      for (final id in (plan['parts'] as List).cast<String>()) {
+        if (!_uploaded.contains(id) && !await cache.contains(id)) {
+          // A fresh device can replace a missing object in a new snapshot;
+          // a frozen pending snapshot must retain its exact ciphertext.
+          plan = null;
+          break;
+        }
+      }
+    }
+    if (plan == null && _frozenSnapshot) {
+      throw const CloudFormatException(
+        'Pending encrypted object plan is missing',
+      );
+    }
     if (plan == null) {
       final key = await EncryptedBackupCodec.newKey();
       final parts = <String>[];
@@ -304,19 +360,37 @@ class EncryptedCloudSyncBackend
       };
       await cache.writePlan('objects', objectId, plan);
     }
+    // Persist this operation's mapping before sending any volumes. A retry
+    // must not replace it with the older HEAD's mapping for the same content.
+    if (_uploadPlanGroup != null) {
+      await cache.writePlan(_uploadPlanGroup!, objectId, plan);
+      _pinnedObjects.add(objectId);
+    }
     _objects[objectId] = plan;
+    final metadata = <String, dynamic>{};
     for (final id in (plan['parts'] as List).cast<String>()) {
-      await _uploadCipher(id);
+      metadata[id] = await _uploadCipher(id);
+    }
+    plan['partMetadata'] = metadata;
+    await cache.writePlan('objects', objectId, plan);
+    if (_uploadPlanGroup != null) {
+      await cache.writePlan(_uploadPlanGroup!, objectId, plan);
     }
     return CloudCommitResult(revision: (plan['parts'] as List).join(':'));
   }
 
-  Future<void> _uploadCipher(String id) async {
+  Future<Map<String, dynamic>> _uploadCipher(String id) async {
     await _token?.checkpoint();
-    if (_uploaded.contains(id)) return;
+    if (_uploaded.contains(id)) return _verifiedParts[id]!;
     final bytes = await cache.read(id);
-    await current.putObject(id, bytes, sha256: id);
-    _uploaded.add(id);
+    final result = await current.putObject(id, bytes, sha256: id);
+    final metadata = <String, dynamic>{
+      'size': bytes.length,
+      if (result.verificationRevision case final String proof)
+        'verificationRevision': proof,
+    };
+    _recordVerifiedPart(id, metadata);
+    return metadata;
   }
 
   @override
@@ -384,7 +458,12 @@ class EncryptedCloudSyncBackend
         'keyObjectId': keyObjectId,
         'root': root,
       };
-      plan = {'plainHash': sha256, 'envelope': envelope, 'pages': pageIds};
+      plan = {
+        'plainHash': sha256,
+        'envelope': envelope,
+        'pages': pageIds,
+        'objects': mapping,
+      };
       await cache.writePlan('snapshots', snapshotId, plan);
     }
     if (plan['plainHash'] != sha256) {

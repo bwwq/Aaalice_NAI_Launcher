@@ -73,9 +73,13 @@ class WebDavCloudSyncBackend
   @override
   int get maxConcurrentObjectUploads =>
       _verifiedMode == CloudBackendMode.manualBackupOnly ? 1 : 4;
-  String get _verificationScope => sha256
-      .convert(utf8.encode('$_baseUri\n$_authorization\n$namespace'))
-      .toString();
+  String get _verificationScope =>
+      sha256.convert(utf8.encode('$_baseUri\n$namespace')).toString();
+  String? _verificationRevision(Uri uri, String? etag) {
+    final strong = _strongEtag(etag);
+    return strong == null ? null : 'webdav:$_verificationScope:$uri:$strong';
+  }
+
   Map<String, String> get _headers => {
     'Authorization': _authorization,
     'Accept-Encoding': 'identity',
@@ -170,11 +174,8 @@ class WebDavCloudSyncBackend
         );
       }
     }
-    // Manual-backup providers cannot prove immutable-create CAS. Keep every
-    // object on the conservative GET -> PUT -> GET path instead of treating a
-    // listing entry as proof that an upload can be skipped.
-    if (_verifiedMode == CloudBackendMode.manualBackupOnly ||
-        expectedObjects.isEmpty) {
+    // Object validators do not imply that HEAD supports atomic publication.
+    if (expectedObjects.isEmpty) {
       return CloudObjectInventoryResult.empty();
     }
     await _ensureCollection(_objects);
@@ -239,7 +240,10 @@ class WebDavCloudSyncBackend
       final existing = await _get(uri, maxBytes: maxBytes);
       if (existing != null) {
         if (_sha256(existing.bytes) == sha256) {
-          return CloudCommitResult(revision: existing.revision);
+          return CloudCommitResult(
+            revision: existing.revision,
+            verificationRevision: existing.verificationRevision,
+          );
         }
         throw const CloudBackendException(
           CloudBackendErrorKind.conflict,
@@ -264,7 +268,10 @@ class WebDavCloudSyncBackend
           '手动备份对象写入后无法验证。',
         );
       }
-      return CloudCommitResult(revision: stored.revision);
+      return CloudCommitResult(
+        revision: stored.revision,
+        verificationRevision: stored.verificationRevision,
+      );
     }
     final response = await _http.request(
       'PUT',
@@ -276,7 +283,10 @@ class WebDavCloudSyncBackend
     if (response.statusCode == 412) {
       final existing = await _get(uri, maxBytes: maxBytes);
       if (existing != null && _sha256(existing.bytes) == sha256) {
-        return CloudCommitResult(revision: existing.revision);
+        return CloudCommitResult(
+          revision: existing.revision,
+          verificationRevision: existing.verificationRevision,
+        );
       }
       throw const CloudBackendException(
         CloudBackendErrorKind.conflict,
@@ -294,7 +304,10 @@ class WebDavCloudSyncBackend
         '对象已上传，但服务器未提供强 ETag，无法验证提交。',
       );
     }
-    return CloudCommitResult(revision: revision);
+    return CloudCommitResult(
+      revision: revision,
+      verificationRevision: _verificationRevision(uri, revision),
+    );
   }
 
   @override
@@ -478,6 +491,7 @@ class WebDavCloudSyncBackend
       revision: revision == null || revision.isEmpty
           ? _sha256(BackendHttp.bytesOf(response))
           : revision,
+      verificationRevision: _verificationRevision(uri, rawRevision),
     );
   }
 

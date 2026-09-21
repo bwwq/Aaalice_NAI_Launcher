@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
@@ -13,10 +12,12 @@ import 'package:nai_launcher/core/cloud_sync/operation.dart';
 import 'backend_test_support.dart';
 import 'cloud_sync_backend_contract.dart';
 
+import 'google_drive_fake_api.dart';
+
 void main() {
   runCloudSyncBackendContract(
     provider: 'Google Drive',
-    createBackend: () => _backend(_FakeDriveApi()),
+    createBackend: () => _backend(FakeDriveApi()),
     expectations: const CloudSyncBackendContractExpectations(
       mode: CloudBackendMode.manualBackupOnly,
     ),
@@ -46,7 +47,7 @@ void main() {
   test(
     'capability is explicitly manual-only and warns about missing CAS',
     () async {
-      final api = _FakeDriveApi();
+      final api = FakeDriveApi();
 
       final capability = await _backend(api).testCapability();
 
@@ -61,7 +62,7 @@ void main() {
   );
 
   test('readObject rejects content stored under the wrong hash id', () async {
-    final api = _FakeDriveApi();
+    final api = FakeDriveApi();
     final expectedId = sha256.convert(const [1, 2, 3]).toString();
     api.addFile(
       name: 'aaalice-cloud-sync-object-$expectedId',
@@ -84,7 +85,7 @@ void main() {
   test(
     'uploads and downloads hidden deterministic appDataFolder records',
     () async {
-      final api = _FakeDriveApi();
+      final api = FakeDriveApi();
       final backend = _backend(api);
       final object = Uint8List.fromList([1, 2, 3, 4]);
       final manifest = Uint8List.fromList(utf8.encode('{"snapshot":"s1"}'));
@@ -120,7 +121,7 @@ void main() {
   test('builds one complete paginated protocol inventory', () async {
     final bytes = Uint8List.fromList([1]);
     final objectId = sha256.convert(bytes).toString();
-    final api = _FakeDriveApi(forceSingleItemPages: true)
+    final api = FakeDriveApi(forceSingleItemPages: true)
       ..addFile(
         name: 'aaalice-cloud-sync-object-$objectId',
         type: 'object',
@@ -164,7 +165,7 @@ void main() {
   });
 
   test('each operation builds at most one fresh inventory', () async {
-    final api = _FakeDriveApi();
+    final api = FakeDriveApi();
     final backend = _backend(api);
 
     await OperationToken().runInScope(() async {
@@ -187,7 +188,7 @@ void main() {
   test('concurrent readers share one inventory listing', () async {
     final bytes = Uint8List.fromList([1]);
     final objectId = sha256.convert(bytes).toString();
-    final api = _FakeDriveApi()
+    final api = FakeDriveApi()
       ..addFile(
         name: 'aaalice-cloud-sync-object-$objectId',
         type: 'object',
@@ -226,7 +227,7 @@ void main() {
     'identical immutable duplicates are verified, different ones conflict',
     () async {
       final same = Uint8List.fromList([7, 8, 9]);
-      final api = _FakeDriveApi()
+      final api = FakeDriveApi()
         ..addFile(
           name: 'aaalice-cloud-sync-object-item',
           type: 'object',
@@ -269,7 +270,7 @@ void main() {
   );
 
   test('mutable duplicate names conflict instead of pretending CAS', () async {
-    final api = _FakeDriveApi()
+    final api = FakeDriveApi()
       ..addFile(
         name: 'aaalice-cloud-sync-HEAD.json',
         type: 'head',
@@ -296,7 +297,7 @@ void main() {
   test(
     'inventory rejects duplicate names and mismatched expected size',
     () async {
-      final duplicateApi = _FakeDriveApi()
+      final duplicateApi = FakeDriveApi()
         ..addFile(
           name: 'aaalice-cloud-sync-object-item',
           type: 'object',
@@ -319,7 +320,7 @@ void main() {
         ),
       );
 
-      final wrongSizeApi = _FakeDriveApi()
+      final wrongSizeApi = FakeDriveApi()
         ..addFile(
           name: 'aaalice-cloud-sync-object-item',
           type: 'object',
@@ -341,7 +342,7 @@ void main() {
   test(
     'inventory and create responses remove re-listing and readback',
     () async {
-      final api = _FakeDriveApi();
+      final api = FakeDriveApi();
       final backend = _backend(api);
       final first = Uint8List.fromList([1, 2]);
       final second = Uint8List.fromList([3, 4, 5]);
@@ -381,7 +382,7 @@ void main() {
     'lost create response uses a fresh inventory in the next operation',
     () async {
       final bytes = Uint8List.fromList([8, 6, 7, 5]);
-      final api = _FakeDriveApi()..loseNextCreateResponse = true;
+      final api = FakeDriveApi()..loseNextCreateResponse = true;
       final backend = _backend(api);
 
       await OperationToken().runInScope(() async {
@@ -432,7 +433,7 @@ void main() {
   );
 
   test('lost mutable create response retries as a CAS conflict', () async {
-    final api = _FakeDriveApi()..loseNextCreateResponse = true;
+    final api = FakeDriveApi()..loseNextCreateResponse = true;
     final backend = _backend(api);
 
     await expectLater(
@@ -464,7 +465,7 @@ void main() {
   });
 
   test('429 list response is retried before upload', () async {
-    final api = _FakeDriveApi()
+    final api = FakeDriveApi()
       ..remainingRateLimits = 1
       ..rateLimitPath = '/drive/v3/files';
     final bytes = Uint8List.fromList([4, 2]);
@@ -501,7 +502,7 @@ void main() {
   });
 
   test('create and update writes are never retried', () async {
-    final createApi = _FakeDriveApi()
+    final createApi = FakeDriveApi()
       ..remainingRateLimits = 2
       ..rateLimitPath = '/upload/drive/v3/files';
     final bytes = Uint8List.fromList([4, 2]);
@@ -516,7 +517,7 @@ void main() {
       hasLength(1),
     );
 
-    final updateApi = _FakeDriveApi()
+    final updateApi = FakeDriveApi()
       ..addFile(
         name: 'aaalice-cloud-sync-HEAD.json',
         type: 'head',
@@ -543,7 +544,7 @@ void main() {
   test(
     'HEAD revision only rejects an already-stale read before best-effort write',
     () async {
-      final api = _FakeDriveApi();
+      final api = FakeDriveApi();
       final backend = _backend(api);
       final first = await backend.commitHead(
         Uint8List.fromList([1]),
@@ -579,224 +580,3 @@ GoogleDriveCloudSyncBackend _backend(HttpClientAdapter adapter) =>
       apiBaseUri: Uri.parse('https://google.test/'),
       dio: Dio()..httpClientAdapter = adapter,
     );
-
-class _FakeDriveApi implements HttpClientAdapter {
-  _FakeDriveApi({this.forceSingleItemPages = false});
-
-  final bool forceSingleItemPages;
-  final Map<String, _FakeFile> files = {};
-  final List<RequestOptions> requests = [];
-  var remainingRateLimits = 0;
-  var rateLimitResponses = 0;
-  String? rateLimitPath;
-  bool loseNextCreateResponse = false;
-  var _nextId = 1;
-
-  void addFile({
-    required String name,
-    required String type,
-    required Uint8List bytes,
-  }) {
-    final id = 'file-${_nextId++}';
-    files[id] = _FakeFile(
-      id: id,
-      name: name,
-      bytes: bytes,
-      version: 1,
-      appProperties: {
-        'protocol': 'aaalice-cloud-sync-v2',
-        'namespace': sha256.convert(utf8.encode('cloud')).toString(),
-        'recordType': type,
-      },
-      parents: const ['appDataFolder'],
-    );
-  }
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<Uint8List>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    requests.add(options);
-    expect(options.headers['authorization'], 'Bearer access-token-secret');
-    final path = options.uri.path;
-    if (remainingRateLimits > 0 &&
-        (rateLimitPath == null || rateLimitPath == path)) {
-      remainingRateLimits--;
-      rateLimitResponses++;
-      return _response(
-        429,
-        '{"error":{"errors":[{"reason":"rateLimitExceeded"}]}}',
-        {
-          'retry-after': ['0'],
-        },
-      );
-    }
-
-    if (options.method == 'GET' && path == '/drive/v3/files') {
-      return _list(options.uri);
-    }
-    if (options.method == 'GET' &&
-        path.startsWith('/drive/v3/files/') &&
-        options.uri.queryParameters['alt'] == 'media') {
-      final id = Uri.decodeComponent(path.substring('/drive/v3/files/'.length));
-      final file = files[id];
-      return file == null
-          ? _response(404, '')
-          : ResponseBody(Stream.value(file.bytes), 200);
-    }
-    if (options.method == 'POST' && path == '/upload/drive/v3/files') {
-      final contentType = options.headers['content-type'] as String;
-      final boundary = contentType.substring(
-        contentType.indexOf('boundary=') + 9,
-      );
-      final body = options.data as Uint8List;
-      final parsed = _parseMultipart(body, boundary);
-      final metadata =
-          jsonDecode(utf8.decode(parsed.metadata)) as Map<String, dynamic>;
-      final properties = (metadata['appProperties'] as Map)
-          .cast<String, String>();
-      addFile(
-        name: metadata['name'] as String,
-        type: properties['recordType']!,
-        bytes: parsed.bytes,
-      );
-      final file = files.values.last;
-      expect(metadata['parents'], ['appDataFolder']);
-      if (loseNextCreateResponse) {
-        loseNextCreateResponse = false;
-        throw DioException(
-          requestOptions: options,
-          type: DioExceptionType.connectionError,
-          error: const SocketException('create response lost'),
-        );
-      }
-      return _response(200, jsonEncode(file.metadata));
-    }
-    if (options.method == 'PATCH' &&
-        path.startsWith('/upload/drive/v3/files/')) {
-      final id = Uri.decodeComponent(
-        path.substring('/upload/drive/v3/files/'.length),
-      );
-      final file = files[id];
-      if (file == null) return _response(404, '');
-      file.bytes = Uint8List.fromList(options.data as List<int>);
-      file.version++;
-      return _response(200, jsonEncode(file.metadata));
-    }
-    if (options.method == 'DELETE' && path.startsWith('/drive/v3/files/')) {
-      final id = Uri.decodeComponent(path.substring('/drive/v3/files/'.length));
-      return files.remove(id) == null ? _response(404, '') : _response(204, '');
-    }
-    return _response(500, 'unexpected ${options.method} $path');
-  }
-
-  ResponseBody _list(Uri uri) {
-    final query = uri.queryParameters['q'] ?? '';
-    final name = RegExp(r"name = '([^']+)'").firstMatch(query)?.group(1);
-    final type = RegExp(
-      r"key='recordType' and value='([^']+)'",
-    ).firstMatch(query)?.group(1);
-    final filtered = files.values
-        .where((file) => name == null || file.name == name)
-        .where(
-          (file) => type == null || file.appProperties['recordType'] == type,
-        )
-        .toList();
-    final offset = int.tryParse(uri.queryParameters['pageToken'] ?? '') ?? 0;
-    final requested =
-        int.tryParse(uri.queryParameters['pageSize'] ?? '') ?? 100;
-    final count = forceSingleItemPages ? 1 : requested;
-    final end = (offset + count).clamp(0, filtered.length);
-    final page = filtered.sublist(offset.clamp(0, filtered.length), end);
-    return _response(
-      200,
-      jsonEncode({
-        'files': page.map((file) => file.metadata).toList(),
-        if (end < filtered.length) 'nextPageToken': '$end',
-      }),
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
-
-  static ResponseBody _response(
-    int status,
-    String body, [
-    Map<String, List<String>> headers = const {},
-  ]) => ResponseBody.fromString(body, status, headers: headers);
-}
-
-class _FakeFile {
-  _FakeFile({
-    required this.id,
-    required this.name,
-    required this.bytes,
-    required this.version,
-    required this.appProperties,
-    required this.parents,
-  });
-
-  final String id;
-  final String name;
-  Uint8List bytes;
-  int version;
-  final Map<String, String> appProperties;
-  final List<String> parents;
-
-  Map<String, Object?> get metadata => {
-    'id': id,
-    'name': name,
-    'size': '${bytes.length}',
-    'md5Checksum': md5.convert(bytes).toString(),
-    'modifiedTime': '2026-01-01T00:00:00Z',
-    'version': '$version',
-    'appProperties': appProperties,
-  };
-}
-
-class _Multipart {
-  const _Multipart(this.metadata, this.bytes);
-
-  final Uint8List metadata;
-  final Uint8List bytes;
-}
-
-_Multipart _parseMultipart(Uint8List body, String boundary) {
-  final firstHeaderEnd = _indexOf(body, utf8.encode('\r\n\r\n'));
-  final secondBoundary = _indexOf(
-    body,
-    utf8.encode('\r\n--$boundary\r\n'),
-    firstHeaderEnd + 4,
-  );
-  final secondHeaderEnd = _indexOf(
-    body,
-    utf8.encode('\r\n\r\n'),
-    secondBoundary,
-  );
-  final closing = _indexOf(
-    body,
-    utf8.encode('\r\n--$boundary--\r\n'),
-    secondHeaderEnd + 4,
-  );
-  return _Multipart(
-    Uint8List.sublistView(body, firstHeaderEnd + 4, secondBoundary),
-    Uint8List.sublistView(body, secondHeaderEnd + 4, closing),
-  );
-}
-
-int _indexOf(Uint8List source, List<int> pattern, [int start = 0]) {
-  for (var index = start; index <= source.length - pattern.length; index++) {
-    var matches = true;
-    for (var offset = 0; offset < pattern.length; offset++) {
-      if (source[index + offset] != pattern[offset]) {
-        matches = false;
-        break;
-      }
-    }
-    if (matches) return index;
-  }
-  throw StateError('multipart marker not found');
-}

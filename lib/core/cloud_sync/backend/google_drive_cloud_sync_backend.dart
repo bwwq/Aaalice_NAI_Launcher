@@ -59,6 +59,16 @@ class GoogleDriveCloudSyncBackend
       Expando<_DriveInventoryScope>('google-drive-inventory');
   final _unscopedInventory = _DriveInventoryScope();
   final Map<String, String> _verifiedObjectRevisions = {};
+  String? _verificationRevision(_DriveFile file) => file.version == null
+      ? null
+      : jsonEncode([
+          'google-drive',
+          _apiBase.toString(),
+          namespace,
+          file.name,
+          file.id,
+          file.version,
+        ]);
 
   _DriveInventoryScope get _inventoryScope {
     final operation = OperationToken.current;
@@ -201,7 +211,7 @@ class GoogleDriveCloudSyncBackend
           objectId: entry.key,
           size: entry.value,
           revision: file.revision,
-          verificationRevision: 'google-drive:${file.id}:${file.revision}',
+          verificationRevision: _verificationRevision(file),
         ),
       );
     }
@@ -209,9 +219,10 @@ class GoogleDriveCloudSyncBackend
     for (final candidate in inventoryCandidates) {
       final inMemory =
           _verifiedObjectRevisions[_fileName('object', candidate.objectId)];
-      if (inMemory == candidate.revision ||
-          inMemory == candidate.verificationRevision) {
-        inMemoryRevisions[candidate.objectId] = candidate.verificationRevision;
+      if (candidate.verificationRevision != null &&
+          (inMemory == candidate.revision ||
+              inMemory == candidate.verificationRevision)) {
+        inMemoryRevisions[candidate.objectId] = candidate.verificationRevision!;
       }
     }
     final result = await verifyCloudObjectInventory(
@@ -347,7 +358,10 @@ class GoogleDriveCloudSyncBackend
         );
       }
       if (type == 'object') _verifiedObjectRevisions[name] = read.revision;
-      return CloudCommitResult(revision: read.revision);
+      return CloudCommitResult(
+        revision: read.revision,
+        verificationRevision: read.verificationRevision,
+      );
     }
     final created = await _create(type, name, bytes);
     final expectedMd5 = md5.convert(bytes).toString();
@@ -362,7 +376,11 @@ class GoogleDriveCloudSyncBackend
     }
     final revision = verified?.revision ?? created.revision;
     if (type == 'object') _verifiedObjectRevisions[name] = revision;
-    return CloudCommitResult(revision: revision);
+    return CloudCommitResult(
+      revision: revision,
+      verificationRevision:
+          verified?.verificationRevision ?? _verificationRevision(created),
+    );
   }
 
   Future<CloudCommitResult> _commitMutable(
@@ -417,6 +435,7 @@ class GoogleDriveCloudSyncBackend
     return CloudObjectRead(
       bytes: BackendHttp.bytesOf(response),
       revision: file.revision,
+      verificationRevision: _verificationRevision(file),
     );
   }
 
@@ -849,6 +868,7 @@ class _DriveFile {
     required this.recordType,
     required this.revision,
     required this.md5Checksum,
+    required this.version,
   });
 
   final String id;
@@ -859,6 +879,7 @@ class _DriveFile {
   final String recordType;
   final String revision;
   final String? md5Checksum;
+  final String? version;
 
   factory _DriveFile.fromJson(Map<dynamic, dynamic> json) {
     final id = json['id'];
@@ -911,6 +932,9 @@ class _DriveFile {
       recordType: recordType,
       revision: revisionParts.join(':'),
       md5Checksum: checksum is String && checksum.isNotEmpty ? checksum : null,
+      version: version != null && RegExp(r'^\d+$').hasMatch('$version')
+          ? '$version'
+          : null,
     );
   }
 }

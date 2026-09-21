@@ -7,13 +7,13 @@ class CloudObjectInventoryCandidate {
     required this.objectId,
     required this.size,
     required this.revision,
-    String? verificationRevision,
-  }) : verificationRevision = verificationRevision ?? revision;
+    required this.verificationRevision,
+  });
 
   final String objectId;
   final int size;
   final String revision;
-  final String verificationRevision;
+  final String? verificationRevision;
 }
 
 Future<CloudObjectInventoryResult> verifyCloudObjectInventory({
@@ -45,6 +45,7 @@ Future<CloudObjectInventoryResult> verifyCloudObjectInventory({
   var completedObjects = 0;
   var completedBytes = 0;
   final verifiedRevisions = <String, String>{};
+  final existingObjectIds = <String>{};
 
   void reportProgress() {
     onProgress?.call(
@@ -71,19 +72,22 @@ Future<CloudObjectInventoryResult> verifyCloudObjectInventory({
     token: cancellation,
     transfer: (candidate) async {
       await cancellation.checkpoint();
-      if (trustedRevisions[candidate.objectId] !=
-          candidate.verificationRevision) {
+      if (candidate.verificationRevision == null ||
+          trustedRevisions[candidate.objectId] !=
+              candidate.verificationRevision) {
         await verify(candidate);
       }
       await cancellation.checkpoint();
-      verifiedRevisions[candidate.objectId] = candidate.verificationRevision;
+      existingObjectIds.add(candidate.objectId);
+      final proof = candidate.verificationRevision;
+      if (proof != null) verifiedRevisions[candidate.objectId] = proof;
       completedObjects++;
       completedBytes += candidate.size;
       reportProgress();
     },
   );
   return CloudObjectInventoryResult(
-    existingObjectIds: verifiedRevisions.keys.toSet(),
+    existingObjectIds: existingObjectIds,
     verifiedRevisions: verifiedRevisions,
   );
 }

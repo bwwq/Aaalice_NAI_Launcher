@@ -37,11 +37,10 @@ class ResumableSnapshotUploader {
     required JournalCheckpoint checkpoint,
     SyncProgressCallback? onProgress,
   }) async {
+    SnapshotManifest? baseline;
     if (backend is CloudSnapshotUploadTransport) {
-      await (backend as CloudSnapshotUploadTransport).prepareSnapshotUpload(
-        journal.snapshotId,
-        token,
-      );
+      baseline = await (backend as CloudSnapshotUploadTransport)
+          .prepareSnapshotUpload(journal.snapshotId, token);
     }
     // Encrypted providers can stage blobs until HEAD publication (GitHub).
     // Re-inventory on restart instead of trusting unpublished checkpoints.
@@ -55,6 +54,7 @@ class ResumableSnapshotUploader {
       snapshotId: current.snapshotId,
       now: now,
       token: token,
+      baseline: baseline,
     );
     final uniquePayloads = plan.payloads;
     final manifestBytes = plan.manifestBytes;
@@ -307,7 +307,7 @@ class ResumableSnapshotUploader {
       final existing = await backend.readObject(objectId);
       if (existing != null) {
         _verifyObject(objectId, payload.length, existing.bytes);
-        return existing.revision;
+        return existing.verificationRevision;
       }
     }
     final bytes = await _readPayloadForUpload(payload);
@@ -317,7 +317,7 @@ class ResumableSnapshotUploader {
       sha256: objectId,
       payloadVerified: true,
     );
-    return result.revision;
+    return result.verificationRevision;
   }
 
   Future<Uint8List> _readPayloadForUpload(CloudSyncPayload payload) async {
@@ -366,7 +366,8 @@ class ResumableSnapshotUploader {
           throw CloudFormatException('checkpointed object $id is missing');
         }
         _verifyObject(id, payloads[id]!.length, remote.bytes);
-        revisions[id] = remote.revision;
+        final proof = remote.verificationRevision;
+        if (proof != null) revisions[id] = proof;
       },
     );
     return revisions;

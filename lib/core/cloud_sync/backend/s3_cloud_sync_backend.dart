@@ -16,6 +16,7 @@ import 's3_signature.dart';
 class S3CloudSyncBackend
     implements
         CloudSyncBackend,
+        CloudObjectInventoryBackend,
         ReadOnlyCloudSyncBackendValidation,
         ConcurrentCloudObjectUploadBackend {
   S3CloudSyncBackend({
@@ -123,7 +124,96 @@ class S3CloudSyncBackend
     if (response.statusCode == 404) return null;
     _expect(response, {200});
     final bytes = response.data ?? Uint8List(0);
-    return CloudObjectRead(bytes: bytes, revision: _digest(bytes));
+    return CloudObjectRead(
+      bytes: bytes,
+      revision: _digest(bytes),
+      verificationRevision: _verificationRevision(key, response),
+    );
+  }
+
+  String? _verificationRevision(String key, Response<Uint8List> response) {
+    final version = response.headers.value('x-amz-version-id');
+    final etag = response.headers.value('etag')?.trim();
+    final validator = version != null && version.isNotEmpty && version != 'null'
+        ? ['version', version]
+        : etag != null && RegExp(r'^"[^"\r\n]+"$').hasMatch(etag)
+        ? ['etag', etag]
+        : null;
+    return validator == null
+        ? null
+        : jsonEncode(['s3', config.uri(key: key).toString(), ...validator]);
+  }
+
+  @override
+  Future<CloudObjectInventoryResult> findExistingObjects(
+    Map<String, int> expectedObjects, {
+    Map<String, String> trustedRevisions = const {},
+    OperationToken? token,
+    CloudObjectInventoryProgressCallback? onProgress,
+  }) async {
+    final existing = <String>{};
+    final proofs = <String, String>{};
+    final total = expectedObjects.values.fold(0, (int sum, size) => sum + size);
+    var completed = 0;
+    var bytes = 0;
+    for (final entry in expectedObjects.entries) {
+      await (token ?? OperationToken.current)?.checkpoint();
+      _validateId(entry.key);
+      if (!_hash.hasMatch(entry.key) ||
+          entry.value < 0 ||
+          entry.value > maxCloudObjectResponseBytes) {
+        throw const FormatException('Invalid S3 object inventory.');
+      }
+      final key = '${_prefix}objects/${entry.key}';
+      final head = await _request('HEAD', key: key);
+      if (head.statusCode != 404) {
+        String? proof;
+        if (head.statusCode != 405 && head.statusCode != 501) {
+          _expect(head, {200});
+          final size = int.tryParse(head.headers.value('content-length') ?? '');
+          if (size != null && size != entry.value) {
+            throw const CloudBackendException(
+              CloudBackendErrorKind.conflict,
+              'S3 object size changed.',
+            );
+          }
+          if (size == entry.value) proof = _verificationRevision(key, head);
+        }
+        if (proof != null && trustedRevisions[entry.key] == proof) {
+          existing.add(entry.key);
+          proofs[entry.key] = proof;
+        } else {
+          final read = await _get(key, maxCloudObjectResponseBytes);
+          if (read != null) {
+            if (read.bytes.length != entry.value ||
+                read.revision != entry.key) {
+              throw const CloudBackendException(
+                CloudBackendErrorKind.conflict,
+                'S3 object content changed.',
+              );
+            }
+            existing.add(entry.key);
+            if (read.verificationRevision case final String verified) {
+              proofs[entry.key] = verified;
+            }
+          }
+        }
+      }
+      completed++;
+      bytes += entry.value;
+      onProgress?.call(
+        CloudObjectInventoryProgress(
+          objectsCompleted: completed,
+          objectsTotal: expectedObjects.length,
+          bytesCompleted: bytes,
+          bytesTotal: total,
+        ),
+      );
+    }
+    return CloudObjectInventoryResult(
+      existingObjectIds: existing,
+      verifiedRevisions: proofs,
+    );
   }
 
   @override
@@ -169,7 +259,10 @@ class S3CloudSyncBackend
           'S3 already contains different data for this backup object.',
         );
       }
-      return CloudCommitResult(revision: digest);
+      return CloudCommitResult(
+        revision: digest,
+        verificationRevision: existing.verificationRevision,
+      );
     }
     final response = await _request(
       'PUT',
@@ -194,7 +287,10 @@ class S3CloudSyncBackend
         'S3 backup write could not be verified.',
       );
     }
-    return CloudCommitResult(revision: digest);
+    return CloudCommitResult(
+      revision: digest,
+      verificationRevision: stored!.verificationRevision,
+    );
   }
 
   @override

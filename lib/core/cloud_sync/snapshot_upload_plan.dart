@@ -18,6 +18,7 @@ class SnapshotUploadPlan {
     required String snapshotId,
     required DateTime Function() now,
     required OperationToken token,
+    SnapshotManifest? baseline,
   }) async {
     final records = snapshot.records.values.toList()
       ..sort((left, right) => left.id.compareTo(right.id));
@@ -42,7 +43,12 @@ class SnapshotUploadPlan {
       await SnapshotObjectPacker.restore(manifest.packs, payloads, token);
       return SnapshotUploadPlan(manifest, persisted, payloads);
     }
-    final packs = await SnapshotObjectPacker.pack(refs, payloads, token);
+    final packs = await SnapshotObjectPacker.pack(
+      refs,
+      payloads,
+      token,
+      baseline: baseline,
+    );
     final manifest = SnapshotManifest(
       snapshotId: snapshotId,
       createdAt: now().toUtc(),

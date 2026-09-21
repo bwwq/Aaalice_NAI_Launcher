@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
@@ -41,6 +42,16 @@ class OneDriveCloudSyncBackend
 
   String get _headPath => '$namespace/HEAD.json';
   String get _objectsPath => '$namespace/objects';
+  String? _verificationRevision(String path, OneDriveItem item) =>
+      item.id == null || item.id!.isEmpty || item.eTag.isEmpty
+      ? null
+      : jsonEncode([
+          'onedrive',
+          _api.verificationScope,
+          path,
+          item.id,
+          item.eTag,
+        ]);
 
   @override
   Future<CloudBackendCapability> testCapability() async {
@@ -139,17 +150,21 @@ class OneDriveCloudSyncBackend
           objectId: entry.key,
           size: entry.value,
           revision: item.eTag,
-          verificationRevision: 'onedrive:$itemId:${item.eTag}',
+          verificationRevision: _verificationRevision(
+            '$_objectsPath/${entry.key}',
+            item,
+          ),
         ),
       );
     }
     final effectiveTrustedRevisions = {...trustedRevisions};
     for (final candidate in candidates) {
       final inMemory = _verifiedObjectRevisions[candidate.objectId];
-      if (inMemory == candidate.revision ||
-          inMemory == candidate.verificationRevision) {
+      if (candidate.verificationRevision != null &&
+          (inMemory == candidate.revision ||
+              inMemory == candidate.verificationRevision)) {
         effectiveTrustedRevisions[candidate.objectId] =
-            candidate.verificationRevision;
+            candidate.verificationRevision!;
       }
     }
     final result = await verifyCloudObjectInventory(
@@ -265,7 +280,11 @@ class OneDriveCloudSyncBackend
           expectedETag: item.eTag,
           maxBytes: maxBytes,
         );
-        return CloudObjectRead(bytes: bytes, revision: item.eTag);
+        return CloudObjectRead(
+          bytes: bytes,
+          revision: item.eTag,
+          verificationRevision: _verificationRevision(path, item),
+        );
       } on CloudBackendException catch (error) {
         if (error.statusCode != 412 || attempt != 0) rethrow;
       }
@@ -317,14 +336,20 @@ class OneDriveCloudSyncBackend
         expectedETag: null,
       );
       _verifiedObjectRevisions[objectId] = uploaded.eTag;
-      return CloudCommitResult(revision: uploaded.eTag);
+      return CloudCommitResult(
+        revision: uploaded.eTag,
+        verificationRevision: _verificationRevision(path, uploaded),
+      );
     } on CloudBackendException catch (error) {
       if (error.statusCode != 409) rethrow;
       final raced = await _read(path, maxCloudObjectResponseBytes);
       if (raced != null &&
           _hashBytes(raced.bytes) == expectedHash.toLowerCase()) {
         _verifiedObjectRevisions[objectId] = raced.revision;
-        return CloudCommitResult(revision: raced.revision);
+        return CloudCommitResult(
+          revision: raced.revision,
+          verificationRevision: raced.verificationRevision,
+        );
       }
       throw const CloudBackendException(
         CloudBackendErrorKind.conflict,

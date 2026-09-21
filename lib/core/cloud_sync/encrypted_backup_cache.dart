@@ -48,6 +48,9 @@ class EncryptedBackupCache {
     return bytes;
   }
 
+  Future<bool> contains(String id) async =>
+      (await _file('ciphertext', id)).exists();
+
   Future<void> _write(File file, List<int> bytes) async {
     await file.parent.create(recursive: true);
     final temporary = File('${file.path}.${const Uuid().v4()}.tmp');

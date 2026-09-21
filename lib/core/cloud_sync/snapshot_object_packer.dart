@@ -12,8 +12,9 @@ class SnapshotObjectPacker {
   static Future<Map<String, List<String>>> pack(
     List<SnapshotRecordRef> refs,
     Map<String, CloudSyncPayload> payloads,
-    OperationToken token,
-  ) async {
+    OperationToken token, {
+    SnapshotManifest? baseline,
+  }) async {
     final eligible = {
       for (final ref in refs)
         if (!ref.deleted &&
@@ -23,6 +24,29 @@ class SnapshotObjectPacker {
     }.toList()..sort();
     final packs = <String, List<String>>{};
     final originalIds = payloads.keys.toSet();
+    if (baseline != null) {
+      final oldSizes = {
+        for (final ref in baseline.records)
+          if (!ref.deleted) ref.objectId!: ref.size!,
+      };
+      final eligibleIds = eligible.toSet();
+      for (final pack in baseline.packs.entries) {
+        await token.checkpoint();
+        if (originalIds.contains(pack.key) ||
+            !pack.value.every(
+              (id) =>
+                  eligibleIds.contains(id) &&
+                  payloads[id]?.length == oldSizes[id],
+            )) {
+          continue;
+        }
+        // Verify the local sources while retaining the original member order.
+        await restore({pack.key: pack.value}, payloads, token);
+        packs[pack.key] = List.of(pack.value);
+        eligibleIds.removeAll(pack.value);
+      }
+      eligible.removeWhere((id) => !eligibleIds.contains(id));
+    }
     var group = <String>[];
     var length = 0;
     Future<void> flush() async {

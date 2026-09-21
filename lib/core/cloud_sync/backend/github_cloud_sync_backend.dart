@@ -71,6 +71,15 @@ class GitHubCloudSyncBackend
   int get maxConcurrentObjectUploads => 4;
 
   String get _root => namespace.replaceAll(RegExp(r'^/+|/+$'), '');
+  String _verificationRevision(String path, String revision) => jsonEncode([
+    'github',
+    _api.verificationScope,
+    owner,
+    repository,
+    branch,
+    path,
+    revision,
+  ]);
 
   @override
   Future<CloudBackendCapability> testCapability() async {
@@ -130,7 +139,16 @@ class GitHubCloudSyncBackend
     if (read != null && CloudObjectNaming.isContentAddressedId(objectId)) {
       _verifiedObjectRevisions[objectId] = read.revision;
     }
-    return read;
+    return read == null
+        ? null
+        : CloudObjectRead(
+            bytes: read.bytes,
+            revision: read.revision,
+            verificationRevision: _verificationRevision(
+              '$_root/objects/$objectId',
+              read.revision,
+            ),
+          );
   }
 
   @override
@@ -175,17 +193,21 @@ class GitHubCloudSyncBackend
           objectId: entry.key,
           size: entry.value,
           revision: remote.sha,
-          verificationRevision: 'github:$owner/$repository:${remote.sha}',
+          verificationRevision: _verificationRevision(
+            '$_root/objects/${entry.key}',
+            remote.sha,
+          ),
         ),
       );
     }
     final effectiveTrustedRevisions = {...trustedRevisions};
     for (final candidate in candidates) {
       final inMemory = _verifiedObjectRevisions[candidate.objectId];
-      if (inMemory == candidate.revision ||
-          inMemory == candidate.verificationRevision) {
+      if (candidate.verificationRevision != null &&
+          (inMemory == candidate.revision ||
+              inMemory == candidate.verificationRevision)) {
         effectiveTrustedRevisions[candidate.objectId] =
-            candidate.verificationRevision;
+            candidate.verificationRevision!;
       }
     }
     final result = await verifyCloudObjectInventory(
@@ -270,7 +292,10 @@ class GitHubCloudSyncBackend
         if (path.startsWith('$_root/objects/')) {
           _verifiedObjectRevisions[expectedHash] = existing.revision;
         }
-        return CloudCommitResult(revision: existing.revision);
+        return CloudCommitResult(
+          revision: existing.revision,
+          verificationRevision: _verificationRevision(path, existing.revision),
+        );
       }
       throw const CloudBackendException(
         CloudBackendErrorKind.conflict,
@@ -288,7 +313,10 @@ class GitHubCloudSyncBackend
     if (path.startsWith('$_root/objects/')) {
       _verifiedObjectRevisions[expectedHash] = blobSha;
     }
-    return CloudCommitResult(revision: blobSha);
+    return CloudCommitResult(
+      revision: blobSha,
+      verificationRevision: _verificationRevision(path, blobSha),
+    );
   }
 
   @override

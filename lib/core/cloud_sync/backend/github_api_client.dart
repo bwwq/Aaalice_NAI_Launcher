@@ -50,6 +50,7 @@ class GitHubApiClient {
   final Uri _apiBase;
 
   String get repo => 'repos/${segment(owner)}/${segment(repository)}';
+  String get verificationScope => _apiBase.toString();
 
   Map<String, String> get _headers => {
     'Authorization': _authorization,
