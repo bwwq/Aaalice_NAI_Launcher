@@ -699,12 +699,24 @@ class QueueExecutionNotifier extends _$QueueExecutionNotifier {
       // 等待重试间隔
       await Future.delayed(settings.retryInterval);
 
-      // 检查是否仍在运行或暂停
+      // 旧会话或已移除任务的重试不能影响当前队列。
       if (revision != _executionRevision ||
-          currentTaskId != state.currentTaskId ||
-          state.status != QueueExecutionStatus.running) {
+          currentTaskId == null ||
+          currentTaskId != state.currentTaskId) {
         return;
       }
+      if (state.isPaused) {
+        // 失败请求已经结束；解除运行锁，让 resume 可以重新提交。
+        await ref
+            .read(replicationQueueNotifierProvider.notifier)
+            .updateTaskStatus(
+              currentTaskId,
+              ReplicationTaskStatus.pending,
+              errorMessage: errorMessage,
+            );
+        return;
+      }
+      if (state.status != QueueExecutionStatus.running) return;
 
       // 重新设置为 ready 状态，等待用户再次点击或自动执行
       state = state.copyWith(status: QueueExecutionStatus.ready);

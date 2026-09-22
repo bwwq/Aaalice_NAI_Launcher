@@ -267,6 +267,52 @@ void main() {
     await generation.waitForCleanup(1);
   });
 
+  test('重试等待期间暂停后可以恢复且仅重试一次', () async {
+    final task = ReplicationTask.create(prompt: 'paused retry');
+    final generation = _ControlledImageGenerationNotifier();
+    final container = _buildControlledQueueContainer(
+      [task],
+      generation,
+      localStorage: _NoRetryLocalStorageService(retryCount: 1),
+    );
+    addTearDown(container.dispose);
+    final execution = container.read(queueExecutionNotifierProvider.notifier);
+
+    await execution.startQueue();
+    await generation.waitForStart(0);
+    generation.fail(0);
+    await execution.pause();
+    generation.settle(0);
+    generation.finishCleanup(0);
+    await generation.waitForCleanup(0);
+    await _waitForQueueTaskStatus(
+      container,
+      task.id,
+      ReplicationTaskStatus.pending,
+    );
+
+    expect(container.read(queueExecutionNotifierProvider).isPaused, isTrue);
+    expect(generation.startedPrompts, ['paused retry']);
+    expect(
+      container
+          .read(replicationQueueNotifierProvider)
+          .tasks
+          .single
+          .errorMessage,
+      'controlled failure',
+    );
+
+    await execution.resume();
+    await generation.waitForStart(1);
+    generation.complete(1);
+    await _waitForExecutionStatus(container, QueueExecutionStatus.completed);
+    generation.settle(1);
+    generation.finishCleanup(1);
+    await generation.waitForCleanup(1);
+    expect(generation.startedPrompts, ['paused retry', 'paused retry']);
+    expect(container.read(queueExecutionNotifierProvider).completedCount, 1);
+  });
+
   test('取消会释放运行任务但不会启动下一任务', () async {
     final tasks = [
       ReplicationTask.create(prompt: 'cancelled'),
