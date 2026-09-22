@@ -181,6 +181,60 @@ void main() {
     // getImagesByIds 测试
     // ============================================================
 
+    group('getImagePathsByIds', () {
+      test('empty input returns no paths', () async {
+        expect(await dataSource.getImagePathsByIds([]), isEmpty);
+      });
+
+      test(
+        'returns current paths and excludes deleted or missing IDs',
+        () async {
+          final now = DateTime(2026, 9, 22);
+          final id = await dataSource.upsertImage(
+            filePath: '/test/original.png',
+            fileName: 'original.png',
+            fileSize: 42,
+            createdAt: now,
+            modifiedAt: now,
+          );
+          final deletedId = await dataSource.upsertImage(
+            filePath: '/test/deleted-path.png',
+            fileName: 'deleted-path.png',
+            fileSize: 42,
+            createdAt: now,
+            modifiedAt: now,
+          );
+          await dataSource.getImagesByIds([id, deletedId]);
+          await dataSource.updateFilePath(id, '/test/renamed.png');
+          await dataSource.markAsDeleted('/test/deleted-path.png');
+
+          expect(
+            await dataSource.getImagePathsByIds([deletedId, id, 99999, id]),
+            {id: '/test/renamed.png'},
+          );
+        },
+      );
+
+      test('finds matches beyond a single SQLite parameter batch', () async {
+        final now = DateTime(2026, 9, 22);
+        final id = await dataSource.upsertImage(
+          filePath: '/test/last-batch.png',
+          fileName: 'last-batch.png',
+          fileSize: 42,
+          createdAt: now,
+          modifiedAt: now,
+        );
+
+        expect(
+          await dataSource.getImagePathsByIds([
+            ...List.generate(1000, (index) => 900000 + index),
+            id,
+          ]),
+          {id: '/test/last-batch.png'},
+        );
+      });
+    });
+
     group('getImagesByIds', () {
       test('should return empty list when input list is empty', () async {
         final result = await dataSource.getImagesByIds([]);

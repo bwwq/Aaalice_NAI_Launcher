@@ -7507,7 +7507,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get queue_emptyHint => 'キューにタスクがありません';
 
   @override
-  String get queue_pending => '保留中';
+  String get queue_pending => '未完了';
 
   @override
   String get queue_running => '実行中';

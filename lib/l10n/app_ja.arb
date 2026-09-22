@@ -3488,7 +3488,7 @@
   "queue_management": "キュー管理",
   "queue_empty": "キューが空です",
   "queue_emptyHint": "キューにタスクがありません",
-  "queue_pending": "保留中",
+  "queue_pending": "未完了",
   "queue_running": "実行中",
   "queue_completed": "完了しました",
   "queue_failed": "失敗しました",

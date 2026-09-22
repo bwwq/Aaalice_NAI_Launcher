@@ -121,6 +121,8 @@ class GalleryDataSource extends EnhancedBaseDataSource {
   Future<GalleryImageRecord?> getImageById(int id) => _images.getImageById(id);
   Future<List<GalleryImageRecord>> getImagesByIds(List<int> ids) =>
       _images.getImagesByIds(ids);
+  Future<Map<int, String>> getImagePathsByIds(List<int> ids) =>
+      _images.getImagePathsByIds(ids);
   Future<List<GalleryImageRecord>> queryImages({
     int limit = 50,
     int offset = 0,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nai_launcher/core/platform/platform_capabilities.dart';
 import 'package:nai_launcher/data/models/gallery/local_image_record.dart';
+import 'package:nai_launcher/data/models/gallery/nai_image_metadata.dart';
 import 'package:nai_launcher/l10n/app_localizations.dart';
 import 'package:nai_launcher/presentation/adaptive/interaction_policy.dart';
 import 'package:nai_launcher/presentation/widgets/common/card_action_buttons.dart';
@@ -75,6 +76,50 @@ void main() {
     expect(selectedRecord, same(record));
     expect(selectedPosition, isNotNull);
   });
+
+  testWidgets(
+    'grouped cards use current metadata dimensions on the first frame',
+    (tester) async {
+      Widget buildGallery(int width, int height) {
+        final record = LocalImageRecord(
+          path: 'G:/gallery/metadata-dimensions.png',
+          size: 42,
+          modifiedAt: DateTime(2026, 9, 22),
+          metadata: NaiImageMetadata(width: width, height: height),
+        );
+        return ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: GenericGalleryContentView<LocalImageRecord>(
+                columns: 1,
+                itemWidth: 160,
+                state: _GroupedGalleryState(record),
+                selectionState: const _InactiveSelectionState(),
+                itemBuilder: (_, __, ___, ____) => const SizedBox.shrink(),
+                idExtractor: (item) => item.path,
+              ),
+            ),
+          ),
+        );
+      }
+
+      await tester.pumpWidget(buildGallery(800, 400));
+      expect(
+        tester.widget<LocalImageCard3D>(find.byType(LocalImageCard3D)).height,
+        80,
+      );
+
+      await tester.pumpWidget(buildGallery(400, 800));
+      expect(
+        tester.widget<LocalImageCard3D>(find.byType(LocalImageCard3D)).height,
+        320,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('local card action layout follows the image aspect ratio', (
     tester,

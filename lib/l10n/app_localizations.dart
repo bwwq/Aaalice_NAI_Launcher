@@ -13639,7 +13639,7 @@ abstract class AppLocalizations {
   /// No description provided for @queue_pending.
   ///
   /// In en, this message translates to:
-  /// **'Pending'**
+  /// **'Unfinished'**
   String get queue_pending;
 
   /// No description provided for @queue_running.

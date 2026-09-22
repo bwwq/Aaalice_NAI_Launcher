@@ -3579,7 +3579,7 @@
   "queue_management": "佇列管理",
   "queue_empty": "佇列為空",
   "queue_emptyHint": "沒有待執行的任務",
-  "queue_pending": "等待中",
+  "queue_pending": "未完成",
   "queue_running": "執行中",
   "queue_completed": "已完成",
   "queue_failed": "失敗",

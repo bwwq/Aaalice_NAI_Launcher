@@ -3570,7 +3570,7 @@
   "queue_management": "队列管理",
   "queue_empty": "队列为空",
   "queue_emptyHint": "没有待执行的任务",
-  "queue_pending": "等待中",
+  "queue_pending": "未完成",
   "queue_running": "执行中",
   "queue_completed": "已完成",
   "queue_failed": "失败",

@@ -611,7 +611,7 @@ class QueueExecutionNotifier extends _$QueueExecutionNotifier {
     // 生成错误
     if (previous?.status == GenerationStatus.generating &&
         next.status == GenerationStatus.error) {
-      _onTaskError();
+      _onTaskError(next.errorMessage);
       return;
     }
 
@@ -687,7 +687,9 @@ class QueueExecutionNotifier extends _$QueueExecutionNotifier {
   }
 
   /// 任务错误处理
-  Future<void> _onTaskError() async {
+  Future<void> _onTaskError(String? errorMessage) async {
+    final revision = _executionRevision;
+    final currentTaskId = state.currentTaskId;
     final settings = _getSettings();
 
     if (state.retryCount < settings.retryCount) {
@@ -698,7 +700,11 @@ class QueueExecutionNotifier extends _$QueueExecutionNotifier {
       await Future.delayed(settings.retryInterval);
 
       // 检查是否仍在运行或暂停
-      if (state.status != QueueExecutionStatus.running) return;
+      if (revision != _executionRevision ||
+          currentTaskId != state.currentTaskId ||
+          state.status != QueueExecutionStatus.running) {
+        return;
+      }
 
       // 重新设置为 ready 状态，等待用户再次点击或自动执行
       state = state.copyWith(status: QueueExecutionStatus.ready);
@@ -706,7 +712,7 @@ class QueueExecutionNotifier extends _$QueueExecutionNotifier {
       _triggerAutoGenerate();
     } else {
       // 超过重试次数，根据策略处理
-      await _handleFailedTask();
+      await _handleFailedTask(errorMessage: errorMessage);
     }
   }
 
@@ -733,7 +739,10 @@ class QueueExecutionNotifier extends _$QueueExecutionNotifier {
     switch (state.failureStrategy) {
       case FailureHandlingStrategy.autoRetry:
         if (!retryable) {
-          await queueNotifier.moveToFailedPool(currentTaskId);
+          await queueNotifier.moveToFailedPool(
+            currentTaskId,
+            errorMessage: errorMessage,
+          );
           break;
         }
         // 重新入队到末尾。执行中的任务只能通过专用结算入口移除。
@@ -761,7 +770,10 @@ class QueueExecutionNotifier extends _$QueueExecutionNotifier {
 
       case FailureHandlingStrategy.skip:
         // 更新任务状态为 failed 并移入失败池
-        await queueNotifier.moveToFailedPool(currentTaskId);
+        await queueNotifier.moveToFailedPool(
+          currentTaskId,
+          errorMessage: errorMessage,
+        );
         break;
 
       case FailureHandlingStrategy.pauseAndWait:

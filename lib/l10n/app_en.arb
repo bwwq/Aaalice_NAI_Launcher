@@ -3543,7 +3543,7 @@
   "queue_management": "Queue Management",
   "queue_empty": "Queue is empty",
   "queue_emptyHint": "No tasks in the queue",
-  "queue_pending": "Pending",
+  "queue_pending": "Unfinished",
   "queue_running": "Running",
   "queue_completed": "Completed",
   "queue_failed": "Failed",

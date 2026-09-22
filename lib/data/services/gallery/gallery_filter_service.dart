@@ -510,9 +510,9 @@ class GalleryFilterService {
 
       if (cancelToken.isCancelled) return [];
 
-      final images = await _dataSource.getImagesByIds(imageIds);
+      final paths = await _dataSource.getImagePathsByIds(imageIds);
       final matchedKeys = {
-        for (final image in images) galleryFilePathKey(image.filePath),
+        for (final path in paths.values) galleryFilePathKey(path),
       };
 
       // 未入库的图片无法满足索引条件，这里一并排除。
@@ -608,9 +608,9 @@ class GalleryFilterService {
 
       if (cancelToken.isCancelled) return [];
 
-      final images = await _dataSource.getImagesByIds(imageIds);
+      final paths = await _dataSource.getImagePathsByIds(imageIds);
       final matchedKeys = {
-        for (final image in images) galleryFilePathKey(image.filePath),
+        for (final path in paths.values) galleryFilePathKey(path),
       };
 
       return files.where((file) {

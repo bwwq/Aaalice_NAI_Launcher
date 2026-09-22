@@ -7694,7 +7694,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get queue_emptyHint => 'No tasks in the queue';
 
   @override
-  String get queue_pending => 'Pending';
+  String get queue_pending => 'Unfinished';
 
   @override
   String get queue_running => 'Running';

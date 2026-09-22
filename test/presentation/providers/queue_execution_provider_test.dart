@@ -175,6 +175,96 @@ void main() {
     await generation.waitForStart(1);
     expect(container.read(queueExecutionNotifierProvider).failedCount, 1);
     expect(generation.startedPrompts, ['failed', 'next']);
+    expect(
+      container
+          .read(replicationQueueNotifierProvider)
+          .failedTasks
+          .single
+          .errorMessage,
+      'controlled failure',
+    );
+  });
+
+  for (final strategy in [
+    FailureHandlingStrategy.skip,
+    FailureHandlingStrategy.pauseAndWait,
+  ]) {
+    test('普通生成失败按 $strategy 保留具体原因', () async {
+      final task = ReplicationTask.create(prompt: 'failed request');
+      final generation = _ControlledImageGenerationNotifier();
+      final container = _buildControlledQueueContainer(
+        [task],
+        generation,
+        localStorage: _NoRetryLocalStorageService(),
+      );
+      addTearDown(container.dispose);
+      final execution =
+          container.read(queueExecutionNotifierProvider.notifier)
+              as _TestQueueExecutionNotifier;
+      execution.setStrategyForTest(strategy);
+
+      await execution.startQueue();
+      await generation.waitForStart(0);
+      generation.fail(0);
+      await _waitForExecutionStatus(
+        container,
+        strategy == FailureHandlingStrategy.skip
+            ? QueueExecutionStatus.completed
+            : QueueExecutionStatus.paused,
+      );
+
+      final queue = container.read(replicationQueueNotifierProvider);
+      final failed = strategy == FailureHandlingStrategy.skip
+          ? queue.failedTasks.single
+          : queue.tasks.single;
+      expect(failed.id, task.id);
+      expect(failed.status, ReplicationTaskStatus.failed);
+      expect(failed.errorMessage, 'controlled failure');
+      if (strategy == FailureHandlingStrategy.skip) {
+        final storage = container.read(queueStateStorageProvider);
+        expect(
+          storage.loadFailedTasks().single.errorMessage,
+          failed.errorMessage,
+        );
+      }
+
+      generation.settle(0);
+      generation.finishCleanup(0);
+      await generation.waitForCleanup(0);
+    });
+  }
+
+  test('重试耗尽后保存最后一次失败原因', () async {
+    final generation = _ControlledImageGenerationNotifier();
+    final container = _buildControlledQueueContainer(
+      [ReplicationTask.create(prompt: 'retry request')],
+      generation,
+      localStorage: _NoRetryLocalStorageService(retryCount: 1),
+    );
+    addTearDown(container.dispose);
+
+    await container.read(queueExecutionNotifierProvider.notifier).startQueue();
+    await generation.waitForStart(0);
+    generation.fail(0, errorMessage: 'first failure');
+    generation.settle(0);
+    generation.finishCleanup(0);
+    await generation.waitForCleanup(0);
+    await generation.waitForStart(1);
+    generation.fail(1, errorMessage: 'last failure');
+    await _waitForExecutionStatus(container, QueueExecutionStatus.completed);
+
+    expect(generation.startedPrompts, ['retry request', 'retry request']);
+    expect(
+      container
+          .read(replicationQueueNotifierProvider)
+          .failedTasks
+          .single
+          .errorMessage,
+      'last failure',
+    );
+    generation.settle(1);
+    generation.finishCleanup(1);
+    await generation.waitForCleanup(1);
   });
 
   test('取消会释放运行任务但不会启动下一任务', () async {
@@ -688,11 +778,11 @@ class _ControlledImageGenerationNotifier extends ImageGenerationNotifier {
     state = state.copyWith(status: GenerationStatus.completed);
   }
 
-  void fail(int index) {
+  void fail(int index, {String errorMessage = 'controlled failure'}) {
     expect(_invocations[index], same(_activeInvocation));
     state = state.copyWith(
       status: GenerationStatus.error,
-      errorMessage: 'controlled failure',
+      errorMessage: errorMessage,
     );
   }
 
@@ -732,9 +822,13 @@ class _ControlledGenerationInvocation {
 }
 
 class _NoRetryLocalStorageService extends LocalStorageService {
+  _NoRetryLocalStorageService({this.retryCount = 0});
+
+  final int retryCount;
+
   @override
   T? getSetting<T>(String key, {T? defaultValue}) {
-    if (key == StorageKeys.queueRetryCount) return 0 as T;
+    if (key == StorageKeys.queueRetryCount) return retryCount as T;
     if (key == StorageKeys.queueRetryInterval) return 0.0 as T;
     return defaultValue;
   }
@@ -805,6 +899,8 @@ class _MemoryReplicationQueueStorage extends ReplicationQueueStorage {
 }
 
 class _MemoryQueueStateStorage extends QueueStateStorage {
+  List<ReplicationTask> _failedTasks = const [];
+
   @override
   QueueExecutionStateData loadExecutionState() =>
       const QueueExecutionStateData();
@@ -813,8 +909,10 @@ class _MemoryQueueStateStorage extends QueueStateStorage {
   Future<void> saveExecutionState(QueueExecutionStateData state) async {}
 
   @override
-  List<ReplicationTask> loadFailedTasks() => const [];
+  List<ReplicationTask> loadFailedTasks() => _failedTasks;
 
   @override
-  Future<void> saveFailedTasks(List<ReplicationTask> tasks) async {}
+  Future<void> saveFailedTasks(List<ReplicationTask> tasks) async {
+    _failedTasks = List.of(tasks);
+  }
 }

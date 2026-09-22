@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../../core/database/utils/lru_cache.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/platform/platform_capabilities.dart';
 import '../../../core/utils/localization_extension.dart';
@@ -156,7 +157,12 @@ class Gallery3DViewConfig<T> {
 class _GenericGalleryContentViewState<T>
     extends ConsumerState<GenericGalleryContentView<T>>
     with TickerProviderStateMixin {
-  final Map<String, double> _aspectRatioCache = {};
+  final _aspectRatioCache =
+      LRUCache<({String path, int size, DateTime modifiedAt}), double>(
+        maxSize: 512,
+      );
+  final _pendingAspectRatios =
+      <({String path, int size, DateTime modifiedAt})>{};
   bool _showSkeleton = false;
   final Set<int> _visibleIndices = {};
   late final AnimationController _emptyStateController;
@@ -350,30 +356,39 @@ class _GenericGalleryContentViewState<T>
   }
 
   double _getCachedAspectRatio(LocalImageRecord record) {
-    if (_aspectRatioCache.containsKey(record.path)) {
-      return _aspectRatioCache[record.path]!;
+    final metadata = record.metadata;
+    final width = metadata?.width;
+    final height = metadata?.height;
+    if (width != null && height != null && width > 0 && height > 0) {
+      return width / height;
     }
 
-    _calculateAspectRatioForRecord(record).then((value) {
-      if (mounted && value != _aspectRatioCache[record.path]) {
-        setState(() => _aspectRatioCache[record.path] = value);
-      }
-    });
+    final key = (
+      path: record.path,
+      size: record.size,
+      modifiedAt: record.modifiedAt,
+    );
+    final cached = _aspectRatioCache.get(key);
+    if (cached != null) return cached;
+
+    if (_pendingAspectRatios.add(key)) {
+      _calculateAspectRatioForRecord(record).then((value) {
+        _pendingAspectRatios.remove(key);
+        if (mounted) {
+          setState(() => _aspectRatioCache.put(key, value));
+        }
+      });
+    }
 
     return 1.0;
   }
 
   Future<double> _calculateAspectRatioForRecord(LocalImageRecord record) async {
-    final metadata = record.metadata;
-    if (metadata?.width != null && metadata?.height != null) {
-      final width = metadata!.width!;
-      final height = metadata.height!;
-      if (width > 0 && height > 0) return width / height;
-    }
-
+    ui.ImmutableBuffer? buffer;
+    ui.ImageDescriptor? descriptor;
     try {
-      final buffer = await ui.ImmutableBuffer.fromFilePath(record.path);
-      final descriptor = await ui.ImageDescriptor.encoded(buffer);
+      buffer = await ui.ImmutableBuffer.fromFilePath(record.path);
+      descriptor = await ui.ImageDescriptor.encoded(buffer);
       if (descriptor.width > 0 && descriptor.height > 0) {
         return descriptor.width / descriptor.height;
       }
@@ -382,6 +397,9 @@ class _GenericGalleryContentViewState<T>
         'Failed to read gallery image aspect ratio: $e',
         'GalleryContent',
       );
+    } finally {
+      descriptor?.dispose();
+      buffer?.dispose();
     }
 
     return 1.0;

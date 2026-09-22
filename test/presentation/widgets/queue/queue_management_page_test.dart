@@ -46,6 +46,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('队列为空'), findsOneWidget);
+    expect(find.text('未完成'), findsOneWidget);
+    expect(find.text('等待中'), findsNothing);
     expect(find.byType(SingleChildScrollView), findsWidgets);
     expect(tester.takeException(), isNull);
   });

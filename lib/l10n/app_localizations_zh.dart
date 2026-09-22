@@ -7386,7 +7386,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get queue_emptyHint => '没有待执行的任务';
 
   @override
-  String get queue_pending => '等待中';
+  String get queue_pending => '未完成';
 
   @override
   String get queue_running => '执行中';
@@ -22098,7 +22098,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get queue_emptyHint => '沒有待執行的任務';
 
   @override
-  String get queue_pending => '等待中';
+  String get queue_pending => '未完成';
 
   @override
   String get queue_running => '執行中';

@@ -34,6 +34,7 @@ abstract interface class GalleryImageRepository {
   Future<Map<String, int?>> getImageIdsByPaths(List<String> filePaths);
   Future<GalleryImageRecord?> getImageById(int id);
   Future<List<GalleryImageRecord>> getImagesByIds(List<int> ids);
+  Future<Map<int, String>> getImagePathsByIds(List<int> ids);
   Future<List<GalleryImageRecord>> queryImages({
     int limit = 50,
     int offset = 0,
@@ -369,6 +370,33 @@ class SqliteGalleryImageRepository implements GalleryImageRepository {
 
       return results;
     }, details: '${ids.length} IDs, ${missingIds.length} missing');
+  }
+
+  /// 搜索结果只需路径，避免解码完整记录或挤占图片记录缓存。
+  @override
+  Future<Map<int, String>> getImagePathsByIds(List<int> ids) async {
+    if (ids.isEmpty) return {};
+
+    return context.trackQuery('getImagePathsByIds', () async {
+      final paths = <int, String>{};
+      for (final batch in _chunk(ids.toSet().toList(), 900)) {
+        final rows = await gateway.execute(
+          'getImagePathsByIds.batch',
+          (db) => db.rawQuery(
+            'SELECT id, file_path FROM ${GalleryTables.images} '
+            'WHERE id IN (${List.filled(batch.length, '?').join(',')}) '
+            'AND is_deleted = 0',
+            batch,
+          ),
+          timeout: const Duration(seconds: 30),
+          maxRetries: 3,
+        );
+        for (final row in rows) {
+          paths[(row['id'] as num).toInt()] = row['file_path'] as String;
+        }
+      }
+      return paths;
+    }, details: '${ids.length} IDs');
   }
 
   @override

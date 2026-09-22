@@ -392,7 +392,7 @@ class ReplicationQueueNotifier extends _$ReplicationQueueNotifier {
   }
 
   /// 移入失败任务池
-  Future<void> moveToFailedPool(String taskId) async {
+  Future<void> moveToFailedPool(String taskId, {String? errorMessage}) async {
     final task = state.tasks.firstWhere(
       (t) => t.id == taskId,
       orElse: () => ReplicationTask.create(prompt: ''),
@@ -402,6 +402,7 @@ class ReplicationQueueNotifier extends _$ReplicationQueueNotifier {
 
     final failedTask = task.copyWith(
       status: ReplicationTaskStatus.failed,
+      errorMessage: errorMessage ?? task.errorMessage,
       completedAt: DateTime.now(),
     );
 
