@@ -8,6 +8,7 @@ import '../../../data/datasources/remote/danbooru_api_service.dart';
 import '../../../data/models/online_gallery/gallery_item.dart';
 import '../../../data/models/online_gallery/gallery_source.dart';
 import '../../providers/online_gallery_provider.dart';
+import '../../providers/online_gallery_enabled_provider.dart';
 import 'defined_agent_tool.dart';
 import 'toolbox_json.dart';
 
@@ -17,13 +18,30 @@ class OnlineGalleryToolbox {
 
   final Ref _ref;
 
-  List<AgentTool> tools() => [
+  List<AgentTool> tools() => <DefinedAgentTool>[
     _listSources(),
     _browse(),
     _searchCompatibility(),
     _detail(),
     _toggleFavorite(),
-  ];
+  ].map(_guardEnabled).toList();
+
+  DefinedAgentTool _guardEnabled(DefinedAgentTool tool) => DefinedAgentTool(
+    name: tool.name,
+    label: tool.label,
+    description: tool.description,
+    parameters: tool.parameters,
+    executionModeOverride: tool.executionMode,
+    executeWithControl: (id, params, signal, onUpdate) async {
+      if (!_ref.read(onlineGalleryEnabledProvider)) {
+        return agentToolError(
+          'online_gallery_disabled',
+          'Enable Online Gallery in Settings before using it.',
+        );
+      }
+      return tool.execute(id, params, signal, onUpdate);
+    },
+  );
 
   DefinedAgentTool _listSources() => DefinedAgentTool(
     name: 'list_online_gallery_sources',

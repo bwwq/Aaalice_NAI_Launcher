@@ -14,6 +14,7 @@ import '../../core/utils/localization_extension.dart';
 import '../adaptive/window_size_class.dart';
 import '../agent_chat/widgets/agent_question_notifications.dart';
 import '../providers/auth_provider.dart';
+import '../providers/online_gallery_enabled_provider.dart';
 import '../providers/dlss_provider.dart';
 import '../providers/prompt_maximize_provider.dart';
 import '../widgets/app_branch_visibility.dart';
@@ -257,7 +258,9 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     final globalShortcuts = <String, VoidCallback>{
       for (final entry in globalNavigationShortcutBranches.entries)
-        entry.key: () => widget.navigationShell.goBranch(entry.value.index),
+        if (entry.value != AppBranch.onlineGallery ||
+            ref.watch(onlineGalleryEnabledProvider))
+          entry.key: () => widget.navigationShell.goBranch(entry.value.index),
       ShortcutIds.showShortcutHelp: () {
         ShortcutHelpDialog.show(context);
       },

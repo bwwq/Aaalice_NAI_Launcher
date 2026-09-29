@@ -315,7 +315,7 @@ Compact/Medium 下没有持久侧栏时，页面名称保留在主工具栏，�
 
 ### Navigation
 
-- 桌面使用稳定 rail，active 项采用淡主色背景与主色前景；移动端使用五入口 NavigationBar，并通过“更多”保留次级能力。
+- 桌面使用稳定 rail，active 项采用淡主色背景与主色前景；移动端使用核心入口与“更多”的 NavigationBar；在线画廊默认隐藏，启用后加入导航，并通过“更多”保留次级能力。
 - Hover 只增强桌面反馈，不承载唯一信息。键盘可见或 shell overlay 激活时，移动底部导航可暂时隐藏以保护工作区。
 
 ### Dialogs and adaptive panels

@@ -11,6 +11,7 @@ import '../../../data/models/auth/saved_account.dart';
 import '../../providers/account_manager_provider.dart';
 import '../../providers/auth_mode_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/online_gallery_enabled_provider.dart';
 import '../../providers/layout_state_provider.dart';
 import '../../providers/queue_execution_provider.dart';
 import '../../providers/replication_queue_provider.dart';
@@ -162,14 +163,16 @@ class MainNavRail extends ConsumerWidget {
                   ),
 
                   // 在线画廊
-                  _NavIcon(
-                    key: const Key('nav-branch-2'),
-                    icon: Icons.photo_library, // Online Gallery
-                    label: context.l10n.nav_onlineGallery,
-                    isSelected: selectedIndex == 2,
-                    onTap: () =>
-                        navigationShell.goBranch(AppBranch.onlineGallery.index),
-                  ),
+                  if (ref.watch(onlineGalleryEnabledProvider))
+                    _NavIcon(
+                      key: const Key('nav-branch-2'),
+                      icon: Icons.photo_library, // Online Gallery
+                      label: context.l10n.nav_onlineGallery,
+                      isSelected: selectedIndex == 2,
+                      onTap: () => navigationShell.goBranch(
+                        AppBranch.onlineGallery.index,
+                      ),
+                    ),
 
                   // Vibe库
                   _NavIcon(
@@ -236,12 +239,13 @@ class MainNavRail extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       // Discord 社群
-                      _ExternalLinkIcon(
-                        icon: Icons.discord,
-                        label: context.l10n.nav_discordCommunity,
-                        color: const Color(0xFF5865F2), // Discord 紫色
-                        url: CommunityLinks.discord,
-                      ),
+                      if (CommunityLinks.showDiscord)
+                        _ExternalLinkIcon(
+                          icon: Icons.discord,
+                          label: context.l10n.nav_discordCommunity,
+                          color: const Color(0xFF5865F2), // Discord 紫色
+                          url: CommunityLinks.discord,
+                        ),
 
                       // GitHub 仓库
                       _GitHubIcon(

@@ -26808,6 +26808,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reading backup index…'**
   String get cloudSync_loadingBackupIndex;
+
+  /// No description provided for @settings_enableOnlineGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Online Gallery'**
+  String get settings_enableOnlineGallery;
+
+  /// No description provided for @settings_enableOnlineGallerySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Online Gallery in navigation. Turning it off hides the entry and keeps your browsing settings.'**
+  String get settings_enableOnlineGallerySubtitle;
 }
 
 class _AppLocalizationsDelegate

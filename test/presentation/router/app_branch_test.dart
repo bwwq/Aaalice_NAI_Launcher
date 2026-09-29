@@ -3,6 +3,33 @@ import 'package:nai_launcher/core/shortcuts/default_shortcuts.dart';
 import 'package:nai_launcher/presentation/router/app_branch.dart';
 
 void main() {
+  test('disabled online gallery preserves compact navigation indices', () {
+    final branches = mobileNavigationBranchesFor(onlineGalleryEnabled: false);
+    expect(branches, [
+      AppBranch.generation,
+      AppBranch.localGallery,
+      AppBranch.tagLibrary,
+    ]);
+    expect(
+      mobileNavigationIndexForBranch(
+        AppBranch.tagLibrary.index,
+        onlineGalleryEnabled: false,
+      ),
+      2,
+    );
+    expect(
+      mobileNavigationIndexForBranch(
+        AppBranch.settings.index,
+        onlineGalleryEnabled: false,
+      ),
+      3,
+    );
+    expect(
+      mobileNavigationBranchesFor(onlineGalleryEnabled: true),
+      mobileNavigationBranches,
+    );
+  });
+
   test('global navigation shortcuts map to their actual shell branches', () {
     expect(globalNavigationShortcutBranches, {
       ShortcutIds.navigateToGeneration: AppBranch.generation,

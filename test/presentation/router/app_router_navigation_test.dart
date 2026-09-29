@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nai_launcher/core/shortcuts/shortcut_config.dart';
+import 'package:nai_launcher/core/storage/local_storage_service.dart';
+import 'package:nai_launcher/presentation/providers/online_gallery_enabled_provider.dart';
 import 'package:nai_launcher/l10n/app_localizations.dart';
 import 'package:nai_launcher/presentation/providers/account_manager_provider.dart';
 import 'package:nai_launcher/presentation/providers/auth_provider.dart';
@@ -11,6 +13,49 @@ import 'package:nai_launcher/presentation/router/app_router_config.dart';
 import 'package:nai_launcher/presentation/router/app_routes.dart';
 
 void main() {
+  testWidgets('direct online gallery routes require explicit opt-in', (
+    tester,
+  ) async {
+    final harness = _RouterHarness(storage: _FeatureStorage());
+    addTearDown(harness.dispose);
+    final router = GoRouter(
+      initialLocation: AppRoutes.onlineGallery,
+      redirect: harness.router.configuration.topRedirect,
+      routes: [
+        GoRoute(
+          path: AppRoutes.onlineGallery,
+          builder: (_, __) => const SizedBox(),
+        ),
+        GoRoute(path: AppRoutes.settings, builder: (_, __) => const SizedBox()),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(harness.appFor(router));
+    await tester.pumpAndSettle();
+    expect(
+      router.routeInformationProvider.value.uri.toString(),
+      '/settings?section=online-gallery',
+    );
+    await harness.container
+        .read(onlineGalleryEnabledProvider.notifier)
+        .setEnabled(true);
+    router.go(AppRoutes.onlineGallery);
+    await tester.pumpAndSettle();
+    expect(
+      router.routeInformationProvider.value.uri.path,
+      AppRoutes.onlineGallery,
+    );
+    await harness.container
+        .read(onlineGalleryEnabledProvider.notifier)
+        .setEnabled(false);
+    router.refresh();
+    await tester.pumpAndSettle();
+    expect(
+      router.routeInformationProvider.value.uri.toString(),
+      '/settings?section=online-gallery',
+    );
+  });
+
   testWidgets('appRouter sends an unknown location to its error entry', (
     tester,
   ) async {
@@ -64,9 +109,11 @@ void main() {
 }
 
 class _RouterHarness {
-  _RouterHarness()
+  _RouterHarness({LocalStorageService? storage})
     : container = ProviderContainer(
         overrides: [
+          if (storage != null)
+            localStorageServiceProvider.overrideWithValue(storage),
           accountManagerNotifierProvider.overrideWith(
             _TestAccountManagerNotifier.new,
           ),
@@ -120,4 +167,15 @@ class _UnauthenticatedAuthNotifier extends AuthNotifier {
 class _TestShortcutConfigNotifier extends ShortcutConfigNotifier {
   @override
   Future<ShortcutConfig> build() async => ShortcutConfig.createDefault();
+}
+
+class _FeatureStorage extends LocalStorageService {
+  final values = <String, Object?>{};
+  @override
+  T? getSetting<T>(String key, {T? defaultValue}) =>
+      values[key] as T? ?? defaultValue;
+  @override
+  Future<void> setSetting<T>(String key, T value) async {
+    values[key] = value;
+  }
 }

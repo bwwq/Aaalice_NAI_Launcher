@@ -344,6 +344,7 @@ class StorageKeys {
       'online_gallery_prompt_tag_categories';
   static const String onlineGalleryOutputFilterTags =
       'online_gallery_output_filter_tags';
+  static const String onlineGalleryEnabled = 'online_gallery_enabled';
   static const String onlineGalleryBrowsingSessionV1 =
       'online_gallery_browsing_session_v1';
   static const String quickTagCloudFavoritesV1 = 'quick_tag_cloud_favorites_v1';

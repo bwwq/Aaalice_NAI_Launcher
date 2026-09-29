@@ -20,22 +20,22 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Aaalice233/Aaalice_NAI_Launcher/releases/latest"><img src="https://img.shields.io/github/v/release/Aaalice233/Aaalice_NAI_Launcher?display_name=tag&sort=semver" alt="最新版本"></a>
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/releases/latest"><img src="https://img.shields.io/github/v/release/bwwq/Aaalice_NAI_Launcher?display_name=tag&sort=semver" alt="最新版本"></a>
   <img src="https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Android-可用-6f7785" alt="支持平台">
   <img src="https://img.shields.io/badge/license-MIT-5b8c5a" alt="MIT License">
-  <a href="https://discord.gg/R48n6GwXzD"><img src="https://img.shields.io/badge/Discord-加入社区-5865F2?logo=discord&logoColor=white" alt="Discord 社区"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Aaalice233/Aaalice_NAI_Launcher/releases/latest">下载最新版</a> ·
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/releases/latest">下载最新版</a> ·
   <a href="CHANGELOG.md">查看更新记录</a> ·
-  <a href="https://github.com/Aaalice233/Aaalice_NAI_Launcher/issues">反馈问题</a> ·
-  <a href="https://discord.gg/R48n6GwXzD">加入 Discord</a>
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/issues">反馈问题</a>
 </p>
 
 > NAI Launcher 是社区开发的第三方客户端，并非 NovelAI 官方产品。使用在线功能前，请准备自己的 NovelAI 账号，并遵守相关服务条款、内容规则与当地法律。
 
 NAI Launcher 面向经常使用 NovelAI 的图像创作者。生成、改图、Prompt、角色、参考图、图库、队列和智能代理都能在同一套工作流里衔接；Windows、macOS 与 Android 共享核心能力，不登录也能先使用本地工具。
+
+- 在线画廊默认关闭，需要时在“设置 → 在线画廊”中开启。
 
 ## ✨ 一套完整的创作流程
 
@@ -178,7 +178,7 @@ NAI Launcher 面向经常使用 NovelAI 的图像创作者。生成、改图、P
 
 ### 1. 下载对应平台的安装包
 
-前往 [GitHub Releases](https://github.com/Aaalice233/Aaalice_NAI_Launcher/releases/latest)：
+前往 [GitHub Releases](https://github.com/bwwq/Aaalice_NAI_Launcher/releases/latest)：
 
 | 平台 | 文件 | 用法 |
 | --- | --- | --- |
@@ -221,9 +221,8 @@ NAI Launcher 不在项目自有服务器上托管你的账号或作品。只有�
 ## 🆘 支持与反馈
 
 - 如遇异常，请通过“设置 → 关于 → 导出诊断日志”保存排查信息，并在反馈时一并提供。
-- [提交 Issue](https://github.com/Aaalice233/Aaalice_NAI_Launcher/issues)：报告可以复现的问题或提出功能建议。
-- [加入 Discord](https://discord.gg/R48n6GwXzD)：交流使用经验、获取社区帮助。
-- [查看 Releases](https://github.com/Aaalice233/Aaalice_NAI_Launcher/releases)：下载版本、校验文件并阅读更新内容。
+- [提交 Issue](https://github.com/bwwq/Aaalice_NAI_Launcher/issues)：报告可以复现的问题或提出功能建议。
+- [查看 Releases](https://github.com/bwwq/Aaalice_NAI_Launcher/releases)：下载版本、校验文件并阅读更新内容。
 
 ## 🙏 致谢
 

@@ -21,6 +21,7 @@ import 'presentation/router/app_router_config.dart';
 import 'presentation/router/app_routes.dart';
 import 'presentation/router/shell_panels_overlay.dart';
 import 'presentation/providers/theme_provider.dart';
+import 'presentation/providers/online_gallery_enabled_provider.dart';
 import 'presentation/providers/font_provider.dart';
 import 'presentation/providers/font_scale_provider.dart';
 import 'presentation/providers/locale_provider.dart';
@@ -265,9 +266,10 @@ class NAILauncherApp extends ConsumerWidget {
       ShortcutIds.navigateToLocalGallery: () {
         router.go(AppRoutes.localGallery);
       },
-      ShortcutIds.navigateToOnlineGallery: () {
-        router.go(AppRoutes.onlineGallery);
-      },
+      if (ref.watch(onlineGalleryEnabledProvider))
+        ShortcutIds.navigateToOnlineGallery: () {
+          router.go(AppRoutes.onlineGallery);
+        },
       ShortcutIds.navigateToRandomConfig: () {
         router.go(AppRoutes.promptConfig);
       },

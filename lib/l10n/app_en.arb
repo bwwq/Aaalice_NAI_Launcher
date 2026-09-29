@@ -7037,5 +7037,7 @@
 ,
   "cloudSync_prepareRestore": "Review restore changes",
   "cloudSync_prepareRestoreDescription": "Viewing reads only the backup index. Reviewing restore changes reads the complete backup and may take time. Restoring requires another confirmation.",
-  "cloudSync_loadingBackupIndex": "Reading backup index…"
+  "cloudSync_loadingBackupIndex": "Reading backup index…",
+  "settings_enableOnlineGallery": "Enable Online Gallery",
+  "settings_enableOnlineGallerySubtitle": "Show Online Gallery in navigation. Turning it off hides the entry and keeps your browsing settings."
 }

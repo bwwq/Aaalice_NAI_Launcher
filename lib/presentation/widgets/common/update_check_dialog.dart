@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/community_links.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -608,7 +609,7 @@ class UpdateCheckDialog extends ConsumerWidget {
           : null;
     }
     return Uri.parse(
-      'https://github.com/Aaalice233/Aaalice_NAI_Launcher/blob/'
+      '${CommunityLinks.github}/blob/'
       '$versionTag/',
     ).resolveUri(uri);
   }

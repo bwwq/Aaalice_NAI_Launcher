@@ -9,6 +9,7 @@ enum SettingsSection {
   network('network'),
   shortcuts('shortcuts'),
   integrations('integrations'),
+  onlineGallery('online-gallery'),
   about('about');
 
   const SettingsSection(this.id);

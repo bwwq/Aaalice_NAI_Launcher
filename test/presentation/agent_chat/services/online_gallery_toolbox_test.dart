@@ -10,6 +10,7 @@ import 'package:nai_launcher/data/models/online_gallery/gallery_item.dart';
 import 'package:nai_launcher/data/models/online_gallery/gallery_source.dart';
 import 'package:nai_launcher/presentation/agent_chat/services/online_gallery_toolbox.dart';
 import 'package:nai_launcher/presentation/providers/online_gallery_provider.dart';
+import 'package:nai_launcher/presentation/providers/online_gallery_enabled_provider.dart';
 
 final _refProvider = Provider<Ref>((ref) => ref);
 
@@ -18,13 +19,31 @@ void main() {
   late List<AgentTool> tools;
 
   setUp(() {
-    container = ProviderContainer();
+    container = ProviderContainer(
+      overrides: [
+        onlineGalleryEnabledProvider.overrideWith(_EnabledGallery.new),
+      ],
+    );
     tools = OnlineGalleryToolbox(container.read(_refProvider)).tools();
   });
 
   tearDown(() => container.dispose());
 
   AgentTool tool(String name) => tools.singleWhere((tool) => tool.name == name);
+
+  test(
+    'disabled gallery rejects tools without initializing a gallery',
+    () async {
+      final disabled = ProviderContainer();
+      addTearDown(disabled.dispose);
+      final guarded = OnlineGalleryToolbox(disabled.read(_refProvider)).tools();
+      for (final action in guarded) {
+        final result = await action.execute('disabled', {});
+        expect(result.details, containsPair('code', 'online_gallery_disabled'));
+      }
+      expect(disabled.exists(onlineGalleryNotifierProvider), isFalse);
+    },
+  );
 
   test('browse contract defines bounded tags and danbooru default', () {
     final browse = tool('browse_online_gallery');
@@ -93,6 +112,7 @@ void main() {
     final adapter = _ToolGalleryAdapter();
     final toolContainer = ProviderContainer(
       overrides: [
+        onlineGalleryEnabledProvider.overrideWith(_EnabledGallery.new),
         localStorageServiceProvider.overrideWithValue(_MemoryStorage()),
         onlineGalleryTagMetadataLoaderProvider.overrideWithValue(
           (_) async => const {},
@@ -327,6 +347,7 @@ void main() {
 ) {
   final container = ProviderContainer(
     overrides: [
+      onlineGalleryEnabledProvider.overrideWith(_EnabledGallery.new),
       localStorageServiceProvider.overrideWithValue(_MemoryStorage()),
       onlineGalleryTagMetadataLoaderProvider.overrideWithValue(
         (_) async => const {},
@@ -512,4 +533,9 @@ class _EmptyGalleryAdapter extends GallerySourceAdapter {
     hasMore: false,
     rawItemCount: 0,
   );
+}
+
+class _EnabledGallery extends OnlineGalleryEnabledNotifier {
+  @override
+  bool build() => true;
 }

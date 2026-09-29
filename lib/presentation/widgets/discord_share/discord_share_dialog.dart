@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import '../../../core/constants/community_links.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -258,6 +259,7 @@ class _DiscordShareDialogState extends ConsumerState<DiscordShareDialog> {
   }
 
   Future<void> _openCommunity() async {
+    if (!CommunityLinks.showDiscord) return;
     await launchUrl(
       Uri.parse(discordCommunityUrl),
       mode: LaunchMode.externalApplication,
@@ -515,13 +517,14 @@ class _DiscordShareDialogState extends ConsumerState<DiscordShareDialog> {
               ],
               const SizedBox(height: 24),
               if (_joinRequired) ...[
-                FilledButton(
-                  onPressed: _openCommunity,
-                  child: _buildVerificationButtonContent(
-                    icon: const Icon(Icons.group_add_outlined),
-                    label: context.l10n.discordShare_joinServer,
+                if (CommunityLinks.showDiscord)
+                  FilledButton(
+                    onPressed: _openCommunity,
+                    child: _buildVerificationButtonContent(
+                      icon: const Icon(Icons.group_add_outlined),
+                      label: context.l10n.discordShare_joinServer,
+                    ),
                   ),
-                ),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: _authenticating ? null : _authenticate,

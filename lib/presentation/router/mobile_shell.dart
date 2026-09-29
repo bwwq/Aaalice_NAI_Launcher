@@ -8,6 +8,7 @@ import '../../core/utils/localization_extension.dart';
 import '../providers/mobile_shell_overlay_provider.dart';
 import '../providers/replication_queue_provider.dart';
 import '../providers/update_provider.dart';
+import '../providers/online_gallery_enabled_provider.dart';
 import '../widgets/common/app_toast.dart';
 import '../widgets/common/update_notice_banner.dart';
 import 'android_root_back_guard.dart';
@@ -38,6 +39,10 @@ class MobileShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final onlineGalleryEnabled = ref.watch(onlineGalleryEnabledProvider);
+    final branches = mobileNavigationBranchesFor(
+      onlineGalleryEnabled: onlineGalleryEnabled,
+    );
     final activePanel = ref.watch(shellPanelProvider);
     final showUpdateBadge = ref.watch(
       updateStateProvider.select((state) => state.hasNewVersion),
@@ -101,9 +106,10 @@ class MobileShell extends ConsumerWidget {
               child: NavigationBar(
                 height: _navigationBarHeight(context),
                 selectedIndex: activePanel != null
-                    ? mobileMoreNavigationIndex
+                    ? branches.length
                     : mobileNavigationIndexForBranch(
                         navigationShell.currentIndex,
+                        onlineGalleryEnabled: onlineGalleryEnabled,
                       ),
                 onDestinationSelected: (index) =>
                     _onNavigate(context, index, ref),
@@ -118,11 +124,12 @@ class MobileShell extends ConsumerWidget {
                     selectedIcon: const Icon(Icons.photo_library),
                     label: context.l10n.nav_gallery,
                   ),
-                  NavigationDestination(
-                    icon: const Icon(Icons.travel_explore_outlined),
-                    selectedIcon: const Icon(Icons.travel_explore),
-                    label: context.l10n.nav_explore,
-                  ),
+                  if (onlineGalleryEnabled)
+                    NavigationDestination(
+                      icon: const Icon(Icons.travel_explore_outlined),
+                      selectedIcon: const Icon(Icons.travel_explore),
+                      label: context.l10n.nav_explore,
+                    ),
                   NavigationDestination(
                     icon: const Icon(Icons.library_books_outlined),
                     selectedIcon: const Icon(Icons.library_books),
@@ -189,7 +196,10 @@ class MobileShell extends ConsumerWidget {
   }
 
   void _onNavigate(BuildContext context, int mobileIndex, WidgetRef ref) {
-    if (mobileIndex == mobileMoreNavigationIndex) {
+    final branches = mobileNavigationBranchesFor(
+      onlineGalleryEnabled: ref.read(onlineGalleryEnabledProvider),
+    );
+    if (mobileIndex == branches.length) {
       showMobileMorePanel(
         context: context,
         ref: ref,
@@ -198,9 +208,9 @@ class MobileShell extends ConsumerWidget {
       return;
     }
 
-    if (mobileIndex < 0 || mobileIndex >= mobileNavigationBranches.length) {
+    if (mobileIndex < 0 || mobileIndex >= branches.length) {
       return;
     }
-    navigationShell.goBranch(mobileNavigationBranches[mobileIndex].index);
+    navigationShell.goBranch(branches[mobileIndex].index);
   }
 }

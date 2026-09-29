@@ -211,14 +211,14 @@ void main() {
     );
     await tester.tap(moreDestination);
     await tester.pumpAndSettle();
-    final discord = find.byKey(const ValueKey('mobile-more-discord'));
+    final github = find.byKey(const ValueKey('mobile-more-github'));
     await tester.scrollUntilVisible(
-      discord,
+      github,
       240,
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
-    expect(discord, findsOneWidget);
+    expect(find.byKey(const ValueKey('mobile-more-discord')), findsNothing);
     expect(find.byKey(const ValueKey('mobile-more-github')), findsOneWidget);
     expect(tester.takeException(), isNull);
     router.pop();
@@ -243,7 +243,7 @@ void main() {
     expect(queueOpacity.opacity, 1);
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-      4,
+      3,
     );
 
     await tester.binding.handlePopRoute();

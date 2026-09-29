@@ -27,7 +27,7 @@ NAI Launcher 的核心定位是**本地优先的一体化 NovelAI 创作工作�
 - 用户使用自己的 NovelAI 账号，通过账号密码或 Persistent API Token 登录；未登录时仍可使用本地图库、词库、资源库和设置。
 - 典型流程是准备 Prompt、角色、参数和参考图，提交生成或队列任务，查看结果并继续进行图生图、Inpaint、放大、Director Tools、收藏、保存或素材复用。
 - 用户可扫描本地作品，按 Prompt、元数据、日期、收藏、分类和集合进行检索与批量管理。
-- 用户可在 Danbooru、Safebooru、Gelbooru、AI TAG 和 NovelAI QuickTagCloud 等来源中寻找参考，并使用内容分级、黑名单和输出过滤。
+- 在线画廊默认关闭，可在“设置 → 在线画廊”启用；启用后用户可在 Danbooru、Safebooru、Gelbooru、AI TAG 和 NovelAI QuickTagCloud 等来源中寻找参考，并使用内容分级、黑名单和输出过滤。
 - 用户可维护标签、固定词、随机词库、Vibe 和 Precise Reference 等可复用资源。
 - 智能代理可协助检索标签、整理 Prompt、查看历史和准备生成，但不能绕过业务服务或用户确认。
 - 桌面端可连接 Krita Bridge 与本地 ComfyUI；同步与备份通过用户配置的 Google Drive、OneDrive、GitHub 或 WebDAV 存储完成，数据传输由用户显式触发。

@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../data/datasources/remote/github_api_service.dart';
 import '../../../data/models/version/version_info.dart';
 import '../storage/local_storage_service.dart';
+import '../constants/community_links.dart';
 import 'app_installation_service.dart';
 
 part 'update_check_service.g.dart';
@@ -215,10 +216,10 @@ class UpdateCheckService {
   final DateTime Function() _now;
 
   /// 默认仓库所有者
-  static const String defaultOwner = 'Aaalice233';
+  static const String defaultOwner = CommunityLinks.githubOwner;
 
   /// 默认仓库名称
-  static const String defaultRepo = 'Aaalice_NAI_Launcher';
+  static const String defaultRepo = CommunityLinks.githubRepo;
 
   /// 前台使用期间定期发现启动后发布的新版本。
   static const Duration defaultCheckInterval = Duration(minutes: 30);

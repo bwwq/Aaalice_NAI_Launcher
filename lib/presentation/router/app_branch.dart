@@ -49,9 +49,20 @@ const List<AppBranch> mobileNavigationBranches = [
 
 const int mobileMoreNavigationIndex = 4;
 
-int mobileNavigationIndexForBranch(int branchIndex) {
-  final index = mobileNavigationBranches.indexWhere(
-    (branch) => branch.index == branchIndex,
+List<AppBranch> mobileNavigationBranchesFor({
+  required bool onlineGalleryEnabled,
+}) => [
+  for (final branch in mobileNavigationBranches)
+    if (onlineGalleryEnabled || branch != AppBranch.onlineGallery) branch,
+];
+
+int mobileNavigationIndexForBranch(
+  int branchIndex, {
+  bool onlineGalleryEnabled = true,
+}) {
+  final branches = mobileNavigationBranchesFor(
+    onlineGalleryEnabled: onlineGalleryEnabled,
   );
-  return index < 0 ? mobileMoreNavigationIndex : index;
+  final index = branches.indexWhere((branch) => branch.index == branchIndex);
+  return index < 0 ? branches.length : index;
 }

@@ -7,6 +7,7 @@ import '../../core/utils/localization_extension.dart';
 import '../../data/models/gallery/local_image_record.dart';
 import '../adaptive/adaptive_layout.dart';
 import '../providers/auth_provider.dart';
+import '../providers/online_gallery_enabled_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/generation/generation_screen.dart';
 import '../screens/image_comparison_screen.dart';
@@ -69,6 +70,9 @@ GoRouter appRouter(Ref ref) {
   ref.listen(authNotifierProvider.select((value) => value.status), (_, __) {
     authStateNotifier.value++;
   });
+  ref.listen(onlineGalleryEnabledProvider, (_, __) {
+    authStateNotifier.value++;
+  });
   ref.onDispose(authStateNotifier.dispose);
 
   return GoRouter(
@@ -77,6 +81,10 @@ GoRouter appRouter(Ref ref) {
     debugLogDiagnostics: true,
     refreshListenable: authStateNotifier,
     redirect: (context, state) {
+      if (!ref.read(onlineGalleryEnabledProvider) &&
+          state.matchedLocation.startsWith(AppRoutes.onlineGallery)) {
+        return '${AppRoutes.settings}?section=online-gallery';
+      }
       final authState = ref.read(authNotifierProvider);
       return resolveAuthRedirect(
         status: authState.status,
@@ -187,7 +195,12 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.onlineGallery,
                 name: AppRouteNames.onlineGallery,
-                builder: (context, state) => const OnlineGalleryScreen(),
+                builder: (context, state) => Consumer(
+                  builder: (context, ref, _) =>
+                      ref.watch(onlineGalleryEnabledProvider)
+                      ? const OnlineGalleryScreen()
+                      : const SizedBox.shrink(),
+                ),
               ),
             ],
           ),

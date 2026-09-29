@@ -9,6 +9,7 @@ import '../../themes/core/layered_surface_style.dart';
 import '../../widgets/common/owned_scroll_controller.dart';
 import '../../widgets/common/themed_confirm_dialog.dart';
 import '../cloud_sync/cloud_sync_screen.dart';
+import 'sections/online_gallery_settings_section.dart';
 import 'sections/account_settings_section.dart';
 import 'sections/appearance_settings_section.dart';
 import 'sections/generation_settings_section.dart';
@@ -169,6 +170,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         widget: IntegrationsSettingsSection(
           initiallyShowDlss: widget.initiallyShowDlss,
         ),
+      ),
+      _SettingsSection(
+        id: SettingsSection.onlineGallery,
+        icon: Icons.travel_explore_outlined,
+        selectedIcon: Icons.travel_explore,
+        label: context.l10n.nav_onlineGallery,
+        widget: const OnlineGallerySettingsSection(),
       ),
       _SettingsSection(
         id: SettingsSection.about,

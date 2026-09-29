@@ -36,6 +36,7 @@ import 'image_generation_provider.dart';
 import 'layout_state_provider.dart';
 import 'local_gallery_provider.dart';
 import 'online_gallery_provider.dart';
+import 'online_gallery_enabled_provider.dart';
 import 'precise_ref_library_provider.dart';
 import 'random_preset_provider.dart';
 import 'tag_library_page_provider.dart';
@@ -239,7 +240,9 @@ final startupInitializationTasksProvider = Provider<StartupInitializationTasks>(
         ref.read(fixedTagsNotifierProvider);
         ref.read(tagLibraryPageNotifierProvider);
         ref.read(characterPromptNotifierProvider);
-        ref.read(onlineGalleryNotifierProvider);
+        if (ref.read(onlineGalleryEnabledProvider)) {
+          ref.read(onlineGalleryNotifierProvider);
+        }
 
         await accountLoad;
         final avatarPreload = AvatarImageCache.instance.preload(

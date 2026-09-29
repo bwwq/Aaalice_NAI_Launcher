@@ -5,6 +5,7 @@ import '../../../core/agent/agent_types.dart';
 import '../../providers/image_generation_provider.dart';
 import '../../providers/local_gallery_provider.dart';
 import '../../providers/online_gallery_provider.dart';
+import '../../providers/online_gallery_enabled_provider.dart';
 import '../../providers/queue_execution_provider.dart';
 import '../../providers/replication_queue_provider.dart';
 import '../../providers/generation/preview_selection_provider.dart';
@@ -38,7 +39,10 @@ class ApplicationContextToolbox {
           .routeInformationProvider
           .value
           .uri;
-      final online = _ref.read(onlineGalleryNotifierProvider);
+      final onlineEnabled = _ref.read(onlineGalleryEnabledProvider);
+      final online = onlineEnabled
+          ? _ref.read(onlineGalleryNotifierProvider)
+          : null;
       final local = _ref.read(localGalleryNotifierProvider);
       final queue = _ref.read(replicationQueueNotifierProvider);
       final execution = _ref.read(queueExecutionNotifierProvider);
@@ -64,24 +68,27 @@ class ApplicationContextToolbox {
             _ => false,
           },
         },
-        'online_gallery': {
-          'source': online.activeSourceId.key,
-          'mode': online.viewMode.name,
-          'query': online.viewMode == GalleryViewMode.favorites
-              ? online.favoriteSearchQuery
-              : online.viewMode == GalleryViewMode.popular
-              ? online.popularQuery
-              : online.searchQuery,
-          'prompt_query': online.viewMode == GalleryViewMode.popular
-              ? online.popularPromptQuery
-              : online.promptQuery,
-          'ratings': online.selectedRatings.toList()..sort(),
-          'fuzzy': online.fuzzySearchEnabled,
-          'random': online.randomEnabled,
-          'visible_count': online.posts.length,
-          'page': online.page,
-          'has_more': online.hasMore,
-        },
+        'online_gallery': online == null
+            ? {'enabled': false}
+            : {
+                'enabled': true,
+                'source': online.activeSourceId.key,
+                'mode': online.viewMode.name,
+                'query': online.viewMode == GalleryViewMode.favorites
+                    ? online.favoriteSearchQuery
+                    : online.viewMode == GalleryViewMode.popular
+                    ? online.popularQuery
+                    : online.searchQuery,
+                'prompt_query': online.viewMode == GalleryViewMode.popular
+                    ? online.popularPromptQuery
+                    : online.promptQuery,
+                'ratings': online.selectedRatings.toList()..sort(),
+                'fuzzy': online.fuzzySearchEnabled,
+                'random': online.randomEnabled,
+                'visible_count': online.posts.length,
+                'page': online.page,
+                'has_more': online.hasMore,
+              },
         'local_gallery': {
           'visible_count': local.currentImages.length,
           'filtered_count': local.filteredCount,
@@ -128,6 +135,13 @@ class ApplicationContextToolbox {
     ),
     executeFn: (_, params) async {
       final destination = params['destination'] as String;
+      if (destination == 'online_gallery' &&
+          !_ref.read(onlineGalleryEnabledProvider)) {
+        return agentToolError(
+          'online_gallery_disabled',
+          'Enable Online Gallery in Settings before using it.',
+        );
+      }
       if (destination == 'queue') {
         _ref.read(shellPanelProvider.notifier).state = ShellPanel.queue;
         return agentToolJsonResult({
@@ -170,6 +184,7 @@ const _settingsSections = [
   'network',
   'shortcuts',
   'integrations',
+  'online-gallery',
   'about',
 ];
 

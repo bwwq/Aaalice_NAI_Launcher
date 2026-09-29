@@ -194,17 +194,18 @@ Future<void> showMobileMorePanel({
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _MobileCommunityButton(
-                        key: const ValueKey('mobile-more-discord'),
-                        icon: const Icon(Icons.discord, size: 20),
-                        label: panelContext.l10n.nav_joinDiscord,
-                        backgroundColor: const Color(0xFF5865F2),
-                        onPressed: () => _openCommunityLink(
-                          panelContext,
-                          CommunityLinks.discord,
+                      if (CommunityLinks.showDiscord)
+                        _MobileCommunityButton(
+                          key: const ValueKey('mobile-more-discord'),
+                          icon: const Icon(Icons.discord, size: 20),
+                          label: panelContext.l10n.nav_joinDiscord,
+                          backgroundColor: const Color(0xFF5865F2),
+                          onPressed: () => _openCommunityLink(
+                            panelContext,
+                            CommunityLinks.discord,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
+                      if (CommunityLinks.showDiscord) const SizedBox(height: 8),
                       _MobileCommunityButton(
                         key: const ValueKey('mobile-more-github'),
                         icon: const GitHubLogo(color: Colors.white, size: 20),
@@ -219,19 +220,20 @@ Future<void> showMobileMorePanel({
                   )
                 : Row(
                     children: [
-                      Expanded(
-                        child: _MobileCommunityButton(
-                          key: const ValueKey('mobile-more-discord'),
-                          icon: const Icon(Icons.discord, size: 20),
-                          label: panelContext.l10n.nav_joinDiscord,
-                          backgroundColor: const Color(0xFF5865F2),
-                          onPressed: () => _openCommunityLink(
-                            panelContext,
-                            CommunityLinks.discord,
+                      if (CommunityLinks.showDiscord)
+                        Expanded(
+                          child: _MobileCommunityButton(
+                            key: const ValueKey('mobile-more-discord'),
+                            icon: const Icon(Icons.discord, size: 20),
+                            label: panelContext.l10n.nav_joinDiscord,
+                            backgroundColor: const Color(0xFF5865F2),
+                            onPressed: () => _openCommunityLink(
+                              panelContext,
+                              CommunityLinks.discord,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
+                      if (CommunityLinks.showDiscord) const SizedBox(width: 8),
                       Expanded(
                         child: _MobileCommunityButton(
                           key: const ValueKey('mobile-more-github'),

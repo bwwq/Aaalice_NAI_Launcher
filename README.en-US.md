@@ -20,22 +20,22 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Aaalice233/Aaalice_NAI_Launcher/releases/latest"><img src="https://img.shields.io/github/v/release/Aaalice233/Aaalice_NAI_Launcher?display_name=tag&sort=semver" alt="Latest release"></a>
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/releases/latest"><img src="https://img.shields.io/github/v/release/bwwq/Aaalice_NAI_Launcher?display_name=tag&sort=semver" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Android-available-6f7785" alt="Supported platforms">
   <img src="https://img.shields.io/badge/license-MIT-5b8c5a" alt="MIT License">
-  <a href="https://discord.gg/R48n6GwXzD"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord community"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Aaalice233/Aaalice_NAI_Launcher/releases/latest">Download latest release</a> ·
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/releases/latest">Download latest release</a> ·
   <a href="CHANGELOG.md">Read the changelog</a> ·
-  <a href="https://github.com/Aaalice233/Aaalice_NAI_Launcher/issues">Report an issue</a> ·
-  <a href="https://discord.gg/R48n6GwXzD">Join Discord</a>
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/issues">Report an issue</a>
 </p>
 
 > NAI Launcher is a community-developed third-party client, not an official NovelAI product. Bring your own NovelAI account for online features, and follow the applicable terms of service, content rules, and local laws.
 
 NAI Launcher is built for people who use NovelAI regularly. Generation, editing, Prompts, characters, references, galleries, queues, and Agent Chat connect in one workflow. Windows, macOS, and Android share the same core features, and local tools work before you sign in.
+
+- Online Gallery is off by default. Enable it in Settings → Online Gallery when needed.
 
 ## ✨ One complete creative workflow
 
@@ -178,7 +178,7 @@ NAI Launcher is built for people who use NovelAI regularly. Generation, editing,
 
 ### 1. Download the package for your platform
 
-Open [GitHub Releases](https://github.com/Aaalice233/Aaalice_NAI_Launcher/releases/latest):
+Open [GitHub Releases](https://github.com/bwwq/Aaalice_NAI_Launcher/releases/latest):
 
 | Platform | File | Usage |
 | --- | --- | --- |
@@ -221,9 +221,8 @@ NAI Launcher does not host your account or artwork on a project-operated server.
 ## 🆘 Support and feedback
 
 - If something goes wrong, use **Settings → About → Export diagnostic logs** and attach the exported information to your report.
-- [Open an Issue](https://github.com/Aaalice233/Aaalice_NAI_Launcher/issues) for a reproducible bug or feature request.
-- [Join Discord](https://discord.gg/R48n6GwXzD) for usage discussion and community help.
-- [View Releases](https://github.com/Aaalice233/Aaalice_NAI_Launcher/releases) to download packages, verify files, and read release notes.
+- [Open an Issue](https://github.com/bwwq/Aaalice_NAI_Launcher/issues) for a reproducible bug or feature request.
+- [View Releases](https://github.com/bwwq/Aaalice_NAI_Launcher/releases) to download packages, verify files, and read release notes.
 
 ## 🙏 Acknowledgments
 

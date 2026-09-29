@@ -14,6 +14,7 @@ import '../../../data/models/online_gallery/gallery_source.dart';
 import '../../providers/fixed_tags_provider.dart';
 import '../../providers/image_generation_provider.dart';
 import '../../providers/online_gallery_provider.dart';
+import '../../providers/online_gallery_enabled_provider.dart';
 import '../../providers/precise_ref_library_provider.dart';
 import '../../providers/tag_library_page_provider.dart';
 import '../../providers/vibe_library_provider.dart';
@@ -296,6 +297,7 @@ class AgentResourceResolver {
   Future<ResolvedAgentResource?> _resolveOnline(
     AgentChatResourceReference reference,
   ) async {
+    if (!_ref.read(onlineGalleryEnabledProvider)) return null;
     final source = GallerySourceId.values
         .where((value) => value.key == reference.source)
         .firstOrNull;

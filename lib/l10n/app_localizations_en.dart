@@ -15400,4 +15400,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cloudSync_loadingBackupIndex => 'Reading backup index…';
+
+  @override
+  String get settings_enableOnlineGallery => 'Enable Online Gallery';
+
+  @override
+  String get settings_enableOnlineGallerySubtitle =>
+      'Show Online Gallery in navigation. Turning it off hides the entry and keeps your browsing settings.';
 }

@@ -14723,6 +14723,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cloudSync_loadingBackupIndex => '正在读取备份目录…';
+
+  @override
+  String get settings_enableOnlineGallery => '启用在线画廊';
+
+  @override
+  String get settings_enableOnlineGallerySubtitle =>
+      '开启后可从导航中浏览在线图片；关闭后隐藏入口，保留已有浏览设置。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -29445,4 +29452,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get cloudSync_loadingBackupIndex => '正在讀取備份目錄…';
+
+  @override
+  String get settings_enableOnlineGallery => '啟用線上畫廊';
+
+  @override
+  String get settings_enableOnlineGallerySubtitle =>
+      '開啟後可從導覽中瀏覽線上圖片；關閉後隱藏入口，保留既有瀏覽設定。';
 }

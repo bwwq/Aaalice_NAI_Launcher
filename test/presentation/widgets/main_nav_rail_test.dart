@@ -9,6 +9,7 @@ import 'package:nai_launcher/data/models/auth/saved_account.dart';
 import 'package:nai_launcher/l10n/app_localizations.dart';
 import 'package:nai_launcher/presentation/providers/account_manager_provider.dart';
 import 'package:nai_launcher/presentation/providers/auth_provider.dart';
+import 'package:nai_launcher/presentation/providers/online_gallery_enabled_provider.dart';
 import 'package:nai_launcher/presentation/providers/queue_execution_provider.dart';
 import 'package:nai_launcher/presentation/providers/replication_queue_provider.dart';
 import 'package:nai_launcher/presentation/widgets/navigation/main_nav_rail.dart';
@@ -56,6 +57,14 @@ class _FakeReplicationQueueNotifier extends ReplicationQueueNotifier {
 
 class _FakeMainNavStorage extends LocalStorageService {
   bool isExpanded = false;
+  final values = <String, Object?>{};
+  @override
+  T? getSetting<T>(String key, {T? defaultValue}) =>
+      values[key] as T? ?? defaultValue;
+  @override
+  Future<void> setSetting<T>(String key, T value) async {
+    values[key] = value;
+  }
 
   @override
   bool getMainNavRailExpanded() => isExpanded;
@@ -164,9 +173,22 @@ void main() {
     );
     expect(find.text('画布'), findsOneWidget);
     expect(find.text('本地图库'), findsOneWidget);
+    expect(find.text('在线画廊'), findsNothing);
+    final preferences = ProviderScope.containerOf(
+      tester.element(find.byType(MainNavRail)),
+    );
+    await preferences
+        .read(onlineGalleryEnabledProvider.notifier)
+        .setEnabled(true);
+    await tester.pumpAndSettle();
     expect(find.text('在线画廊'), findsOneWidget);
+    await preferences
+        .read(onlineGalleryEnabledProvider.notifier)
+        .setEnabled(false);
+    await tester.pumpAndSettle();
+    expect(find.text('在线画廊'), findsNothing);
     expect(find.text('统计'), findsOneWidget);
-    expect(find.text('Discord 社群'), findsOneWidget);
+    expect(find.text('Discord 社群'), findsNothing);
     expect(find.text('GitHub 仓库'), findsOneWidget);
     expect(find.text('智能体'), findsOneWidget);
     expect(find.text('队列管理'), findsOneWidget);

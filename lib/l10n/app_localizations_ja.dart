@@ -14992,4 +14992,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get cloudSync_loadingBackupIndex => 'バックアップの目録を読み込み中…';
+
+  @override
+  String get settings_enableOnlineGallery => 'オンラインギャラリーを有効にする';
+
+  @override
+  String get settings_enableOnlineGallerySubtitle =>
+      '有効にするとナビゲーションからオンライン画像を閲覧できます。無効にしても閲覧設定は保持されます。';
 }
