@@ -136,7 +136,7 @@ void main() {
         matching: find.byType(Scrollable),
       ),
     );
-    expect(find.byKey(const Key('nav-branch-8')).hitTestable(), findsOneWidget);
+    expect(find.byIcon(Icons.settings).hitTestable(), findsOneWidget);
     expect(
       tester.getCenter(find.byKey(const Key('nav-branch-6'))).dy,
       lessThan(tester.getCenter(find.byKey(const Key('nav-branch-5'))).dy),
