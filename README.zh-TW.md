@@ -4,12 +4,10 @@
   <a href="README.md">简体中文</a> · 繁體中文 · <a href="README.en-US.md">English</a>
 </p>
 
-> [!WARNING]
-> **專案維護安排（2026-09-15）**
+> [!NOTE]
+> **獨立維護版**
 >
-> 我的 NovelAI 帳號遭到官方限制：訂閱被取消，且無法再購買或訂閱。對於這次處理，我至今不明白具體原因。後續更新與維護將由協作者接手，我將不再承擔主要更新工作。
-
-![NovelAI 官方取消訂閱及限制購買的通知截圖](docs/screenshots/novelai-subscription-canceled-2026-09-08.png)
+> 本倉庫由 [bwwq](https://github.com/bwwq/Aaalice_NAI_Launcher) 獨立維護，目前維護分支為 [`standalone`](https://github.com/bwwq/Aaalice_NAI_Launcher/tree/standalone)，不自動同步上游或 `main`。Windows 最新維護版可在 [Windows 建置](https://github.com/bwwq/Aaalice_NAI_Launcher/actions/workflows/windows-portable.yml)的成功任務中下載 `nai-launcher-windows-release-portable`；需登入 GitHub，下載後解壓縮即可執行。正式版本見本倉庫 Releases。
 
 <p align="center">
   <img src="assets/icons/Icon.png" alt="NAI Launcher 圖示" width="112">
@@ -26,7 +24,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/releases/latest">下載最新版本</a> ·
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/actions/workflows/windows-portable.yml">下載 Windows 維護版</a> ·
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/releases">正式版本</a> ·
   <a href="CHANGELOG.md">查看更新記錄</a> ·
   <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/issues">回報問題</a>
 </p>
@@ -35,8 +34,16 @@
 
 NAI Launcher 面向經常使用 NovelAI 的圖像創作者。生成、改圖、Prompt、角色、參考圖、圖庫、佇列和智慧代理都能在同一套工作流程中銜接；Windows、macOS 與 Android 共用核心能力，不登入也能先使用本機工具。
 
-- 線上畫廊預設關閉，需要時在「設定 → 線上畫廊」中開啟。
-- 可在「設定 → 外觀」調整左欄圖示順序；GitHub 倉庫入口位於設定導覽的「關於」下方。
+## 本維護版已完成的改動
+
+- **左欄與入口**：在「設定 → 外觀」上下調整圖示順序並還原預設，所有功能圖示連續排列，隱藏入口不留空位。線上畫廊預設關閉，需要時在設定中開啟；Discord 社群入口隱藏，GitHub 倉庫入口位於設定導覽的「關於」下方。
+- **圖片收藏**：生成預覽、歷史記錄和大圖詳情共用收藏操作，支援右鍵、懸浮按鈕及觸控選單，狀態同步更新。完整圖片尚未儲存時先儲存再收藏；失敗保留原狀態並提示，收藏按鈕按需顯示。
+- **詞庫預覽圖**：可從全部本機收藏、生成歷史或本機檔案選圖。預覽獨立儲存，原圖刪除或取消收藏不影響它；詞條儲存失敗保留舊圖和編輯內容。
+- **Prompt 操作**：在逗號分隔的標籤內按空格呼出候選選單，選取、複製、貼上和一般輸入不自動彈出；選中內容後用獨立方向鍵 ↑ / ↓ 調整權重，滾輪只捲動，Shift+方向鍵繼續擴展選取範圍。
+- **參考圖匯入**：Vibe 預覽選圖失敗顯示原因；精準參考多圖匯入保留成功項，並回報失敗數量和原因。
+- **佇列與圖庫**：修復等待重試時暫停後無法繼續的問題，失敗佇列保留實際錯誤原因；減少圖庫清單重複查詢和圖片解碼。
+- **浮水印**：文字及透明 Logo 根據所在區域的底色自動切換黑白並增強輪廓，也可分別關閉自動適應；不透明 Logo 保留原色。
+- **備份與還原**：可瀏覽歷史備份、按需查看內容並確認還原影響；支援收藏原圖加密備份、快照保留及跨裝置增量重用。每日和修改後自動備份預設關閉；S3 相容儲存使用手動備份。
 
 ## ✨ 一套完整的創作流程
 
@@ -132,9 +139,9 @@ NAI Launcher 面向經常使用 NovelAI 的圖像創作者。生成、改圖、P
 
 ### ☁️ 同步與備份
 
-- 支援 OneDrive、GitHub 與 WebDAV / S3；Google Drive 因授權審核尚未通過，暫時停用新增連線入口。連接帳號不會自動上傳、下載或覆蓋內容。
+- 支援 OneDrive、GitHub、WebDAV 與 S3 相容儲存；S3 目前只支援手動備份。Google Drive 因授權審核尚未通過，暫時停用新增連線入口。連接帳號不會自動上傳、下載或覆蓋內容。
 - 可選擇歷史備份預覽並還原到本機；支援自訂每日備份時間與修改後延遲上傳，預設關閉，僅在軟體執行時執行。
-- 推送、拉取和還原都由你主動開始，並可預覽差異與處理衝突。
+- 你可主動推送、拉取和還原，並預覽差異與處理衝突；主動啟用自動備份後，上傳按所設條件執行，還原始終由你確認。
 - 可分別選擇設定、Prompt 與詞庫、詞庫預覽圖、線上圖庫設定與收藏、本機相簿、智慧代理 Prompt 與 Skill，以及可選的 Vibe、Precise Reference。
 - 本機收藏原圖預設納入備份，可單獨關閉；原圖和內嵌中繼資料保持不變。遠端圖庫原圖、帳號憑證、快取和日誌不上傳。
 - 所選內容採用加密分卷和增量上傳；重新安裝軟體並連接雲端即可還原，無需保管密碼。軟體內建還原能力，不防止持有軟體的人解密。最近備份預設保留 5 份，可設為 1～100 份；無法可靠清理時顯示待清理。

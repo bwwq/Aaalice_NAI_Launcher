@@ -4,12 +4,10 @@
   <a href="README.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · English
 </p>
 
-> [!WARNING]
-> **Project maintenance update (2026-09-15)**
+> [!NOTE]
+> **Independently maintained edition**
 >
-> NovelAI has restricted my account: my subscription was canceled, and I can no longer make purchases or subscribe. I still do not understand the specific reason for this action. Collaborators will take over future updates and maintenance, and I will no longer be primarily responsible for project updates.
-
-![Notice from NovelAI canceling the subscription and restricting purchases](docs/screenshots/novelai-subscription-canceled-2026-09-08.png)
+> [bwwq](https://github.com/bwwq/Aaalice_NAI_Launcher) maintains this repository independently on [`standalone`](https://github.com/bwwq/Aaalice_NAI_Launcher/tree/standalone), without automatically syncing upstream or `main`. Download the latest Windows maintenance build as `nai-launcher-windows-release-portable` from a successful [Windows build](https://github.com/bwwq/Aaalice_NAI_Launcher/actions/workflows/windows-portable.yml). Sign in to GitHub to download, then extract and run it. Published versions are available in this repository's Releases.
 
 <p align="center">
   <img src="assets/icons/Icon.png" alt="NAI Launcher icon" width="112">
@@ -26,7 +24,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/releases/latest">Download latest release</a> ·
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/actions/workflows/windows-portable.yml">Download Windows maintenance build</a> ·
+  <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/releases">Published releases</a> ·
   <a href="CHANGELOG.md">Read the changelog</a> ·
   <a href="https://github.com/bwwq/Aaalice_NAI_Launcher/issues">Report an issue</a>
 </p>
@@ -35,8 +34,16 @@
 
 NAI Launcher is built for people who use NovelAI regularly. Generation, editing, Prompts, characters, references, galleries, queues, and Agent Chat connect in one workflow. Windows, macOS, and Android share the same core features, and local tools work before you sign in.
 
-- Online Gallery is off by default. Enable it in Settings → Online Gallery when needed.
-- Reorder sidebar icons in Settings → Appearance. The GitHub repository link appears below About in settings navigation.
+## Changes included in this edition
+
+- **Sidebar and links:** Move icons up or down and restore the default order in Settings → Appearance. All feature icons form one continuous list, and hidden entries leave no empty slots. Online Gallery is off by default and can be enabled in settings. The Discord community entry is hidden; the GitHub repository link appears below About in settings navigation.
+- **Image favorites:** Generation previews, history, and image details share favorite actions through context menus, hover buttons, and touch menus, with status kept in sync. Complete images are saved before being favorited when needed. Failed actions preserve the previous state and show an error. Favorite buttons appear when needed.
+- **Tag-library previews:** Choose any local favorite, generation history image, or local file. Saved previews remain independent of their source, so deleting or unfavoriting it does not affect them. A failed entry save preserves the old preview and current edits.
+- **Prompt editing:** Press Space inside a comma-separated tag to open suggestions. Selecting, copying, pasting, and ordinary typing do not open them automatically. Use the dedicated ↑ / ↓ keys to adjust selected text weights; the wheel only scrolls, and Shift+arrow keys still extend the selection.
+- **Reference imports:** Failed Vibe preview selection shows the reason. Multi-image Precise Reference imports retain successful items and report the number and reasons for failures.
+- **Queue and gallery:** Jobs paused while waiting to retry can resume correctly, failed jobs retain their actual error reason, and gallery lists perform fewer repeated queries and image decodes.
+- **Watermarks:** Text and transparent logos adapt to the underlying area by switching between black and white and adding a contrasting outline. Automatic adaptation can be disabled separately; opaque logos retain their original colors.
+- **Backup and restore:** Browse historical backups, inspect content on demand, and review changes before restoring. Favorite originals can be backed up with encryption, snapshot retention, and incremental reuse across devices. Daily and change-triggered automatic backups are off by default. S3-compatible storage uses manual backups.
 
 ## ✨ One complete creative workflow
 
@@ -132,9 +139,9 @@ NAI Launcher is built for people who use NovelAI regularly. Generation, editing,
 
 ### ☁️ Sync and backup
 
-- Supports OneDrive, GitHub, and WebDAV / S3. New Google Drive connections are temporarily disabled pending authorization approval. Connecting an account never uploads, downloads, or overwrites content by itself.
+- Supports OneDrive, GitHub, WebDAV, and S3-compatible storage; S3 currently supports manual backups only. New Google Drive connections are temporarily disabled pending authorization approval. Connecting an account never uploads, downloads, or overwrites content by itself.
 - Preview and restore historical backups locally. Optional daily schedules and configurable delays after edits run while the app is open; both are off by default.
-- Push, pull, and restore start only when requested, with change previews and conflict handling.
+- You can start pushes, pulls, and restores, with change previews and conflict handling. After you enable automatic backups, uploads follow your chosen conditions; restoring always requires your confirmation.
 - Select settings, Prompts and libraries, previews, online-gallery settings and favorites, local albums, Agent Prompts and Skills, and optional Vibe or Precise Reference content independently.
 - Favorite local originals are included by default and can be disabled independently; image bytes and embedded metadata are preserved. Remote gallery originals, credentials, caches, and logs are excluded.
 - Selected content uses encrypted volumes and incremental uploads. Reinstall the app and reconnect to restore without retaining a password. Built-in recovery does not prevent a software holder from decrypting backups. Keep 5 recent backups by default, configurable from 1 to 100; pending cleanup is shown when reliable deletion is unavailable.

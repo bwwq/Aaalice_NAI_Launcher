@@ -103,8 +103,6 @@ class MainNavRail extends ConsumerWidget {
       ref.watch(mainNavigationOrderProvider),
       onlineGalleryEnabled: ref.watch(onlineGalleryEnabledProvider),
     );
-    // Keep the final three positions bottom-aligned, including after reordering.
-    final primaryCount = items.length - 3;
     Widget buildItem(MainNavigationItem item) {
       if (item == MainNavigationItem.agent) {
         return _NavIcon(
@@ -173,50 +171,31 @@ class MainNavRail extends ConsumerWidget {
               key: const Key('main-nav-primary-scroll'),
               child: Column(
                 children: [
-                  for (final item in items.take(primaryCount)) buildItem(item),
+                  for (final item in items) buildItem(item),
+                  if (CommunityLinks.showDiscord)
+                    _ExternalLinkIcon(
+                      icon: Icons.discord,
+                      label: context.l10n.nav_discordCommunity,
+                      color: const Color(0xFF5865F2),
+                      url: CommunityLinks.discord,
+                    ),
                 ],
               ),
             ),
           ),
 
-          Flexible(
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                key: const Key('main-nav-secondary-scroll'),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      // Discord 社群
-                      if (CommunityLinks.showDiscord)
-                        _ExternalLinkIcon(
-                          icon: Icons.discord,
-                          label: context.l10n.nav_discordCommunity,
-                          color: const Color(0xFF5865F2), // Discord 紫色
-                          url: CommunityLinks.discord,
-                        ),
-
-                      for (final item in items.skip(primaryCount))
-                        buildItem(item),
-                      if (allowExpansion) ...[
-                        const SizedBox(height: 2),
-                        _NavRailToggle(
-                          isExpanded: isExpanded,
-                          onTap: () {
-                            ref
-                                .read(layoutStateNotifierProvider.notifier)
-                                .toggleMainNavRail();
-                          },
-                        ),
-                      ],
-                      const SizedBox(height: 6),
-                    ],
-                  ),
-                ),
-              ),
+          if (allowExpansion) ...[
+            const SizedBox(height: 2),
+            _NavRailToggle(
+              isExpanded: isExpanded,
+              onTap: () {
+                ref
+                    .read(layoutStateNotifierProvider.notifier)
+                    .toggleMainNavRail();
+              },
             ),
-          ),
+          ],
+          const SizedBox(height: 6),
         ],
       ),
     );

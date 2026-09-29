@@ -221,17 +221,17 @@ void main() {
     expect(find.text('新版本 v2.0.0 可用'), findsNothing);
     expect(tester.getRect(find.byType(_TrackedContent)), contentRect);
 
-    final secondaryScrollable = find.descendant(
-      of: find.byKey(const Key('main-nav-secondary-scroll')),
+    final navigationScrollable = find.descendant(
+      of: find.byKey(const Key('main-nav-primary-scroll')),
       matching: find.byType(Scrollable),
     );
-    expect(secondaryScrollable, findsOneWidget);
+    expect(navigationScrollable, findsOneWidget);
     tester
-        .state<ScrollableState>(secondaryScrollable)
+        .state<ScrollableState>(navigationScrollable)
         .position
         .jumpTo(
           tester
-              .state<ScrollableState>(secondaryScrollable)
+              .state<ScrollableState>(navigationScrollable)
               .position
               .maxScrollExtent,
         );

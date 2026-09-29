@@ -128,6 +128,15 @@ void main() {
     expect(find.byKey(const Key('main-nav-primary-scroll')), findsOneWidget);
     expect(find.byIcon(Icons.settings), findsOneWidget);
     expect(find.byIcon(Icons.keyboard_double_arrow_right), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('nav-branch-8')),
+      120,
+      scrollable: find.descendant(
+        of: find.byKey(const Key('main-nav-primary-scroll')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(find.byKey(const Key('nav-branch-8')).hitTestable(), findsOneWidget);
     expect(
       tester.getCenter(find.byKey(const Key('nav-branch-6'))).dy,
       lessThan(tester.getCenter(find.byKey(const Key('nav-branch-5'))).dy),
@@ -158,14 +167,6 @@ void main() {
     expect(tooltip.message, '智能体');
     expect(tooltip.verticalOffset, 24);
 
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('main-nav-toggle')),
-      120,
-      scrollable: find.descendant(
-        of: find.byKey(const Key('main-nav-secondary-scroll')),
-        matching: find.byType(Scrollable),
-      ),
-    );
     await tester.tap(find.byKey(const Key('main-nav-toggle')));
     await tester.pumpAndSettle();
 
@@ -228,11 +229,30 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('高侧栏下次级操作组锚定底部', (tester) async {
+  testWidgets('高侧栏功能图标连续排列且展开按钮固定底部', (tester) async {
     await tester.binding.setSurfaceSize(const Size(800, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await _pumpAuthenticatedRail(tester);
+
+    for (final expanded in [false, true]) {
+      final visible = MainNavigationItem.values
+          .where((item) => item != MainNavigationItem.onlineGallery)
+          .toList();
+      for (var index = 1; index < visible.length; index++) {
+        final previous = tester.getRect(
+          find.byKey(Key(visible[index - 1].widgetKey)),
+        );
+        final current = tester.getRect(
+          find.byKey(Key(visible[index].widgetKey)),
+        );
+        expect(current.top, closeTo(previous.bottom, 0.01));
+      }
+      if (!expanded) {
+        await tester.tap(find.byKey(const Key('main-nav-toggle')));
+        await tester.pumpAndSettle();
+      }
+    }
 
     final railBottom = tester
         .getBottomRight(find.byKey(const Key('main-nav-rail')))
@@ -378,14 +398,6 @@ void main() {
     await tester.pump();
 
     final selectedBefore = tester.widget<Icon>(find.byIcon(Icons.folder)).color;
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('main-nav-toggle')),
-      120,
-      scrollable: find.descendant(
-        of: find.byKey(const Key('main-nav-secondary-scroll')),
-        matching: find.byType(Scrollable),
-      ),
-    );
     await tester.tap(find.byKey(const Key('main-nav-toggle')));
     await tester.pump();
 
