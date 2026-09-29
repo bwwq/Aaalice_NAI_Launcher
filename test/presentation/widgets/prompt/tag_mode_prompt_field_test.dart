@@ -264,6 +264,9 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        expect(source.text, '{{{cat, dog}}}, bird');
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+        await tester.pumpAndSettle();
         expect(source.text, '1.21::cat, dog::, bird');
         await tester.sendEventToBinding(
           PointerScrollEvent(
@@ -271,6 +274,9 @@ void main() {
             scrollDelta: const Offset(0, -20),
           ),
         );
+        await tester.pumpAndSettle();
+        expect(source.text, '1.21::cat, dog::, bird');
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
         await tester.pumpAndSettle();
         expect(source.text, '1.26::cat, dog::, bird');
         expect(tester.takeException(), isNull);

@@ -7,7 +7,7 @@ import 'package:nai_launcher/l10n/app_localizations.dart';
 import 'package:nai_launcher/presentation/screens/settings/sections/generation_settings_section.dart';
 
 void main() {
-  testWidgets('prompt weight wheel switch defaults on and persists changes', (
+  testWidgets('prompt weight arrow switch defaults on and persists changes', (
     tester,
   ) async {
     final storage = _MemoryLocalStorageService();
@@ -30,7 +30,7 @@ void main() {
     final tileFinder = find.widgetWithText(SwitchListTile, '方向键调整提示词权重');
     expect(tileFinder, findsOneWidget);
     expect(tester.widget<SwitchListTile>(tileFinder).value, isTrue);
-    expect(find.textContaining('不再触发页面滚动'), findsOneWidget);
+    expect(find.textContaining('滚轮仅滚动'), findsOneWidget);
 
     await tester.tap(find.text('方向键调整提示词权重'));
     await tester.pump();
@@ -39,7 +39,7 @@ void main() {
     expect(storage.values[StorageKeys.enablePromptWeightArrowKeys], isFalse);
   });
 
-  testWidgets('prompt weight wheel switch rolls back and shows save failure', (
+  testWidgets('prompt weight arrow switch rolls back and shows save failure', (
     tester,
   ) async {
     final storage = _MemoryLocalStorageService(

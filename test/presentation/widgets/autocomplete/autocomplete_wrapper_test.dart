@@ -1106,12 +1106,14 @@ void main() {
     expect(popupRect.top, lessThan(inputRect.bottom));
     expect(popupRect.top, greaterThan(inputRect.top));
 
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     const updatedText = 'one\ntwo\nthree\nfour\nfive\nsix\nseven\nblu';
     controller.value = const TextEditingValue(
       text: updatedText,
       selection: TextSelection.collapsed(offset: updatedText.length),
     );
     await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
     await tester.pump(const Duration(milliseconds: 30));
 
     expect(
