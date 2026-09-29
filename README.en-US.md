@@ -36,6 +36,7 @@
 NAI Launcher is built for people who use NovelAI regularly. Generation, editing, Prompts, characters, references, galleries, queues, and Agent Chat connect in one workflow. Windows, macOS, and Android share the same core features, and local tools work before you sign in.
 
 - Online Gallery is off by default. Enable it in Settings → Online Gallery when needed.
+- Reorder sidebar icons in Settings → Appearance. The GitHub repository link appears below About in settings navigation.
 
 ## ✨ One complete creative workflow
 

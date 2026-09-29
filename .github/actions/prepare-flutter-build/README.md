@@ -45,7 +45,7 @@ user-ready portable archive and `app_files_manifest.json`.
 
 Persistent runners can set `cache-flutter-sdk` and `cache-pub-dependencies` to
 `"false"` after the pinned SDK and Pub cache have been preloaded. The manual
-portable workflow allows a configured persistent runner only for `main` and
+portable workflow allows a configured persistent runner only for `standalone` and
 `v*` tag refs. Tagged releases already check out and verify their release tag.
 Hosted and persistent runners use disjoint Pub, codegen, CMake, and exact-bundle
 cache namespaces. Pull-request jobs remain on GitHub-hosted runners.

@@ -10,6 +10,9 @@ import 'package:nai_launcher/l10n/app_localizations.dart';
 import 'package:nai_launcher/presentation/providers/account_manager_provider.dart';
 import 'package:nai_launcher/presentation/providers/auth_provider.dart';
 import 'package:nai_launcher/presentation/providers/online_gallery_enabled_provider.dart';
+import 'package:nai_launcher/presentation/providers/main_navigation_order_provider.dart';
+import 'package:nai_launcher/presentation/router/main_navigation_item.dart';
+import 'package:nai_launcher/presentation/router/app_branch.dart';
 import 'package:nai_launcher/presentation/providers/queue_execution_provider.dart';
 import 'package:nai_launcher/presentation/providers/replication_queue_provider.dart';
 import 'package:nai_launcher/presentation/widgets/navigation/main_nav_rail.dart';
@@ -189,12 +192,29 @@ void main() {
     expect(find.text('在线画廊'), findsNothing);
     expect(find.text('统计'), findsOneWidget);
     expect(find.text('Discord 社群'), findsNothing);
-    expect(find.text('GitHub 仓库'), findsOneWidget);
+    expect(find.text('GitHub 仓库'), findsNothing);
     expect(find.text('智能体'), findsOneWidget);
     expect(find.text('队列管理'), findsOneWidget);
     expect(find.text('收起侧边栏'), findsOneWidget);
     expect(find.text('v${AppVersion.versionName}'), findsOneWidget);
     expect(find.byIcon(Icons.keyboard_double_arrow_left), findsOneWidget);
+
+    await preferences
+        .read(mainNavigationOrderProvider.notifier)
+        .move(
+          MainNavigationItem.preciseRefLibrary,
+          -1,
+          onlineGalleryEnabled: false,
+        );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getCenter(find.byKey(const Key('nav-branch-4'))).dy,
+      lessThan(tester.getCenter(find.byKey(const Key('nav-branch-3'))).dy),
+    );
+    await tester.tap(find.byKey(const Key('nav-branch-4')));
+    verify(
+      () => navigationShell.goBranch(AppBranch.preciseRefLibrary.index),
+    ).called(1);
 
     await tester.tap(find.byKey(const Key('main-nav-toggle')));
     await tester.pumpAndSettle();

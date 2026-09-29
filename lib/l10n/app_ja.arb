@@ -7064,5 +7064,9 @@
   "cloudSync_prepareRestoreDescription": "閲覧時はバックアップの目録のみ読み込みます。復元の影響を確認する際に全データを読み込むため、サイズに応じて時間がかかります。復元には再度確認が必要です。",
   "cloudSync_loadingBackupIndex": "バックアップの目録を読み込み中…",
   "settings_enableOnlineGallery": "オンラインギャラリーを有効にする",
-  "settings_enableOnlineGallerySubtitle": "有効にするとナビゲーションからオンライン画像を閲覧できます。無効にしても閲覧設定は保持されます。"
+  "settings_enableOnlineGallerySubtitle": "有効にするとナビゲーションからオンライン画像を閲覧できます。無効にしても閲覧設定は保持されます。",
+  "settings_navigationOrder": "サイドバーのアイコン順序",
+  "settings_navigationOrderSubtitle": "上下の矢印で位置を変更すると、すぐに反映されます。",
+  "settings_navigationMoveUp": "上へ移動",
+  "settings_navigationMoveDown": "下へ移動"
 }

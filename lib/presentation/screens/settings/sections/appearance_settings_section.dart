@@ -14,6 +14,7 @@ import '../../../adaptive/adaptive_presenter.dart';
 import '../../../widgets/common/adaptive_dialog_frame.dart';
 import '../../../widgets/common/themed_divider.dart';
 import '../widgets/settings_card.dart';
+import '../widgets/navigation_order_settings.dart';
 import '../widgets/settings_page_layout.dart';
 
 /// 外观设置板块
@@ -43,6 +44,7 @@ class _AppearanceSettingsSectionState
     return SettingsPageLayout(
       title: context.l10n.settings_appearance,
       children: [
+        const NavigationOrderSettings(),
         SettingsCard(
           title: context.l10n.settings_appearanceInterfaceSection,
           child: Column(

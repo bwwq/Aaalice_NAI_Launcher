@@ -2,9 +2,6 @@ name: Windows portable build
 run-name: Windows ${{ inputs.build-mode || 'release' }} portable
 
 on:
-  push:
-    branches:
-      - codex/watermark-auto-contrast
   workflow_dispatch:
     inputs:
       build-mode:
@@ -41,7 +38,7 @@ jobs:
     # A configured persistent runner is reserved for trusted executable refs.
     if: >-
       vars.WINDOWS_FLUTTER_RUNNER == '' ||
-      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/standalone' ||
       startsWith(github.ref, 'refs/tags/v')
     runs-on: ${{ vars.WINDOWS_FLUTTER_RUNNER || 'windows-2022' }}
     timeout-minutes: 45

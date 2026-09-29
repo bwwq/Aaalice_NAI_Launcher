@@ -1,6 +1,6 @@
 ---
 name: aaalice-launcher-release
-description: 为 Aaalice NAI Launcher 准备并发布新版本，包括同步 main、更新版本号、生成并逐项审查 Changelog 材料、撰写用户更新日志、执行发布前验证、提交、创建并推送 v* tag。用户提到发布 Launcher 版本、准备 Release、写 CHANGELOG、更新日志或 release notes 时使用。
+description: 为 Aaalice NAI Launcher 准备并发布新版本，包括同步独立维护分支 standalone、更新版本号、生成并逐项审查 Changelog 材料、撰写用户更新日志、执行发布前验证、提交、创建并推送 v* tag。用户提到发布 Launcher 版本、准备 Release、写 CHANGELOG、更新日志或 release notes 时使用。
 ---
 
 # Aaalice NAI Launcher 版本发布
@@ -29,11 +29,11 @@ git remote -v
 git lfs status
 ```
 
-3. 发布必须从干净的 `main` 开始。用户授权同步后执行：
+3. 发布必须从干净的 `standalone` 开始，只同步自己的 `origin/standalone`。除非用户明确要求，不得合入 `main` 或上游分支。用户授权同步后执行：
 
 ```powershell
-git fetch --all --prune
-git pull --ff-only origin main
+git fetch origin standalone
+git pull --ff-only origin standalone
 git lfs pull --include="assets/databases/tag_catalog.db"
 ```
 
@@ -159,7 +159,7 @@ git diff --check <previous-tag>..HEAD
 仅在验证达到发布标准且用户已明确授权发布时执行：
 
 ```powershell
-git push origin main
+git push origin standalone
 git tag -a v<version> -m "v<version>"
 git push origin v<version>
 ```
@@ -170,7 +170,7 @@ git push origin v<version>
 
 ## 交付清单
 
-- [ ] `main` 与远端同步，工作区干净
+- [ ] `standalone` 与自己的远端同步，工作区干净
 - [ ] `pubspec.yaml` 为目标 `semver+build`
 - [ ] 版本号提交已完成
 - [ ] 主 Agent 已亲自阅读审查报告与完整 diff
@@ -179,6 +179,6 @@ git push origin v<version>
 - [ ] Flutter 官方源检查通过
 - [ ] 内置数据库检查通过
 - [ ] 与风险匹配的测试、analyze、build 已执行并记录
-- [ ] `main` 已推送
+- [ ] `standalone` 已推送
 - [ ] `v*` annotated tag 已创建并推送
 - [ ] Release workflow 状态已核对并如实报告

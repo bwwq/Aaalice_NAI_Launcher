@@ -26820,6 +26820,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show Online Gallery in navigation. Turning it off hides the entry and keeps your browsing settings.'**
   String get settings_enableOnlineGallerySubtitle;
+
+  /// No description provided for @settings_navigationOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar icon order'**
+  String get settings_navigationOrder;
+
+  /// No description provided for @settings_navigationOrderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move icons up or down. Changes take effect immediately.'**
+  String get settings_navigationOrderSubtitle;
+
+  /// No description provided for @settings_navigationMoveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get settings_navigationMoveUp;
+
+  /// No description provided for @settings_navigationMoveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get settings_navigationMoveDown;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../core/constants/community_links.dart';
+import '../../widgets/common/app_toast.dart';
+import '../../widgets/navigation/main_nav_rail.dart' show GitHubLogo;
 
 import '../../../core/platform/platform_capabilities.dart';
 import '../../../core/utils/localization_extension.dart';
@@ -361,9 +365,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               : ListView.separated(
                   key: const ValueKey('settings-section-list'),
                   padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-                  itemCount: sections.length,
+                  itemCount: sections.length + 1,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
+                    if (index == sections.length) {
+                      return Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
+                          key: const ValueKey('settings-github-link'),
+                          minTileHeight: 56,
+                          tileColor: sectionSurfaceColor(theme.colorScheme),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          leading: GitHubLogo(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          title: Text(context.l10n.nav_githubRepo),
+                          trailing: const Icon(Icons.open_in_new),
+                          onTap: _openRepository,
+                        ),
+                      );
+                    }
                     final section = sections[index];
                     return Material(
                       key: ValueKey('settings-section-material-${section.id}'),
@@ -443,6 +466,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Future<void> _openRepository() async {
+    var opened = false;
+    try {
+      opened = await launchUrl(
+        Uri.parse(CommunityLinks.github),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) AppToast.error(context, context.l10n.cannotOpenUrl);
+  }
+
   /// 构建 NavigationRail 侧边栏
   Widget _buildNavigationRail(
     BuildContext context,
@@ -462,7 +498,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     Widget buildRail() => NavigationRail(
       selectedIndex: sections.indexWhere((item) => item.id == _selectedSection),
-      onDestinationSelected: (index) => _onSectionSelected(sections[index].id),
+      onDestinationSelected: (index) {
+        if (index == sections.length) {
+          _openRepository();
+        } else {
+          _onSectionSelected(sections[index].id);
+        }
+      },
       extended: isExtended,
       minExtendedWidth: 180,
       backgroundColor: Colors.transparent,
@@ -474,17 +516,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       unselectedLabelTextStyle: theme.textTheme.labelMedium?.copyWith(
         color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
       ),
-      destinations: sections.map((section) {
-        final label = Text(section.label);
-        return NavigationRailDestination(
-          icon: Icon(section.icon),
-          selectedIcon: Icon(section.selectedIcon),
-          // NavigationRail 把目的地列按最宽一项居中，标签不等宽时窄的会整体右移。
+      destinations: [
+        ...sections.map((section) {
+          final label = Text(section.label);
+          return NavigationRailDestination(
+            icon: Icon(section.icon),
+            selectedIcon: Icon(section.selectedIcon),
+            // NavigationRail 把目的地列按最宽一项居中，标签不等宽时窄的会整体右移。
+            label: labelWidth == null
+                ? label
+                : SizedBox(width: labelWidth, child: label),
+          );
+        }),
+        NavigationRailDestination(
+          icon: GitHubLogo(
+            key: const ValueKey('settings-github-link'),
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
           label: labelWidth == null
-              ? label
-              : SizedBox(width: labelWidth, child: label),
-        );
-      }).toList(),
+              ? Text(context.l10n.nav_githubRepo)
+              : SizedBox(
+                  width: labelWidth,
+                  child: Text(context.l10n.nav_githubRepo),
+                ),
+        ),
+      ],
     );
 
     return Padding(
@@ -498,7 +554,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         clipBehavior: Clip.antiAlias,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final contentHeight = sections.length * 56.0;
+            final contentHeight = (sections.length + 1) * 56.0;
             final railHeight = constraints.maxHeight > contentHeight
                 ? constraints.maxHeight
                 : contentHeight;
@@ -520,9 +576,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final textScaler = MediaQuery.textScalerOf(context);
     final textDirection = Directionality.of(context);
     var widest = 0.0;
-    for (final section in sections) {
+    for (final label in [
+      ...sections.map((section) => section.label),
+      context.l10n.nav_githubRepo,
+    ]) {
       final painter = TextPainter(
-        text: TextSpan(text: section.label, style: style),
+        text: TextSpan(text: label, style: style),
         textDirection: textDirection,
         textScaler: textScaler,
         maxLines: 1,

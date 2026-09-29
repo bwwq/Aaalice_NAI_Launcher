@@ -14999,4 +14999,16 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_enableOnlineGallerySubtitle =>
       '有効にするとナビゲーションからオンライン画像を閲覧できます。無効にしても閲覧設定は保持されます。';
+
+  @override
+  String get settings_navigationOrder => 'サイドバーのアイコン順序';
+
+  @override
+  String get settings_navigationOrderSubtitle => '上下の矢印で位置を変更すると、すぐに反映されます。';
+
+  @override
+  String get settings_navigationMoveUp => '上へ移動';
+
+  @override
+  String get settings_navigationMoveDown => '下へ移動';
 }

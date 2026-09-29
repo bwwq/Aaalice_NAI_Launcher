@@ -7108,5 +7108,9 @@
   "cloudSync_prepareRestoreDescription": "查看只读取备份目录。检查恢复影响需要读取完整备份，耗时取决于备份大小；检查后再次确认才会恢复。",
   "cloudSync_loadingBackupIndex": "正在读取备份目录…",
   "settings_enableOnlineGallery": "启用在线画廊",
-  "settings_enableOnlineGallerySubtitle": "开启后可从导航中浏览在线图片；关闭后隐藏入口，保留已有浏览设置。"
+  "settings_enableOnlineGallerySubtitle": "开启后可从导航中浏览在线图片；关闭后隐藏入口，保留已有浏览设置。",
+  "settings_navigationOrder": "左栏图标顺序",
+  "settings_navigationOrderSubtitle": "用上下箭头调整位置，更改后立即生效。",
+  "settings_navigationMoveUp": "上移",
+  "settings_navigationMoveDown": "下移"
 }

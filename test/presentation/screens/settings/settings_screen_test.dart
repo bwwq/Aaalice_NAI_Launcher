@@ -117,7 +117,7 @@ void main() {
     storage = _MemoryLocalStorage();
   });
 
-  testWidgets('设置页导航为 11 个稳定分类并包含备份与恢复', (tester) async {
+  testWidgets('设置页保留稳定分类且 GitHub 位于关于下面', (tester) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.windows;
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -158,7 +158,7 @@ void main() {
 
     _expectSettingsLayeredChrome(tester, hasNavigation: true);
     final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-    expect(rail.destinations.length, 11);
+    expect(rail.destinations.length, 13);
 
     final sectionScrollView = find.byKey(
       const ValueKey('settings-section-scroll-view'),
@@ -201,10 +201,13 @@ void main() {
       '网络',
       '快捷键',
       '集成',
+      '在线画廊',
       '关于',
+      'GitHub 仓库',
     ]);
 
     final icons = rail.destinations
+        .take(12)
         .map((destination) => (destination.icon as Icon).icon)
         .toList();
     expect(icons, const [
@@ -218,10 +221,12 @@ void main() {
       Icons.network_check_outlined,
       Icons.keyboard_outlined,
       Icons.extension_outlined,
+      Icons.travel_explore_outlined,
       Icons.info_outlined,
     ]);
 
     final selectedIcons = rail.destinations
+        .take(12)
         .map((destination) => (destination.selectedIcon as Icon).icon)
         .toList();
     expect(selectedIcons, const [
@@ -235,8 +240,13 @@ void main() {
       Icons.network_check,
       Icons.keyboard,
       Icons.extension,
+      Icons.travel_explore,
       Icons.info,
     ]);
+    expect(
+      tester.getCenter(find.byKey(const ValueKey('settings-github-link'))).dy,
+      greaterThan(tester.getCenter(find.byIcon(Icons.info_outlined)).dy),
+    );
 
     // 撤销的分类不再出现
     expect(find.text('队列'), findsNothing);
@@ -352,7 +362,7 @@ void main() {
           )
           .toList();
 
-      expect(iconLefts.length, 11, reason: '$locale');
+      expect(iconLefts.length, 12, reason: '$locale');
       for (final left in iconLefts) {
         expect(
           left,

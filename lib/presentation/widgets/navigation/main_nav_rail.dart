@@ -18,8 +18,9 @@ import '../../providers/replication_queue_provider.dart';
 import '../../providers/update_provider.dart';
 import '../../adaptive/adaptive_presenter.dart';
 import '../../adaptive/content_sized_adaptive_form.dart';
-import '../../router/app_branch.dart';
 import '../../router/app_routes.dart';
+import '../../router/main_navigation_item.dart';
+import '../../providers/main_navigation_order_provider.dart';
 import '../../themes/theme_extension.dart';
 import '../auth/account_avatar.dart';
 import '../auth/login_form_container.dart';
@@ -54,18 +55,6 @@ class MainNavRail extends ConsumerWidget {
         .clamp(expandedWidth, 280)
         .toDouble();
   }
-
-  static const List<AppBranch> _railBranches = [
-    AppBranch.generation,
-    AppBranch.localGallery,
-    AppBranch.onlineGallery,
-    AppBranch.vibeLibrary,
-    AppBranch.preciseRefLibrary,
-    AppBranch.promptConfig,
-    AppBranch.tagLibrary,
-    AppBranch.statistics,
-    AppBranch.settings,
-  ];
 
   final StatefulNavigationShell navigationShell;
   final bool isAgentVisible;
@@ -110,9 +99,51 @@ class MainNavRail extends ConsumerWidget {
       queueExecutionNotifierProvider.select((state) => state.status),
     );
     final currentIndex = navigationShell.currentIndex;
-    final selectedIndex = _railBranches.indexWhere(
-      (branch) => branch.index == currentIndex,
+    final items = visibleMainNavigationItems(
+      ref.watch(mainNavigationOrderProvider),
+      onlineGalleryEnabled: ref.watch(onlineGalleryEnabledProvider),
     );
+    // Keep the final three positions bottom-aligned, including after reordering.
+    final primaryCount = items.length - 3;
+    Widget buildItem(MainNavigationItem item) {
+      if (item == MainNavigationItem.agent) {
+        return _NavIcon(
+          key: Key(item.widgetKey),
+          focusNode: agentFocusNode,
+          icon: isAgentRunning ? Icons.smart_toy_rounded : item.icon,
+          label: item.label(context.l10n),
+          isSelected: isAgentVisible,
+          showBadge: isAgentRunning,
+          onTap: () => onAgentVisibilityChanged(!isAgentVisible),
+        );
+      }
+      if (item == MainNavigationItem.queue) {
+        return _NavIcon(
+          key: Key(item.widgetKey),
+          focusNode: queueFocusNode,
+          icon: switch (queueExecutionStatus) {
+            QueueExecutionStatus.running => Icons.play_arrow_rounded,
+            QueueExecutionStatus.paused => Icons.pause_rounded,
+            _ => item.icon,
+          },
+          label: item.label(context.l10n),
+          isSelected: isQueueVisible,
+          badgeLabel: queueCount > 0
+              ? (queueCount > 99 ? '99+' : queueCount.toString())
+              : null,
+          onTap: () => onQueueVisibilityChanged(!isQueueVisible),
+        );
+      }
+      return _NavIcon(
+        key: Key(item.widgetKey),
+        icon: item.icon,
+        label: item.label(context.l10n),
+        isSelected: currentIndex == item.branch!.index,
+        showBadge: item == MainNavigationItem.settings && showUpdateBadge,
+        onTap: () => navigationShell.goBranch(item.branch!.index),
+      );
+    }
+
     final motion = theme.appTheme;
     final animationDuration = _boundedMotionDuration(
       context,
@@ -142,88 +173,7 @@ class MainNavRail extends ConsumerWidget {
               key: const Key('main-nav-primary-scroll'),
               child: Column(
                 children: [
-                  // Navigation Items
-                  _NavIcon(
-                    key: const Key('nav-branch-0'),
-                    icon: Icons.brush, // Canvas/Edit
-                    label: context.l10n.nav_canvas,
-                    isSelected: selectedIndex == 0,
-                    onTap: () =>
-                        navigationShell.goBranch(AppBranch.generation.index),
-                  ),
-
-                  // 本地图库（App生成的图片）
-                  _NavIcon(
-                    key: const Key('nav-branch-1'),
-                    icon: Icons.folder, // Local Generated Images
-                    label: context.l10n.nav_localGallery,
-                    isSelected: selectedIndex == 1,
-                    onTap: () =>
-                        navigationShell.goBranch(AppBranch.localGallery.index),
-                  ),
-
-                  // 在线画廊
-                  if (ref.watch(onlineGalleryEnabledProvider))
-                    _NavIcon(
-                      key: const Key('nav-branch-2'),
-                      icon: Icons.photo_library, // Online Gallery
-                      label: context.l10n.nav_onlineGallery,
-                      isSelected: selectedIndex == 2,
-                      onTap: () => navigationShell.goBranch(
-                        AppBranch.onlineGallery.index,
-                      ),
-                    ),
-
-                  // Vibe库
-                  _NavIcon(
-                    key: const Key('nav-branch-3'),
-                    icon: Icons.auto_awesome, // Vibe Library
-                    label: context.l10n.vibeLibrary_title,
-                    isSelected: selectedIndex == 3,
-                    onTap: () =>
-                        navigationShell.goBranch(AppBranch.vibeLibrary.index),
-                  ),
-
-                  // 精准参考库
-                  _NavIcon(
-                    key: const Key('nav-branch-4'),
-                    icon: Icons.center_focus_strong,
-                    label: context.l10n.nav_preciseRefLibrary,
-                    isSelected: selectedIndex == 4,
-                    onTap: () => navigationShell.goBranch(
-                      AppBranch.preciseRefLibrary.index,
-                    ),
-                  ),
-
-                  // 词库
-                  _NavIcon(
-                    key: const Key('nav-branch-6'),
-                    icon: Icons.book,
-                    label: context.l10n.nav_dictionary,
-                    isSelected: selectedIndex == 6,
-                    onTap: () =>
-                        navigationShell.goBranch(AppBranch.tagLibrary.index),
-                  ),
-
-                  // 随机配置
-                  _NavIcon(
-                    key: const Key('nav-branch-5'),
-                    icon: Icons.casino, // Random prompt config
-                    label: context.l10n.nav_randomConfig,
-                    isSelected: selectedIndex == 5,
-                    onTap: () =>
-                        navigationShell.goBranch(AppBranch.promptConfig.index),
-                  ),
-
-                  // 统计
-                  _NavIcon(
-                    key: const Key('nav-branch-7'),
-                    icon: Icons.bar_chart, // Gallery Statistics
-                    label: context.l10n.nav_statistics,
-                    isSelected: selectedIndex == 7,
-                    onTap: () =>
-                        navigationShell.goBranch(AppBranch.statistics.index),
-                  ),
+                  for (final item in items.take(primaryCount)) buildItem(item),
                 ],
               ),
             ),
@@ -247,51 +197,8 @@ class MainNavRail extends ConsumerWidget {
                           url: CommunityLinks.discord,
                         ),
 
-                      // GitHub 仓库
-                      _GitHubIcon(
-                        url: CommunityLinks.github,
-                        label: context.l10n.nav_githubRepo,
-                      ),
-
-                      _NavIcon(
-                        key: const Key('agent-nav-item'),
-                        focusNode: agentFocusNode,
-                        icon: isAgentRunning
-                            ? Icons.smart_toy_rounded
-                            : Icons.smart_toy_outlined,
-                        label: context.l10n.nav_agent,
-                        isSelected: isAgentVisible,
-                        showBadge: isAgentRunning,
-                        onTap: () => onAgentVisibilityChanged(!isAgentVisible),
-                      ),
-
-                      _NavIcon(
-                        key: const Key('queue-nav-item'),
-                        focusNode: queueFocusNode,
-                        icon: switch (queueExecutionStatus) {
-                          QueueExecutionStatus.running =>
-                            Icons.play_arrow_rounded,
-                          QueueExecutionStatus.paused => Icons.pause_rounded,
-                          _ => Icons.playlist_play_rounded,
-                        },
-                        label: context.l10n.queue_management,
-                        isSelected: isQueueVisible,
-                        badgeLabel: queueCount > 0
-                            ? (queueCount > 99 ? '99+' : queueCount.toString())
-                            : null,
-                        onTap: () => onQueueVisibilityChanged(!isQueueVisible),
-                      ),
-
-                      // Bottom Settings
-                      _NavIcon(
-                        key: const Key('nav-branch-8'),
-                        icon: Icons.settings,
-                        label: context.l10n.nav_settings,
-                        isSelected: selectedIndex == 8,
-                        showBadge: showUpdateBadge,
-                        onTap: () =>
-                            navigationShell.goBranch(AppBranch.settings.index),
-                      ),
+                      for (final item in items.skip(primaryCount))
+                        buildItem(item),
                       if (allowExpansion) ...[
                         const SizedBox(height: 2),
                         _NavRailToggle(
@@ -565,52 +472,6 @@ class _NavRailToggle extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// GitHub 图标（自定义绘制）
-class _GitHubIcon extends StatefulWidget {
-  final String url;
-  final String label;
-
-  const _GitHubIcon({required this.url, required this.label});
-
-  @override
-  State<_GitHubIcon> createState() => _GitHubIconState();
-}
-
-class _GitHubIconState extends State<_GitHubIcon> {
-  bool _isHovering = false;
-  bool _isPressed = false;
-
-  Future<void> _launchUrl() async {
-    final uri = Uri.parse(widget.url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = theme.brightness == Brightness.dark
-        ? Colors.white
-        : const Color(0xFF24292E);
-
-    return _RailLinkItem(
-      label: widget.label,
-      color: color,
-      isHovering: _isHovering,
-      isPressed: _isPressed,
-      onTap: _launchUrl,
-      onHover: (value) => setState(() => _isHovering = value),
-      onTapDown: () => setState(() => _isPressed = true),
-      onTapEnd: () => setState(() => _isPressed = false),
-      icon: GitHubLogo(
-        size: 24,
-        color: color.withValues(alpha: _isHovering ? 1.0 : 0.7),
       ),
     );
   }

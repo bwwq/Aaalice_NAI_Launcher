@@ -193,6 +193,13 @@ CI 与 Release checkout 不直接消耗 GitHub LFS 流量；`scripts/prepare_bun
 
 三份 README 内容必须保持同步：任一用户可见功能、平台支持、安装方式或隐私说明变化时，在同一提交中同时更新。三份文件顶部均保留语言切换链接；繁中版与英文版只翻译简中版事实，不自行增删承诺。
 
+## 独立维护分支
+
+- 本仓库由 `bwwq` 独立维护，长期开发、构建及 Pull Request 的默认目标为 `standalone`。
+- `main` 和旧 `codex/*` 分支仅保留作历史参考；未经用户明确要求，不自动合并、变基或拣选 `main`、上游仓库或其他维护线的提交。
+- 新工作从 `standalone` 开始；拉取和推送只跟踪本仓库对应分支，不添加上游同步任务。固定版本、固定哈希的数据依赖不等于同步上游代码。
+- 日常改动按需运行受影响检查；完整验证在面向 `standalone` 的 PR 或手动任务中运行。
+
 ## 提交与 Pull Request 规范
 
 提交与 Pull Request 标题使用 `type(scope): 中文描述`，scope 可选，标题不超过 72 字；type 取 `feat`、`fix`、`refactor`、`perf`、`style`、`docs`、`test`、`chore`。例如 `fix(generation): 修复取消后旧结果回写`。提交保持范围清晰；正文按需用中文 bullet points。Pull Request 使用简体中文说明改动内容、验证结果和注意事项，并标注生成文件、LFS 或 assets 变化，不填写未实际执行的检查。

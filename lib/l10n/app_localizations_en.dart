@@ -15407,4 +15407,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_enableOnlineGallerySubtitle =>
       'Show Online Gallery in navigation. Turning it off hides the entry and keeps your browsing settings.';
+
+  @override
+  String get settings_navigationOrder => 'Sidebar icon order';
+
+  @override
+  String get settings_navigationOrderSubtitle =>
+      'Move icons up or down. Changes take effect immediately.';
+
+  @override
+  String get settings_navigationMoveUp => 'Move up';
+
+  @override
+  String get settings_navigationMoveDown => 'Move down';
 }

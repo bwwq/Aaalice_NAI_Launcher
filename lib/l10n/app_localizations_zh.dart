@@ -14730,6 +14730,18 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_enableOnlineGallerySubtitle =>
       '开启后可从导航中浏览在线图片；关闭后隐藏入口，保留已有浏览设置。';
+
+  @override
+  String get settings_navigationOrder => '左栏图标顺序';
+
+  @override
+  String get settings_navigationOrderSubtitle => '用上下箭头调整位置，更改后立即生效。';
+
+  @override
+  String get settings_navigationMoveUp => '上移';
+
+  @override
+  String get settings_navigationMoveDown => '下移';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -29459,4 +29471,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get settings_enableOnlineGallerySubtitle =>
       '開啟後可從導覽中瀏覽線上圖片；關閉後隱藏入口，保留既有瀏覽設定。';
+
+  @override
+  String get settings_navigationOrder => '左欄圖示順序';
+
+  @override
+  String get settings_navigationOrderSubtitle => '用上下箭頭調整位置，變更後立即生效。';
+
+  @override
+  String get settings_navigationMoveUp => '上移';
+
+  @override
+  String get settings_navigationMoveDown => '下移';
 }
