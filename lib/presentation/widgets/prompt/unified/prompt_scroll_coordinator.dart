@@ -13,12 +13,10 @@ class PromptScrollCoordinator extends StatefulWidget {
   const PromptScrollCoordinator({
     super.key,
     required this.tagMode,
-    required this.textWheelAdjustmentActive,
     required this.child,
   });
 
   final bool tagMode;
-  final bool Function() textWheelAdjustmentActive;
   final Widget child;
 
   @override
@@ -97,13 +95,8 @@ class _PromptScrollCoordinatorState extends State<PromptScrollCoordinator> {
         event.scrollDelta.dx.abs() > event.scrollDelta.dy.abs()) {
       return;
     }
-    // Weight shortcuts and horizontal scrolling retain their existing owners.
+    // Horizontal scrolling and modified platform gestures retain their owners.
     if (_modified || _activeScroll == null) return;
-    if (!widget.tagMode && widget.textWheelAdjustmentActive()) return;
-    if (widget.tagMode &&
-        TagEditorView.claimsWeightWheel(_tagScroll!.context, event.position)) {
-      return;
-    }
     GestureBinding.instance.pointerSignalResolver.register(event, (resolved) {
       _scroll(event.scrollDelta.dy);
       resolved.respond(allowPlatformDefault: false);

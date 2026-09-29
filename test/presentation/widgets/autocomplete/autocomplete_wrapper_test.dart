@@ -23,7 +23,7 @@ import 'package:nai_launcher/presentation/providers/generation/generation_settin
     as generation_settings;
 import 'package:nai_launcher/presentation/widgets/prompt/nai_syntax_controller.dart';
 
-Future<void> _typeCurrentText(
+Future<void> _openCurrentSuggestions(
   WidgetTester tester,
   TextEditingController controller,
 ) async {
@@ -35,6 +35,11 @@ Future<void> _typeCurrentText(
   await tester.pump();
   await tester.enterText(field, text);
   await tester.pump();
+  expect(
+    find.byKey(const ValueKey('autocomplete-popup-surface')),
+    findsNothing,
+  );
+  await tester.sendKeyEvent(LogicalKeyboardKey.space);
   await tester.pump(const Duration(milliseconds: 30));
 }
 
@@ -95,7 +100,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     expect(find.text('blue_eyes'), findsOneWidget);
     expect(find.text('BASE'), findsOneWidget);
@@ -148,7 +153,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     expect(source.lastQuery?.token, isEmpty);
     expect(source.lastQuery?.categoryFilter, TagCategory.artist);
@@ -227,7 +232,7 @@ void main() {
       expect(container.read(autocompleteSettingsProvider).enabled, isTrue);
       focusNode.requestFocus();
       await tester.pump();
-      await _typeCurrentText(tester, controller);
+      await _openCurrentSuggestions(tester, controller);
 
       expect(
         find.byKey(const ValueKey('autocomplete-popup-surface')),
@@ -282,7 +287,7 @@ void main() {
       inputFocusNode.requestFocus();
       await tester.pump();
       expect(wrapperFocusNode.hasFocus, isFalse);
-      await _typeCurrentText(tester, controller);
+      await _openCurrentSuggestions(tester, controller);
 
       expect(
         find.byKey(const ValueKey('autocomplete-popup-surface')),
@@ -291,9 +296,7 @@ void main() {
     },
   );
 
-  testWidgets('focus and caret clicks stay quiet until text is edited', (
-    tester,
-  ) async {
+  testWidgets('focus and caret clicks stay quiet until Space', (tester) async {
     final controller = TextEditingController(text: 'blu');
     controller.selection = const TextSelection.collapsed(offset: 3);
     final focusNode = FocusNode();
@@ -348,7 +351,7 @@ void main() {
       findsNothing,
     );
 
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
     expect(
       find.byKey(const ValueKey('autocomplete-popup-surface')),
       findsOneWidget,
@@ -370,7 +373,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('opens normal autocomplete on tag click when enabled', (
+  testWidgets('legacy click preference stays quiet until Space', (
     tester,
   ) async {
     final controller = TextEditingController(text: 'blu');
@@ -415,8 +418,9 @@ void main() {
 
     await tester.tap(find.byType(TextField));
     await tester.pump();
+    expect(find.text('Tag autocomplete'), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
     await tester.pump(const Duration(milliseconds: 30));
-
     expect(find.text('Tag autocomplete'), findsOneWidget);
     expect(find.text('blue_eyes'), findsOneWidget);
     expect(find.text('Related tags'), findsNothing);
@@ -426,66 +430,67 @@ void main() {
     expect(controller.text, 'blue_eyes, ');
   });
 
-  testWidgets(
-    'click-opened autocomplete survives delayed caret sync and empty results',
-    (tester) async {
-      final controller = TextEditingController(text: 'no_watermark');
-      controller.selection = const TextSelection.collapsed(offset: 0);
-      final focusNode = FocusNode();
-      final source = _DelayedEmptyTagSource();
-      addTearDown(() {
-        controller.dispose();
-        focusNode.dispose();
-      });
+  testWidgets('caret movement dismisses pending results without reopening', (
+    tester,
+  ) async {
+    final controller = TextEditingController(text: 'no_watermark');
+    controller.selection = const TextSelection.collapsed(offset: 0);
+    final focusNode = FocusNode();
+    final source = _DelayedEmptyTagSource();
+    addTearDown(() {
+      controller.dispose();
+      focusNode.dispose();
+    });
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            autocompleteSettingsProvider.overrideWith(
-              (ref) => _OpenOnTagClickSettingsNotifier(),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          autocompleteSettingsProvider.overrideWith(
+            (ref) => _OpenOnTagClickSettingsNotifier(),
+          ),
+          autocompleteServicesProvider.overrideWithValue(
+            AutocompleteServices(
+              localSources: [source],
+              dictionaryTranslations: const _NoTranslations(),
+              llmTranslations: const _NoTranslations(),
+              danbooru: _NoDanbooru(),
             ),
-            autocompleteServicesProvider.overrideWithValue(
-              AutocompleteServices(
-                localSources: [source],
-                dictionaryTranslations: const _NoTranslations(),
-                llmTranslations: const _NoTranslations(),
-                danbooru: _NoDanbooru(),
-              ),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: AutocompleteWrapper(
-                controller: controller,
-                focusNode: focusNode,
-                child: TextField(controller: controller, focusNode: focusNode),
-              ),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: AutocompleteWrapper(
+              controller: controller,
+              focusNode: focusNode,
+              child: TextField(controller: controller, focusNode: focusNode),
             ),
           ),
         ),
-      );
-      focusNode.requestFocus();
-      await tester.pump();
+      ),
+    );
+    focusNode.requestFocus();
+    await tester.pump();
 
-      await tester.tap(find.byType(TextField));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 30));
-      expect(find.text('Tag autocomplete'), findsOneWidget);
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    expect(find.text('Tag autocomplete'), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump(const Duration(milliseconds: 30));
+    expect(find.text('Tag autocomplete'), findsOneWidget);
 
-      controller.selection = const TextSelection.collapsed(offset: 1);
-      await tester.pump();
-      expect(find.text('Tag autocomplete'), findsOneWidget);
+    controller.selection = const TextSelection.collapsed(offset: 1);
+    await tester.pump();
+    expect(find.text('Tag autocomplete'), findsNothing);
 
-      source.complete();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 30));
-      expect(find.text('Tag autocomplete'), findsOneWidget);
-      expect(find.text('No matching tags found'), findsOneWidget);
-    },
-  );
+    source.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 30));
+    expect(find.text('Tag autocomplete'), findsNothing);
+    expect(find.text('No matching tags found'), findsNothing);
+  });
 
   testWidgets(
     'Shift+Enter inserts a newline instead of confirming an open popup',
@@ -538,6 +543,8 @@ void main() {
       final field = find.byType(TextField);
       await tester.tapAt(tester.getTopLeft(field) + const Offset(20, 20));
       await tester.pump();
+      expect(find.text('Tag autocomplete'), findsNothing);
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
       await tester.pump(const Duration(milliseconds: 30));
       expect(find.text('Tag autocomplete'), findsOneWidget);
 
@@ -566,7 +573,7 @@ void main() {
     },
   );
 
-  testWidgets('structural edits stay quiet but tag text deletion queries', (
+  testWidgets('structural edits and deletions stay quiet until Space', (
     tester,
   ) async {
     final controller = TextEditingController(text: 'first, solo_focus');
@@ -642,12 +649,15 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 30));
 
+    expect(source.lastLimit, isNull);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump(const Duration(milliseconds: 30));
     expect(source.lastLimit, isNotNull);
     expect(find.text('Tag autocomplete'), findsOneWidget);
   });
 
   testWidgets(
-    'selection callback receives full text and normal completion opens related tags',
+    'completion reports full text and closes until a manual related request',
     (tester) async {
       final controller = TextEditingController(text: 'masterpiece, blu');
       controller.selection = const TextSelection.collapsed(offset: 16);
@@ -689,7 +699,7 @@ void main() {
       );
       focusNode.requestFocus();
       await tester.pump();
-      await _typeCurrentText(tester, controller);
+      await _openCurrentSuggestions(tester, controller);
       expect(source.tokens.last, 'blu');
       final queryCountBeforeSelection = source.tokens.length;
 
@@ -699,7 +709,14 @@ void main() {
 
       expect(controller.text, 'masterpiece, blue_eyes');
       expect(selectedText, controller.text);
-      expect(source.tokens, hasLength(queryCountBeforeSelection + 2));
+      expect(source.tokens, hasLength(queryCountBeforeSelection));
+      expect(find.text('Related tags'), findsNothing);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pump(const Duration(milliseconds: 30));
       expect(source.relatedTags.last, 'blue_eyes');
       expect(find.text('Related tags'), findsOneWidget);
       expect(find.text('halo'), findsOneWidget);
@@ -709,9 +726,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 30));
 
       expect(controller.text, 'masterpiece, blue_eyes, halo');
-      expect(source.relatedTags.last, 'halo');
-      expect(find.text('Related tags'), findsOneWidget);
-      expect(find.text('smile'), findsOneWidget);
+      expect(source.relatedTags.last, 'blue_eyes');
+      expect(find.text('Related tags'), findsNothing);
     },
   );
 
@@ -758,10 +774,17 @@ void main() {
       );
       focusNode.requestFocus();
       await tester.pump();
-      await _typeCurrentText(tester, controller);
+      await _openCurrentSuggestions(tester, controller);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 30));
+      controller.selection = const TextSelection.collapsed(offset: 3);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
       await tester.pump(const Duration(milliseconds: 30));
       expect(find.text('Related tags'), findsOneWidget);
       expect(
@@ -776,20 +799,18 @@ void main() {
       await tester.pump();
       expect(find.text('Related tags'), findsOneWidget);
 
-      // The real prompt stack can synchronize the selection after applying a
-      // completion. That delayed caret notification must not cancel an active
-      // related query; actual pointer/keyboard movement has its own close path.
+      // Real selection changes dismiss the manually opened menu.
       controller.selection = const TextSelection.collapsed(offset: 2);
       await tester.pump();
-      expect(find.text('Related tags'), findsOneWidget);
+      expect(find.text('Related tags'), findsNothing);
 
       source.completeRelated();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 30));
-      expect(find.text('Related tags'), findsOneWidget);
+      expect(find.text('Related tags'), findsNothing);
       expect(
         find.byKey(const ValueKey('autocomplete-popup-empty')),
-        findsOneWidget,
+        findsNothing,
       );
     },
   );
@@ -841,7 +862,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     expect(find.text('蓝眼睛'), findsNothing);
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
@@ -898,6 +919,7 @@ void main() {
       composing: TextRange(start: 0, end: 1),
     );
     await tester.pump(const Duration(milliseconds: 30));
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
     expect(source.tokens, isEmpty);
 
     controller.value = const TextEditingValue(
@@ -905,6 +927,9 @@ void main() {
       selection: TextSelection.collapsed(offset: 1),
     );
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 30));
+    expect(source.tokens, isEmpty);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
     await tester.pump(const Duration(milliseconds: 30));
     expect(source.tokens, ['蓝']);
   });
@@ -949,7 +974,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     expect(
       find.byKey(const ValueKey('autocomplete-popup-surface')),
@@ -1009,7 +1034,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowDown);
     await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowDown);
@@ -1072,7 +1097,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     final inputRect = tester.getRect(find.byType(TextField));
     final popupRect = tester.getRect(
@@ -1164,7 +1189,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     final popup = find.byKey(const ValueKey('autocomplete-popup-surface'));
     expect(popup, findsOneWidget);
@@ -1215,7 +1240,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     final listView = tester.widget<CustomScrollView>(
       find.byKey(const ValueKey('autocomplete-popup-list')),
@@ -1253,7 +1278,9 @@ void main() {
     );
   });
 
-  testWidgets('Ctrl-click keeps related intent until mouse up', (tester) async {
+  testWidgets('Ctrl-click closes suggestions without opening related tags', (
+    tester,
+  ) async {
     final controller = TextEditingController(text: 'solo_focus');
     controller.selection = const TextSelection.collapsed(offset: 10);
     final focusNode = FocusNode();
@@ -1293,7 +1320,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
     expect(find.text('Tag autocomplete'), findsOneWidget);
 
     await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
@@ -1308,73 +1335,68 @@ void main() {
     await tester.pump(const Duration(milliseconds: 30));
     await tester.pump();
 
-    expect(find.text('Related tags'), findsOneWidget);
-    expect(find.text('halo'), findsOneWidget);
+    expect(find.text('Related tags'), findsNothing);
+    expect(find.text('halo'), findsNothing);
   });
 
-  testWidgets(
-    'Ctrl-click falls back to normal autocomplete for partial Chinese tags',
-    (tester) async {
-      final controller = TextEditingController(text: '大慈树');
-      controller.selection = TextSelection.collapsed(
-        offset: controller.text.length,
-      );
-      final focusNode = FocusNode();
-      final source = _PartialChineseSource();
-      addTearDown(() {
-        controller.dispose();
-        focusNode.dispose();
-      });
+  testWidgets('manual related request falls back for partial Chinese tags', (
+    tester,
+  ) async {
+    final controller = TextEditingController(text: '大慈树');
+    controller.selection = TextSelection.collapsed(
+      offset: controller.text.length,
+    );
+    final focusNode = FocusNode();
+    final source = _PartialChineseSource();
+    addTearDown(() {
+      controller.dispose();
+      focusNode.dispose();
+    });
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            autocompleteSettingsProvider.overrideWith(
-              (ref) => _OpenOnTagClickSettingsNotifier(),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          autocompleteSettingsProvider.overrideWith(
+            (ref) => _OpenOnTagClickSettingsNotifier(),
+          ),
+          autocompleteServicesProvider.overrideWithValue(
+            AutocompleteServices(
+              localSources: [source],
+              tagLookupSources: [source],
+              dictionaryTranslations: const _NoTranslations(),
+              llmTranslations: const _NoTranslations(),
+              danbooru: _NoDanbooru(),
             ),
-            autocompleteServicesProvider.overrideWithValue(
-              AutocompleteServices(
-                localSources: [source],
-                tagLookupSources: [source],
-                dictionaryTranslations: const _NoTranslations(),
-                llmTranslations: const _NoTranslations(),
-                danbooru: _NoDanbooru(),
-              ),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: AutocompleteWrapper(
-                controller: controller,
-                focusNode: focusNode,
-                child: TextField(controller: controller, focusNode: focusNode),
-              ),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: AutocompleteWrapper(
+              controller: controller,
+              focusNode: focusNode,
+              child: TextField(controller: controller, focusNode: focusNode),
             ),
           ),
         ),
-      );
-      focusNode.requestFocus();
-      await tester.pump();
+      ),
+    );
+    focusNode.requestFocus();
+    await tester.pump();
 
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
-      await gesture.addPointer(
-        location: tester.getCenter(find.byType(TextField)),
-      );
-      await gesture.down(tester.getCenter(find.byType(TextField)));
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await gesture.up();
-      await tester.pump(const Duration(milliseconds: 30));
-      await tester.pump();
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump(const Duration(milliseconds: 30));
 
-      expect(find.text('Tag autocomplete'), findsOneWidget);
-      expect(find.text('大慈树王 (原神)'), findsOneWidget);
-      expect(find.text('Related tags'), findsNothing);
-    },
-  );
+    expect(find.text('Tag autocomplete'), findsOneWidget);
+    expect(find.text('大慈树王 (原神)'), findsOneWidget);
+    expect(find.text('Related tags'), findsNothing);
+  });
 
   testWidgets(
     'opens, pins, and continuously inserts related tags by keyboard',
@@ -1447,7 +1469,7 @@ void main() {
     },
   );
 
-  testWidgets('typing < shows library entries instead of tag completion', (
+  testWidgets('Space after < shows library entries instead of tag completion', (
     tester,
   ) async {
     final controller = TextEditingController();
@@ -1495,6 +1517,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 30));
 
+    expect(librarySource.queries, isEmpty);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump(const Duration(milliseconds: 30));
     expect(baseSource.lastLimit, isNull);
     expect(librarySource.queries, ['']);
     expect(find.text('角色立绘'), findsOneWidget);
@@ -1572,7 +1597,7 @@ void main() {
     );
     focusNode.requestFocus();
     await tester.pump();
-    await _typeCurrentText(tester, controller);
+    await _openCurrentSuggestions(tester, controller);
 
     final inputRect = tester.getRect(find.byType(TextField));
     final popupRect = tester.getRect(

@@ -36,7 +36,6 @@ import '../tag_mode_prompt_field.dart';
 import '../prompt_text_selection_actions.dart';
 import 'unified_prompt_config.dart';
 import 'prompt_scroll_coordinator.dart';
-import '../prompt_weight_editing.dart';
 import 'package:nai_launcher/presentation/widgets/common/themed_input.dart';
 import 'package:nai_launcher/presentation/widgets/common/themed_text_selection_toolbar.dart';
 
@@ -138,8 +137,6 @@ class UnifiedPromptInput extends ConsumerStatefulWidget {
 }
 
 class _UnifiedPromptInputState extends ConsumerState<UnifiedPromptInput> {
-  late final ValueGetter<TextEditingController> _effectiveControllerProvider;
-
   /// 语法高亮控制器
   NaiSyntaxController? _syntaxController;
   bool _syncingControllerValue = false;
@@ -281,7 +278,6 @@ class _UnifiedPromptInputState extends ConsumerState<UnifiedPromptInput> {
   @override
   void initState() {
     super.initState();
-    _effectiveControllerProvider = () => _effectiveController;
     _sessionId = _resolveSessionId(widget.sessionId);
 
     // 官网的竖线装饰独立于强调开关，因此始终使用语法控制器。
@@ -1388,7 +1384,9 @@ class _UnifiedPromptInputState extends ConsumerState<UnifiedPromptInput> {
 
   /// 构建文本输入框
   Widget _buildTextField() {
-    final enableWheelAdjustment = ref.watch(promptWeightScrollSettingsProvider);
+    final enableKeyboardAdjustment = ref.watch(
+      promptWeightArrowKeysSettingsProvider,
+    );
     final requestedContentPadding =
         widget.decoration?.contentPadding ??
         const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
@@ -1435,13 +1433,6 @@ class _UnifiedPromptInputState extends ConsumerState<UnifiedPromptInput> {
       maxLines: widget.expands ? null : widget.maxLines,
       minLines: widget.expands ? null : (widget.minLines ?? 1),
       expands: widget.expands,
-      scrollPhysics:
-          enableWheelAdjustment &&
-              context.interactionPolicy.precisePointerAvailable
-          ? WeightAdjustScrollPhysics(
-              controllerProvider: _effectiveControllerProvider,
-            )
-          : null,
       textAlignVertical: widget.expands ? TextAlignVertical.top : null,
       readOnly: widget.config.readOnly,
       inputFormatters: widget.config.readOnly
@@ -1484,7 +1475,7 @@ class _UnifiedPromptInputState extends ConsumerState<UnifiedPromptInput> {
         surfaceColor: widget.surfaceColor,
         enabled: !widget.config.readOnly,
         enableAutocomplete: widget.config.enableAutocomplete,
-        enableWheelAdjustment: enableWheelAdjustment,
+        enableKeyboardAdjustment: enableKeyboardAdjustment,
         onChanged: _handleTextChanged,
         onSearch: (replace) => _openSearch(showReplace: replace),
         child: clipboardAwareInput,
@@ -1497,7 +1488,7 @@ class _UnifiedPromptInputState extends ConsumerState<UnifiedPromptInput> {
         : WeightAdjustToolbarWrapper(
             controller: _effectiveController,
             focusNode: _effectiveFocusNode,
-            enableWheelAdjustment: enableWheelAdjustment,
+            enableKeyboardAdjustment: enableKeyboardAdjustment,
             enabled: !_tagMode && !widget.config.readOnly,
             child: clipboardAwareInput,
           );
@@ -1517,15 +1508,7 @@ class _UnifiedPromptInputState extends ConsumerState<UnifiedPromptInput> {
       );
     }
 
-    return PromptScrollCoordinator(
-      tagMode: _tagMode,
-      textWheelAdjustmentActive: () =>
-          !widget.config.readOnly &&
-          enableWheelAdjustment &&
-          PromptWeightEditing.hasSelection(_effectiveController) &&
-          PromptWeightEditing.protectNegativeBlockSyntax(_effectiveController),
-      child: result,
-    );
+    return PromptScrollCoordinator(tagMode: _tagMode, child: result);
   }
 }
 

@@ -503,20 +503,20 @@ class LocalStorageService {
     await setSetting(StorageKeys.promptRegexRules, encodedRules);
   }
 
-  // ==================== Prompt Weight Scroll ====================
+  // ==================== Prompt Weight Arrow Keys ====================
 
-  /// 获取是否启用滚轮调整提示词权重（默认开启）
-  bool getEnablePromptWeightScroll() {
+  /// 获取是否启用方向键调整提示词权重（默认开启）
+  bool getEnablePromptWeightArrowKeys() {
     return getSetting<bool>(
-          StorageKeys.enablePromptWeightScroll,
+          StorageKeys.enablePromptWeightArrowKeys,
           defaultValue: true,
         ) ??
         true;
   }
 
-  /// 保存是否启用滚轮调整提示词权重
-  Future<void> setEnablePromptWeightScroll(bool value) async {
-    await setSetting(StorageKeys.enablePromptWeightScroll, value);
+  /// 保存是否启用方向键调整提示词权重
+  Future<void> setEnablePromptWeightArrowKeys(bool value) async {
+    await setSetting(StorageKeys.enablePromptWeightArrowKeys, value);
   }
 
   // ==================== Cooccurrence Recommendation ====================

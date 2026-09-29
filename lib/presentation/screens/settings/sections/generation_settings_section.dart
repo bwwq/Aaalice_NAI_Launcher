@@ -126,8 +126,8 @@ class _GenerationSettingsSectionState
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final showRandomTools = ref.watch(randomPromptToolsVisibilityProvider);
-    final promptWeightScrollEnabled = ref.watch(
-      promptWeightScrollSettingsProvider,
+    final promptWeightArrowKeysEnabled = ref.watch(
+      promptWeightArrowKeysSettingsProvider,
     );
     final straightAlpha = ref.watch(
       generationParamsNotifierProvider.select((params) => params.straightAlpha),
@@ -183,15 +183,17 @@ class _GenerationSettingsSectionState
                 },
               ),
               SwitchListTile(
-                secondary: const Icon(Icons.mouse_outlined),
-                title: Text(l10n.settings_enablePromptWeightScroll),
-                subtitle: Text(l10n.settings_enablePromptWeightScrollSubtitle),
-                value: promptWeightScrollEnabled,
+                secondary: const Icon(Icons.keyboard_arrow_up),
+                title: Text(l10n.settings_enablePromptWeightArrowKeys),
+                subtitle: Text(
+                  l10n.settings_enablePromptWeightArrowKeysSubtitle,
+                ),
+                value: promptWeightArrowKeysEnabled,
                 onChanged: (value) async {
                   final messenger = ScaffoldMessenger.maybeOf(context);
                   try {
                     await ref
-                        .read(promptWeightScrollSettingsProvider.notifier)
+                        .read(promptWeightArrowKeysSettingsProvider.notifier)
                         .set(value);
                   } catch (error) {
                     messenger?.showSnackBar(

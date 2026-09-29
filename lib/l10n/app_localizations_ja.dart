@@ -1758,7 +1758,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get prompt_cooccurrenceRecommendationSubtitle =>
-      'タグ確定後に自動表示。Ctrl+Shift+Space または Ctrl+クリックでも表示できます';
+      'タグ内で Ctrl+Shift+Space を押すと関連タグを表示します。候補を選択しても自動表示しません。';
 
   @override
   String get prompt_regexRulesManage => '正規表現置換ルール…';
@@ -7718,11 +7718,11 @@ class AppLocalizationsJa extends AppLocalizations {
       '生成ページにランダムプロンプトボタンと Random Mode の切り替えを表示します';
 
   @override
-  String get settings_enablePromptWeightScroll => 'マウスホイールでプロンプトの重みを調整';
+  String get settings_enablePromptWeightArrowKeys => '矢印キーでプロンプトの重みを調整';
 
   @override
-  String get settings_enablePromptWeightScrollSubtitle =>
-      'プロンプトを選択している間は、ホイールで重みだけを調整し、ページスクロールなどの操作は行いません。';
+  String get settings_enablePromptWeightArrowKeysSubtitle =>
+      'プロンプトを選択して ↑ で重みを増やし、↓ で減らします。ホイールはスクロールのみ、Shift+矢印は選択範囲の拡張に使います。';
 
   @override
   String settings_queueRetryCountMax(Object count) {
@@ -12420,11 +12420,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get autocomplete_autoComma => '挿入後にカンマを追加';
 
   @override
-  String get autocomplete_openOnTagClick => 'タグのクリックで補完を表示';
+  String get autocomplete_manualTrigger => 'Space キーで候補を開く';
 
   @override
-  String get autocomplete_openOnTagClickSubtitle =>
-      'オンにすると既存タグのクリックで通常の補完を開きます。Ctrl/Command＋クリックでは引き続き関連タグを表示します';
+  String get autocomplete_manualTriggerSubtitle =>
+      'カンマ区切りのタグ内で Space を押すと候補を開きます。選択、コピー、貼り付け、通常の入力では自動表示しません。';
 
   @override
   String get autocomplete_replaceUnderscores => '挿入時にアンダースコアを空白に置換';
@@ -12437,7 +12437,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get autocomplete_relatedTagsSubtitle =>
-      'タグ確定後に自動表示。タグ上で Ctrl+Shift+Space または Ctrl+クリックでも表示できます';
+      'タグ内で Ctrl+Shift+Space を押すと関連タグを表示します。候補を選択しても自動表示しません。';
 
   @override
   String get autocomplete_danbooruApi => 'Danbooru オンライン補完';

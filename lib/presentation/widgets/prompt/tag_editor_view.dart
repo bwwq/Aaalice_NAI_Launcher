@@ -1,3 +1,4 @@
+import 'prompt_weight_shortcuts.dart';
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
@@ -29,12 +30,6 @@ import 'tag_editor_session.dart';
 class TagEditorView extends ConsumerStatefulWidget {
   static const scrollViewKey = ValueKey('tag-editor-scroll-view');
 
-  static bool claimsWeightWheel(BuildContext context, Offset globalPosition) =>
-      context
-          .findAncestorStateOfType<_TagEditorViewState>()
-          ?._claimsWeightWheel(globalPosition) ??
-      false;
-
   const TagEditorView({
     super.key,
     required this.session,
@@ -42,6 +37,7 @@ class TagEditorView extends ConsumerStatefulWidget {
     this.bottomPadding = 58,
     this.enabled = true,
     this.enableAutocomplete = true,
+    this.enableKeyboardAdjustment = true,
     this.onSearch,
     this.focusNode,
   });
@@ -50,6 +46,7 @@ class TagEditorView extends ConsumerStatefulWidget {
   final double bottomPadding;
   final bool enabled;
   final bool enableAutocomplete;
+  final bool enableKeyboardAdjustment;
   final ValueChanged<bool>? onSearch;
   final FocusNode? focusNode;
   @override
@@ -373,38 +370,6 @@ class _TagEditorViewState extends ConsumerState<TagEditorView> {
     if (added != null) session.edit(added.id, selectText: false);
   }
 
-  bool get _wheelAdjustmentEnabled =>
-      widget.enabled && commands.canAdjust && session.editing == null;
-
-  bool _claimsWeightWheel(Offset globalPosition) {
-    if (!_wheelAdjustmentEnabled) return false;
-    final surface = _surfaceKey.currentContext?.findRenderObject();
-    if (surface is! RenderBox) return false;
-    final local = surface.globalToLocal(globalPosition);
-    final group = session.selectedGroup;
-    if (group != null &&
-        (_tagRect(group.id, surface)?.contains(local) ?? false)) {
-      return true;
-    }
-    return session.selected.any(
-      (id) => _tagRect(id, surface)?.contains(local) ?? false,
-    );
-  }
-
-  void _wheel(PointerSignalEvent event, {int? tagId}) {
-    if (!_wheelAdjustmentEnabled ||
-        event is! PointerScrollEvent ||
-        event.scrollDelta.dy == 0 ||
-        (tagId != null && !session.selected.contains(tagId))) {
-      return;
-    }
-    GestureBinding.instance.pointerSignalResolver.register(event, (resolved) {
-      final scroll = resolved as PointerScrollEvent;
-      commands.adjustWeight(step: scroll.scrollDelta.dy < 0 ? 0.05 : -0.05);
-      scroll.respond(allowPlatformDefault: false);
-    });
-  }
-
   Future<void> _action(TagEditorAction action) async {
     if (!widget.enabled || !commands.available(action)) return;
     switch (action) {
@@ -529,9 +494,21 @@ class _TagEditorViewState extends ConsumerState<TagEditorView> {
   }
 
   KeyEventResult _key(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent || !widget.enabled) {
+    if ((event is! KeyDownEvent && event is! KeyRepeatEvent) ||
+        !widget.enabled) {
       return KeyEventResult.ignored;
     }
+    final step = promptWeightArrowStep(event);
+    if (step != null &&
+        widget.enableKeyboardAdjustment &&
+        commands.canAdjust &&
+        session.editing == null &&
+        !_addFocus.hasFocus &&
+        !_autocomplete.isOpen) {
+      commands.adjustWeight(step: step);
+      return KeyEventResult.handled;
+    }
+    if (event is KeyRepeatEvent) return KeyEventResult.ignored;
     final keyboard = HardwareKeyboard.instance;
     final modifier = keyboard.isControlPressed || keyboard.isMetaPressed;
     final key = event.logicalKey;
@@ -634,7 +611,6 @@ class _TagEditorViewState extends ConsumerState<TagEditorView> {
         groupId: session,
         child: TextFieldTapRegion(
           child: Listener(
-            onPointerSignal: _wheel,
             child: PromptActionSurface(
               key: const ValueKey('tag-action-toolbar'),
               child: Padding(
@@ -830,7 +806,6 @@ class _TagEditorViewState extends ConsumerState<TagEditorView> {
                   onSelect: _select,
                   onEdit: _edit,
                   onMenu: (position, tag) => _menu(position, tag: tag),
-                  onWheel: (event, id) => _wheel(event, tagId: id),
                 ),
               ],
             ),

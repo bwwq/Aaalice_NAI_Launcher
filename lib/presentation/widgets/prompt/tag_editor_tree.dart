@@ -26,7 +26,6 @@ class TagEditorTree extends StatefulWidget {
     required this.onSelect,
     required this.onEdit,
     required this.onMenu,
-    required this.onWheel,
     required this.autocompleteOverlay,
     this.pendingAddition,
     required this.addition,
@@ -43,7 +42,6 @@ class TagEditorTree extends StatefulWidget {
   final ValueChanged<PromptEditorTag> onSelect;
   final void Function(PromptEditorTag, TextEditingValue) onEdit;
   final void Function(Offset, PromptEditorTag) onMenu;
-  final void Function(PointerSignalEvent, int) onWheel;
   final Widget addition;
   final ValueChanged<bool> onDraggingChanged;
   @override
@@ -209,9 +207,6 @@ class _TagEditorTreeState extends State<TagEditorTree> {
       label: context.l10n.tagMode_group,
       selected: selected,
       child: Listener(
-        onPointerSignal: selected
-            ? (event) => widget.onWheel(event, tag.leaves.first.id)
-            : null,
         child: GestureDetector(
           onTap: widget.enabled ? () => widget.onSelect(tag) : null,
           child: Container(
@@ -345,7 +340,6 @@ class _TagEditorTreeState extends State<TagEditorTree> {
               ),
             ),
             Listener(
-              onPointerSignal: (event) => widget.onWheel(event, tag.id),
               onPointerDown: (event) {
                 if (event.buttons == kMiddleMouseButton && widget.enabled) {
                   session.toggleEnabled([tag.id]);

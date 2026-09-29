@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -138,8 +137,6 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
   bool _descendantHasFocus = false;
   TextEditingValue? _lastObservedValue;
   bool? _keepEmptyQueryVisible;
-  final Set<int> _relatedClickPointers = <int>{};
-  final Set<int> _regularClickPointers = <int>{};
   Offset? _cursorOffset;
   double _caretLineHeight = 0;
   String? _pinnedRelatedTag;
@@ -308,29 +305,23 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
 
     // NaiSyntaxController also notifies listeners when only its paint cache or
     // search highlighting changes. Ignore those identical value notifications;
-    // only a real caret/selection move should dismiss an unpinned popup.
+    // only a real caret/selection move should dismiss the popup.
     if (!textChanged && !compositionCommitted) {
       final selectionChanged = value.selection != previousValue.selection;
       final composingChanged = value.composing != previousValue.composing;
       if (!selectionChanged && !composingChanged) return;
-      // Click-opened and related popups own their pointer lifecycle: pointer-up
-      // either opens the newly clicked tag or explicitly closes the popup, and
-      // caret movement keys are handled below. Ignoring controller selection
-      // synchronization here prevents the tap recognizer's delayed caret update
-      // from closing the menu it just opened.
-      if (_keepEmptyQueryVisible ?? false) return;
-      if (_pinnedRelatedTag == null) _dismissOverlay('selection changed');
+      _closeOverlay();
       return;
     }
     if (isComposing) {
-      if (_pinnedRelatedTag == null) _dismissOverlay('composition started');
+      _closeOverlay();
       return;
     }
     if (textChanged && !activeTokenChanged) {
       _closeOverlay();
       return;
     }
-    if (_hasInputFocus) {
+    if (_hasInputFocus && _orchestrator?.state.query != null) {
       _startQuery(
         related: _pinnedRelatedTag != null,
         relatedTagOverride: _pinnedRelatedTag,
@@ -345,10 +336,6 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
       return;
     }
     widget.onChanged?.call(value.text);
-    _startQuery(
-      related: _pinnedRelatedTag != null,
-      relatedTagOverride: _pinnedRelatedTag,
-    );
   }
 
   int _cursorPosition(TextEditingValue value) => value.selection.isValid
@@ -364,7 +351,7 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
 
   void _handleEffectiveFocusChanged() {
     if (!_hasInputFocus) {
-      if (_pinnedRelatedTag == null) _dismissOverlay('focus lost');
+      _closeOverlay();
       return;
     }
     _scheduleCursorMetricsUpdate();
@@ -626,12 +613,35 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
       return KeyEventResult.ignored;
     }
     final keyboard = HardwareKeyboard.instance;
+    final selection = widget.controller.selection;
+    final composing = widget.controller.value.composing;
     final relatedShortcut =
-        event.logicalKey == LogicalKeyboardKey.space &&
         keyboard.isShiftPressed &&
         (keyboard.isControlPressed || keyboard.isMetaPressed);
-    if (relatedShortcut) {
-      _startQuery(related: true, resetPinnedRelatedTag: true);
+    final plainSpace =
+        !keyboard.isControlPressed &&
+        !keyboard.isMetaPressed &&
+        !keyboard.isAltPressed &&
+        !keyboard.isShiftPressed;
+    if (event.logicalKey == LogicalKeyboardKey.space &&
+        (plainSpace || relatedShortcut) &&
+        !keyboard.isAltPressed &&
+        widget.enabled &&
+        _hasInputFocus &&
+        widget.controller.text.trim().isNotEmpty &&
+        ref.read(autocompleteSettingsProvider).enabled &&
+        selection.isValid &&
+        selection.isCollapsed &&
+        selection.end <= widget.controller.text.length &&
+        !(composing.isValid && !composing.isCollapsed)) {
+      if (event is KeyDownEvent) {
+        _initializeUnified();
+        _startQuery(
+          related: relatedShortcut,
+          resetPinnedRelatedTag: true,
+          keepEmptyVisible: true,
+        );
+      }
       return KeyEventResult.handled;
     }
     if (_overlayEntry == null) return KeyEventResult.ignored;
@@ -652,6 +662,13 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
         event.logicalKey == LogicalKeyboardKey.end;
     if (movesTextCaret) {
       if (event is KeyDownEvent) _dismissOverlay('keyboard caret move');
+      return KeyEventResult.ignored;
+    }
+    if (keyboard.isControlPressed ||
+        keyboard.isMetaPressed ||
+        keyboard.isAltPressed ||
+        keyboard.isShiftPressed) {
+      _closeOverlay();
       return KeyEventResult.ignored;
     }
     final candidates = _orchestrator?.state.candidates ?? const [];
@@ -724,9 +741,6 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
     if (candidate.isExisting) return;
     final query = state.query!;
     final settings = ref.read(autocompleteSettingsProvider);
-    final completedTag = query.kind == CompletionQueryKind.tag
-        ? candidate.canonicalTag
-        : null;
     final applied = PromptTokenParser.apply(
       text: widget.controller.text,
       query: query,
@@ -747,79 +761,19 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
     widget.onChanged?.call(applied.text);
     widget.onSuggestionSelected?.call(applied.text);
     _selectedId = null;
-    _dismissOverlay();
-    final nextRelatedTag = _pinnedRelatedTag ?? completedTag;
-    if (settings.relatedTagsEnabled && nextRelatedTag != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _hasInputFocus) {
-          _startQuery(related: true, relatedTagOverride: nextRelatedTag);
-        }
-      });
+    if (_pinnedRelatedTag != null && settings.relatedTagsEnabled) {
+      // Continue only when the user explicitly pinned this manual query.
+      _startQuery(related: true, relatedTagOverride: _pinnedRelatedTag);
+    } else {
+      _closeOverlay();
     }
   }
 
   void _onPointerDown(PointerDownEvent event) {
-    final keyboard = HardwareKeyboard.instance;
-    final isPrimaryClick = event.buttons == kPrimaryButton;
-    final requestsRelated = keyboard.isControlPressed || keyboard.isMetaPressed;
-    if (isPrimaryClick && requestsRelated) {
-      _relatedClickPointers.add(event.pointer);
-      _regularClickPointers.remove(event.pointer);
-    } else if (isPrimaryClick) {
-      _regularClickPointers.add(event.pointer);
-      _relatedClickPointers.remove(event.pointer);
-    } else {
-      _relatedClickPointers.remove(event.pointer);
-      _regularClickPointers.remove(event.pointer);
-    }
+    _closeOverlay();
   }
 
-  void _onPointerUp(PointerUpEvent event) {
-    _scheduleCursorMetricsUpdate();
-    final keyboard = HardwareKeyboard.instance;
-    final startedAsRelated = _relatedClickPointers.remove(event.pointer);
-    final startedAsRegular = _regularClickPointers.remove(event.pointer);
-    final isPrimaryClick = startedAsRelated || startedAsRegular;
-    final requestsRelated =
-        isPrimaryClick &&
-        (startedAsRelated ||
-            keyboard.isControlPressed ||
-            keyboard.isMetaPressed);
-    if (requestsRelated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _hasInputFocus) {
-          _startQuery(
-            related: true,
-            resetPinnedRelatedTag: true,
-            keepEmptyVisible: true,
-          );
-        }
-      });
-      return;
-    }
-
-    final settings = ref.read(autocompleteSettingsProvider);
-    final selection = widget.controller.selection;
-    if (!startedAsRegular ||
-        !settings.openOnTagClick ||
-        !selection.isValid ||
-        !selection.isCollapsed) {
-      if (_pinnedRelatedTag == null) {
-        _dismissOverlay('pointer interaction without an open intent');
-      }
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _hasInputFocus) {
-        _startQuery(resetPinnedRelatedTag: true, keepEmptyVisible: true);
-      }
-    });
-  }
-
-  void _onPointerCancel(PointerCancelEvent event) {
-    _relatedClickPointers.remove(event.pointer);
-    _regularClickPointers.remove(event.pointer);
-  }
+  void _onPointerUp(PointerUpEvent event) => _scheduleCursorMetricsUpdate();
 
   void _toggleRelatedPin() {
     final relatedTag = _orchestrator?.state.query?.relatedTag;
@@ -917,7 +871,6 @@ class _AutocompleteWrapperState extends ConsumerState<AutocompleteWrapper> {
         child: Listener(
           onPointerDown: _onPointerDown,
           onPointerUp: _onPointerUp,
-          onPointerCancel: _onPointerCancel,
           child: NotificationListener<ScrollNotification>(
             onNotification: (_) {
               _scheduleCursorMetricsUpdate();

@@ -59,7 +59,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     await tester.pump();
@@ -69,7 +69,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('repeated wheel steps replace the multiline selection weight', (
+  testWidgets('repeated arrow steps replace the multiline selection weight', (
     tester,
   ) async {
     const body = 'cat, blue eyes,\n\nsoft light, garden';
@@ -83,10 +83,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
-      scrollPhysics: WeightAdjustScrollPhysics(
-        controllerProvider: () => prompt,
-      ),
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     prompt.selection = const TextSelection(
@@ -97,12 +94,12 @@ void main() {
     final pageOffset = page.offset;
 
     for (final expected in ['0.95', '0.90', '0.85']) {
-      await _sendWheel(tester);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await tester.pump();
       expect(prompt.text, '$expected::$body::');
     }
     for (final expected in ['0.90', '0.95', '1.00', '1.05']) {
-      await _sendWheel(tester, delta: const Offset(0, -40));
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
       await tester.pump();
       expect(prompt.text, expected == '1.00' ? body : '$expected::$body::');
     }
@@ -123,27 +120,20 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     prompt.selection = const TextSelection(baseOffset: 0, extentOffset: 3);
     await tester.pump();
     final pageOffsetBefore = page.offset;
-    bool? platformDefaultAllowed;
 
-    await _sendWheel(
-      tester,
-      onRespond: ({required bool allowPlatformDefault}) {
-        platformDefaultAllowed = allowPlatformDefault;
-      },
-    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
 
     expect(prompt.text, '0.95::cat::, dog');
     expect(page.offset, pageOffsetBefore);
-    expect(platformDefaultAllowed, isFalse);
   });
 
-  testWidgets('wheel weighting never wraps negative block boundaries', (
+  testWidgets('arrow weighting never wraps negative block boundaries', (
     tester,
   ) async {
     const text = 'girl, negative(red hair, glasses)';
@@ -157,7 +147,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     prompt.selection = TextSelection(
@@ -166,12 +156,12 @@ void main() {
     );
     await tester.pump();
 
-    await _sendWheel(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
 
     expect(prompt.text, 'girl, negative(0.95::red hair, glasses::)');
   });
 
-  testWidgets('wheel weighting rejects a selection crossing block boundaries', (
+  testWidgets('wheel scrolls with a selection crossing block boundaries', (
     tester,
   ) async {
     const text = 'girl, negative(red hair, glasses)';
@@ -185,7 +175,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     prompt.selection = const TextSelection(
@@ -201,7 +191,7 @@ void main() {
     expect(page.offset, greaterThan(pageOffsetBefore));
   });
 
-  testWidgets('disabled wheel adjustment leaves page scrolling available', (
+  testWidgets('disabled arrow adjustment leaves page scrolling available', (
     tester,
   ) async {
     final prompt = TextEditingController(text: 'cat, dog');
@@ -214,7 +204,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: false,
+      enableKeyboardAdjustment: false,
     );
     focus.requestFocus();
     prompt.selection = const TextSelection(baseOffset: 0, extentOffset: 3);
@@ -240,7 +230,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     prompt.selection = const TextSelection.collapsed(offset: 3);
     await tester.pump();
@@ -252,7 +242,7 @@ void main() {
     expect(page.offset, greaterThan(pageOffsetBefore));
   });
 
-  testWidgets('selected prompt does not scroll its internal text viewport', (
+  testWidgets('wheel scrolls selected prompt without changing weights', (
     tester,
   ) async {
     final prompt = TextEditingController(
@@ -267,10 +257,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
-      scrollPhysics: WeightAdjustScrollPhysics(
-        controllerProvider: () => prompt,
-      ),
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     prompt.selection = const TextSelection(baseOffset: 0, extentOffset: 3);
@@ -287,14 +274,12 @@ void main() {
 
     await _sendWheel(tester);
 
-    expect(prompt.text, startsWith('0.95::tag::\n'));
-    expect(inner.position.pixels, innerOffsetBefore);
+    expect(prompt.text, List<String>.filled(40, 'tag').join('\n'));
+    expect(inner.position.pixels, greaterThan(innerOffsetBefore));
     expect(page.offset, pageOffsetBefore);
   });
 
-  testWidgets('disabling on a mounted field restores internal scrolling', (
-    tester,
-  ) async {
+  testWidgets('disabling arrows keeps internal scrolling', (tester) async {
     final original = List<String>.filled(40, 'tag').join('\n');
     final prompt = TextEditingController(text: original);
     final focus = FocusNode();
@@ -306,10 +291,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
-      scrollPhysics: WeightAdjustScrollPhysics(
-        controllerProvider: () => prompt,
-      ),
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     prompt.selection = const TextSelection(baseOffset: 0, extentOffset: 3);
@@ -320,7 +302,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: false,
+      enableKeyboardAdjustment: false,
       scrollPhysics: null,
     );
     await tester.pump();
@@ -338,9 +320,7 @@ void main() {
     expect(inner.position.pixels, greaterThan(innerOffsetBefore));
   });
 
-  testWidgets('enabling on a mounted field installs exclusive physics', (
-    tester,
-  ) async {
+  testWidgets('enabling arrows keeps internal scrolling', (tester) async {
     final prompt = TextEditingController(
       text: List<String>.filled(40, 'tag').join('\n'),
     );
@@ -353,7 +333,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: false,
+      enableKeyboardAdjustment: false,
       scrollPhysics: null,
     );
     focus.requestFocus();
@@ -365,10 +345,7 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
-      scrollPhysics: WeightAdjustScrollPhysics(
-        controllerProvider: () => prompt,
-      ),
+      enableKeyboardAdjustment: true,
     );
     await tester.pump();
 
@@ -382,13 +359,13 @@ void main() {
 
     await _sendWheel(tester);
 
-    expect(prompt.text, startsWith('0.95::tag::\n'));
-    expect(inner.position.pixels, innerOffsetBefore);
+    expect(prompt.text, List<String>.filled(40, 'tag').join('\n'));
+    expect(inner.position.pixels, greaterThan(innerOffsetBefore));
     expect(page.offset, pageOffsetBefore);
   });
 
   testWidgets(
-    'mounted unified input uses replacement controller for wheel exclusivity',
+    'mounted unified input uses replacement controller for arrow weights',
     (tester) async {
       final originalA = List<String>.filled(40, 'old').join('\n');
       final originalB = List<String>.filled(40, 'tag').join('\n');
@@ -421,7 +398,7 @@ void main() {
         ProviderScope(
           overrides: [
             localStorageServiceProvider.overrideWith(
-              (ref) => _WheelEnabledStorage(),
+              (ref) => _ArrowEnabledStorage(),
             ),
           ],
           child: InteractionPolicyScope(
@@ -490,7 +467,7 @@ void main() {
       final innerOffsetBefore = mountedInner.position.pixels;
       final pageOffsetBefore = page.offset;
 
-      await _sendWheel(tester);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
 
       expect(controllerA.text, originalA);
       expect(controllerB.text, startsWith('0.95::tag::\n'));
@@ -499,33 +476,7 @@ void main() {
     },
   );
 
-  test('exclusive prompt physics follows observed precise-pointer input', () {
-    const windowsTouch = InteractionPolicy(
-      modality: InteractionModality.touch,
-      touchAvailable: true,
-      precisePointerAvailable: false,
-    );
-    const androidMouse = InteractionPolicy(
-      modality: InteractionModality.pointer,
-      touchAvailable: false,
-      precisePointerAvailable: true,
-    );
-    const mixedInput = InteractionPolicy(
-      modality: InteractionModality.touch,
-      touchAvailable: true,
-      precisePointerAvailable: true,
-    );
-
-    expect(supportsPromptWeightScrollPhysics(windowsTouch), isFalse);
-    expect(supportsPromptWeightScrollPhysics(androidMouse), isTrue);
-    expect(supportsPromptWeightScrollPhysics(mixedInput), isTrue);
-    expect(
-      supportsPromptWeightScrollPhysics(InteractionPolicy.neutral),
-      isFalse,
-    );
-  });
-
-  testWidgets('floating toolbar wheel obeys the wheel setting', (tester) async {
+  testWidgets('floating toolbar wheel never changes weights', (tester) async {
     final prompt = TextEditingController(text: 'cat');
     final focus = FocusNode();
     final page = ScrollController(initialScrollOffset: 100);
@@ -536,20 +487,10 @@ void main() {
       prompt: prompt,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     prompt.selection = const TextSelection(baseOffset: 0, extentOffset: 3);
-    await tester.pump();
-    expect(find.byType(TextField), findsNWidgets(2));
-
-    await _pumpHarness(
-      tester,
-      prompt: prompt,
-      focus: focus,
-      page: page,
-      enableWheelAdjustment: false,
-    );
     await tester.pump();
     expect(find.byType(TextField), findsNWidgets(2));
 
@@ -581,7 +522,7 @@ void main() {
       prompt: controllerA,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     controllerA.selection = const TextSelection(baseOffset: 0, extentOffset: 3);
@@ -593,7 +534,7 @@ void main() {
       prompt: controllerB,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     await tester.pump();
 
@@ -620,7 +561,7 @@ void main() {
       prompt: controllerA,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     focus.requestFocus();
     controllerA.selection = const TextSelection(baseOffset: 0, extentOffset: 3);
@@ -632,7 +573,7 @@ void main() {
       prompt: controllerB,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     await tester.pump();
     await tester.tap(find.byIcon(Icons.add));
@@ -662,7 +603,7 @@ void main() {
       prompt: controllerA,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     expect(find.byType(TextField), findsOneWidget);
 
@@ -671,7 +612,7 @@ void main() {
       prompt: controllerB,
       focus: focus,
       page: page,
-      enableWheelAdjustment: true,
+      enableKeyboardAdjustment: true,
     );
     await tester.pump();
 
@@ -756,9 +697,9 @@ void main() {
   });
 }
 
-class _WheelEnabledStorage extends LocalStorageService {
+class _ArrowEnabledStorage extends LocalStorageService {
   @override
-  bool getEnablePromptWeightScroll() => true;
+  bool getEnablePromptWeightArrowKeys() => true;
 }
 
 void _registerControllerSwapCleanup(
@@ -790,7 +731,7 @@ Future<void> _pumpHarness(
   required TextEditingController prompt,
   required FocusNode focus,
   required ScrollController page,
-  required bool enableWheelAdjustment,
+  required bool enableKeyboardAdjustment,
   ScrollPhysics? scrollPhysics,
 }) {
   return tester.pumpWidget(
@@ -810,7 +751,7 @@ Future<void> _pumpHarness(
                   child: WeightAdjustToolbarWrapper(
                     controller: prompt,
                     focusNode: focus,
-                    enableWheelAdjustment: enableWheelAdjustment,
+                    enableKeyboardAdjustment: enableKeyboardAdjustment,
                     child: ThemedInput(
                       key: _fieldKey,
                       controller: prompt,

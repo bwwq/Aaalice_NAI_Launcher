@@ -38,7 +38,6 @@ void main() {
                 onSelect: (_) {},
                 onEdit: (_, _) {},
                 onMenu: (_, _) {},
-                onWheel: (_, _) {},
                 autocompleteOverlay: autocomplete,
                 addition: const SizedBox(width: 44, height: 44),
                 onDraggingChanged: (_) {},

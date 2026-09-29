@@ -3350,7 +3350,7 @@ abstract class AppLocalizations {
   /// No description provided for @prompt_cooccurrenceRecommendationSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Suggest after accepting a tag; Ctrl+Shift+Space or Ctrl+click also opens related tags'**
+  /// **'Press Ctrl+Shift+Space within a tag to view related tags. Selecting a suggestion does not open them automatically.'**
   String get prompt_cooccurrenceRecommendationSubtitle;
 
   /// No description provided for @prompt_regexRulesManage.
@@ -14026,17 +14026,17 @@ abstract class AppLocalizations {
   /// **'Show the Random Prompt button and Random Mode toggle on the generation page'**
   String get settings_showRandomPromptToolsSubtitle;
 
-  /// No description provided for @settings_enablePromptWeightScroll.
+  /// No description provided for @settings_enablePromptWeightArrowKeys.
   ///
   /// In en, this message translates to:
-  /// **'Adjust prompt weight with mouse wheel'**
-  String get settings_enablePromptWeightScroll;
+  /// **'Adjust prompt weights with arrow keys'**
+  String get settings_enablePromptWeightArrowKeys;
 
-  /// No description provided for @settings_enablePromptWeightScrollSubtitle.
+  /// No description provided for @settings_enablePromptWeightArrowKeysSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'When prompt text is selected, use the wheel only to adjust its weight and suppress other scroll actions.'**
-  String get settings_enablePromptWeightScrollSubtitle;
+  /// **'With prompt text selected, ↑ increases and ↓ decreases its weight. The wheel only scrolls; Shift+arrows still extend the selection.'**
+  String get settings_enablePromptWeightArrowKeysSubtitle;
 
   /// No description provided for @settings_queueRetryCountMax.
   ///
@@ -22203,17 +22203,17 @@ abstract class AppLocalizations {
   /// **'Add a comma after insertion'**
   String get autocomplete_autoComma;
 
-  /// No description provided for @autocomplete_openOnTagClick.
+  /// No description provided for @autocomplete_manualTrigger.
   ///
   /// In en, this message translates to:
-  /// **'Open autocomplete when clicking tags'**
-  String get autocomplete_openOnTagClick;
+  /// **'Open suggestions with Space'**
+  String get autocomplete_manualTrigger;
 
-  /// No description provided for @autocomplete_openOnTagClickSubtitle.
+  /// No description provided for @autocomplete_manualTriggerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'When enabled, clicking an existing tag opens normal autocomplete; Ctrl/Command-click still shows related tags'**
-  String get autocomplete_openOnTagClickSubtitle;
+  /// **'Press Space within a comma-separated tag. Selecting, copying, pasting, and ordinary typing do not open suggestions.'**
+  String get autocomplete_manualTriggerSubtitle;
 
   /// No description provided for @autocomplete_replaceUnderscores.
   ///
@@ -22236,7 +22236,7 @@ abstract class AppLocalizations {
   /// No description provided for @autocomplete_relatedTagsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Suggest after accepting a tag; also use Ctrl+Shift+Space or Ctrl+click on a tag'**
+  /// **'Press Ctrl+Shift+Space within a tag to view related tags. Selecting a suggestion does not open them automatically.'**
   String get autocomplete_relatedTagsSubtitle;
 
   /// No description provided for @autocomplete_danbooruApi.

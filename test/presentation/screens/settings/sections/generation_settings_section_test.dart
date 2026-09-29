@@ -27,16 +27,16 @@ void main() {
     );
     await tester.pump();
 
-    final tileFinder = find.widgetWithText(SwitchListTile, '滚轮调整提示词权重');
+    final tileFinder = find.widgetWithText(SwitchListTile, '方向键调整提示词权重');
     expect(tileFinder, findsOneWidget);
     expect(tester.widget<SwitchListTile>(tileFinder).value, isTrue);
     expect(find.textContaining('不再触发页面滚动'), findsOneWidget);
 
-    await tester.tap(find.text('滚轮调整提示词权重'));
+    await tester.tap(find.text('方向键调整提示词权重'));
     await tester.pump();
 
     expect(tester.widget<SwitchListTile>(tileFinder).value, isFalse);
-    expect(storage.values[StorageKeys.enablePromptWeightScroll], isFalse);
+    expect(storage.values[StorageKeys.enablePromptWeightArrowKeys], isFalse);
   });
 
   testWidgets('prompt weight wheel switch rolls back and shows save failure', (
@@ -61,11 +61,11 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.text('滚轮调整提示词权重'));
+    await tester.tap(find.text('方向键调整提示词权重'));
     await tester.pump();
     await tester.pump();
 
-    final tileFinder = find.widgetWithText(SwitchListTile, '滚轮调整提示词权重');
+    final tileFinder = find.widgetWithText(SwitchListTile, '方向键调整提示词权重');
     expect(tester.widget<SwitchListTile>(tileFinder).value, isTrue);
     expect(find.textContaining('保存失败'), findsOneWidget);
     expect(storage.values, isEmpty);
@@ -126,7 +126,7 @@ void main() {
     expect(find.text('失败重试'), findsOneWidget);
     expect(find.text('完成提醒'), findsOneWidget);
     expect(find.text('显示随机提示词工具'), findsOneWidget);
-    expect(find.text('滚轮调整提示词权重'), findsOneWidget);
+    expect(find.text('方向键调整提示词权重'), findsOneWidget);
     expect(find.text('重试次数'), findsOneWidget);
     expect(find.text('重试间隔'), findsOneWidget);
     expect(find.text('完成音效'), findsOneWidget);

@@ -62,7 +62,7 @@ Future<void> refreshCloudSyncRuntime(Ref ref, Set<String> adapterIds) async {
     ref.invalidate(highlightEmphasisSettingsProvider);
     ref.invalidate(sdSyntaxAutoConvertSettingsProvider);
     ref.invalidate(resolveAliasOnCopySettingsProvider);
-    ref.invalidate(promptWeightScrollSettingsProvider);
+    ref.invalidate(promptWeightArrowKeysSettingsProvider);
     ref.invalidate(cooccurrenceSettingsProvider);
     ref.invalidate(randomPromptModeProvider);
     ref.invalidate(randomPromptToolsVisibilityProvider);

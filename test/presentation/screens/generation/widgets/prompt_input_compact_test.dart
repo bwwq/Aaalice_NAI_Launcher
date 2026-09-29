@@ -294,7 +294,7 @@ class _TestLocalStorageService extends LocalStorageService {
   final String lastPrompt;
 
   @override
-  bool getEnablePromptWeightScroll() => true;
+  bool getEnablePromptWeightArrowKeys() => true;
 
   @override
   bool getEnableAutocomplete() => false;

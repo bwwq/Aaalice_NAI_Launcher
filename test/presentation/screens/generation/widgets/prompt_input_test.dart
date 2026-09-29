@@ -1731,7 +1731,8 @@ void main() {
       ProviderScope(
         overrides: [
           localStorageServiceProvider.overrideWith(
-            (ref) => _TestLocalStorageService(enablePromptWeightScroll: false),
+            (ref) =>
+                _TestLocalStorageService(enablePromptWeightArrowKeys: false),
           ),
           characterPromptNotifierProvider.overrideWith(
             _TestCharacterPromptNotifier.new,
@@ -1763,7 +1764,7 @@ void main() {
     );
     final input = tester.widget<ThemedInput>(find.byType(ThemedInput).first);
 
-    expect(wrapper.enableWheelAdjustment, isFalse);
+    expect(wrapper.enableKeyboardAdjustment, isFalse);
     expect(input.scrollPhysics, isNull);
   });
 
@@ -1939,18 +1940,18 @@ class _ResponsivePromptHarnessState extends State<_ResponsivePromptHarness> {
 
 class _TestLocalStorageService extends MemoryLocalStorage {
   _TestLocalStorageService({
-    this.enablePromptWeightScroll = true,
+    this.enablePromptWeightArrowKeys = true,
     this.defaultModel = 'nai-diffusion-4-5-full',
     this.lastPrompt = '',
   });
 
-  final bool enablePromptWeightScroll;
+  final bool enablePromptWeightArrowKeys;
   final String defaultModel;
   final String lastPrompt;
   bool? savedTransparentBackground;
 
   @override
-  bool getEnablePromptWeightScroll() => enablePromptWeightScroll;
+  bool getEnablePromptWeightArrowKeys() => enablePromptWeightArrowKeys;
 
   @override
   bool getEnableAutocomplete() => false;

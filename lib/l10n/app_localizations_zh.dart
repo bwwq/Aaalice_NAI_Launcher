@@ -1731,7 +1731,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get prompt_cooccurrenceRecommendationSubtitle =>
-      '选中标签后自动推荐，也可按 Ctrl+Shift+Space 或 Ctrl+单击';
+      '在标签内按 Ctrl+Shift+Space 查看相关标签，不会在选词后自动弹出';
 
   @override
   String get prompt_regexRulesManage => '正则替换规则…';
@@ -7596,11 +7596,11 @@ class AppLocalizationsZh extends AppLocalizations {
       '在生成页显示“随机提示词”按钮和“抽卡模式”开关';
 
   @override
-  String get settings_enablePromptWeightScroll => '滚轮调整提示词权重';
+  String get settings_enablePromptWeightArrowKeys => '方向键调整提示词权重';
 
   @override
-  String get settings_enablePromptWeightScrollSubtitle =>
-      '选中提示词时，滚轮仅调整权重，不再触发页面滚动等其他滚轮操作';
+  String get settings_enablePromptWeightArrowKeysSubtitle =>
+      '选中提示词后，↑ 增加、↓ 减少权重；滚轮仅滚动，Shift+方向键仍用于扩展选区';
 
   @override
   String settings_queueRetryCountMax(Object count) {
@@ -12215,11 +12215,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get autocomplete_autoComma => '插入后自动添加逗号';
 
   @override
-  String get autocomplete_openOnTagClick => '点击标签时显示补全';
+  String get autocomplete_manualTrigger => '空格打开候选菜单';
 
   @override
-  String get autocomplete_openOnTagClickSubtitle =>
-      '开启后，点击已有标签会打开普通补全菜单；Ctrl/Command + 点击仍显示相关标签';
+  String get autocomplete_manualTriggerSubtitle =>
+      '在逗号分隔的标签内按空格打开候选；选取、复制、粘贴和普通输入不会自动打开';
 
   @override
   String get autocomplete_replaceUnderscores => '插入时将下划线替换为空格';
@@ -12232,7 +12232,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get autocomplete_relatedTagsSubtitle =>
-      '选中补全后自动推荐；也可在标签上按 Ctrl+Shift+Space 或 Ctrl+单击';
+      '在标签内按 Ctrl+Shift+Space 查看相关标签，不会在选词后自动弹出';
 
   @override
   String get autocomplete_danbooruApi => 'Danbooru 在线补充';
@@ -16452,7 +16452,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get prompt_cooccurrenceRecommendationSubtitle =>
-      '選中標籤後自動推薦，也可按 Ctrl+Shift+Space 或 Ctrl+單擊';
+      '在標籤內按 Ctrl+Shift+Space 查看相關標籤，不會在選詞後自動彈出';
 
   @override
   String get prompt_regexRulesManage => '正則替換規則…';
@@ -22317,11 +22317,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
       '在生成頁顯示“隨機提示詞”按鈕和“抽卡模式”開關';
 
   @override
-  String get settings_enablePromptWeightScroll => '滾輪調整提示詞權重';
+  String get settings_enablePromptWeightArrowKeys => '方向鍵調整提示詞權重';
 
   @override
-  String get settings_enablePromptWeightScrollSubtitle =>
-      '選中提示詞時，滾輪僅調整權重，不再觸發頁面滾動等其他滾輪操作';
+  String get settings_enablePromptWeightArrowKeysSubtitle =>
+      '選取提示詞後，↑ 增加、↓ 減少權重；滾輪僅捲動，Shift+方向鍵仍用於擴展選取範圍';
 
   @override
   String settings_queueRetryCountMax(Object count) {
@@ -26936,11 +26936,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get autocomplete_autoComma => '插入後自動新增逗號';
 
   @override
-  String get autocomplete_openOnTagClick => '點選標籤時顯示補全';
+  String get autocomplete_manualTrigger => '空白鍵開啟候選選單';
 
   @override
-  String get autocomplete_openOnTagClickSubtitle =>
-      '開啟後，點選已有標籤會開啟普通補全選單；Ctrl/Command + 點選仍顯示相關標籤';
+  String get autocomplete_manualTriggerSubtitle =>
+      '在逗號分隔的標籤內按空白鍵開啟候選；選取、複製、貼上和一般輸入不會自動開啟';
 
   @override
   String get autocomplete_replaceUnderscores => '插入時將下劃線替換為空格';
@@ -26953,7 +26953,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get autocomplete_relatedTagsSubtitle =>
-      '選中補全後自動推薦；也可在標籤上按 Ctrl+Shift+Space 或 Ctrl+單擊';
+      '在標籤內按 Ctrl+Shift+Space 查看相關標籤，不會在選詞後自動彈出';
 
   @override
   String get autocomplete_danbooruApi => 'Danbooru 線上補充';

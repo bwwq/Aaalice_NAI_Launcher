@@ -101,25 +101,25 @@ final resolveAliasOnCopySettingsProvider =
 );
 
 typedef _$ResolveAliasOnCopySettings = Notifier<bool>;
-String _$promptWeightScrollSettingsHash() =>
-    r'7d2c67313f9d3910f8dc228f990eab720f4bc084';
+String _$promptWeightArrowKeysSettingsHash() =>
+    r'cdb9810ce149e5e73816a97af8666929bf9609ad';
 
-/// 滚轮调整提示词权重设置 Notifier
+/// 方向键调整提示词权重设置 Notifier
 ///
-/// Copied from [PromptWeightScrollSettings].
-@ProviderFor(PromptWeightScrollSettings)
-final promptWeightScrollSettingsProvider =
-    NotifierProvider<PromptWeightScrollSettings, bool>.internal(
-  PromptWeightScrollSettings.new,
-  name: r'promptWeightScrollSettingsProvider',
+/// Copied from [PromptWeightArrowKeysSettings].
+@ProviderFor(PromptWeightArrowKeysSettings)
+final promptWeightArrowKeysSettingsProvider =
+    NotifierProvider<PromptWeightArrowKeysSettings, bool>.internal(
+  PromptWeightArrowKeysSettings.new,
+  name: r'promptWeightArrowKeysSettingsProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$promptWeightScrollSettingsHash,
+      : _$promptWeightArrowKeysSettingsHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$PromptWeightScrollSettings = Notifier<bool>;
+typedef _$PromptWeightArrowKeysSettings = Notifier<bool>;
 String _$cooccurrenceSettingsHash() =>
     r'6657660934960cd63cb87d0e70cda007a1924822';
 

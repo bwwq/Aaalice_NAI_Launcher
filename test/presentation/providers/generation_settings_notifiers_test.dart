@@ -7,7 +7,7 @@ import 'package:nai_launcher/core/storage/local_storage_service.dart';
 import 'package:nai_launcher/presentation/providers/generation/generation_settings_notifiers.dart';
 
 void main() {
-  group('PromptWeightScrollSettings', () {
+  group('PromptWeightArrowKeysSettings', () {
     test('defaults to enabled when storage has no value', () {
       final storage = _MemoryLocalStorageService();
       final container = ProviderContainer(
@@ -15,26 +15,26 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      expect(container.read(promptWeightScrollSettingsProvider), isTrue);
+      expect(container.read(promptWeightArrowKeysSettingsProvider), isTrue);
     });
 
     test('restores and persists the selected value', () async {
       final storage = _MemoryLocalStorageService(
-        initialValues: {StorageKeys.enablePromptWeightScroll: false},
+        initialValues: {StorageKeys.enablePromptWeightArrowKeys: false},
       );
       final container = ProviderContainer(
         overrides: [localStorageServiceProvider.overrideWith((ref) => storage)],
       );
       addTearDown(container.dispose);
 
-      expect(container.read(promptWeightScrollSettingsProvider), isFalse);
+      expect(container.read(promptWeightArrowKeysSettingsProvider), isFalse);
 
       await container
-          .read(promptWeightScrollSettingsProvider.notifier)
+          .read(promptWeightArrowKeysSettingsProvider.notifier)
           .set(true);
 
-      expect(container.read(promptWeightScrollSettingsProvider), isTrue);
-      expect(storage.values[StorageKeys.enablePromptWeightScroll], isTrue);
+      expect(container.read(promptWeightArrowKeysSettingsProvider), isTrue);
+      expect(storage.values[StorageKeys.enablePromptWeightArrowKeys], isTrue);
     });
 
     test('rolls back and reports persistence failures to the caller', () async {
@@ -45,14 +45,16 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      expect(container.read(promptWeightScrollSettingsProvider), isTrue);
+      expect(container.read(promptWeightArrowKeysSettingsProvider), isTrue);
 
       await expectLater(
-        container.read(promptWeightScrollSettingsProvider.notifier).set(false),
+        container
+            .read(promptWeightArrowKeysSettingsProvider.notifier)
+            .set(false),
         throwsA(same(failure)),
       );
 
-      expect(container.read(promptWeightScrollSettingsProvider), isTrue);
+      expect(container.read(promptWeightArrowKeysSettingsProvider), isTrue);
       expect(storage.values, isEmpty);
     });
 
@@ -67,14 +69,14 @@ void main() {
         );
         addTearDown(container.dispose);
         final notifier = container.read(
-          promptWeightScrollSettingsProvider.notifier,
+          promptWeightArrowKeysSettingsProvider.notifier,
         );
 
         final first = notifier.set(false);
         final second = notifier.set(true);
         final third = notifier.set(false);
 
-        expect(container.read(promptWeightScrollSettingsProvider), isFalse);
+        expect(container.read(promptWeightArrowKeysSettingsProvider), isFalse);
         await _flushAsyncWork();
         expect(storage.writes, hasLength(1));
 
@@ -84,7 +86,7 @@ void main() {
         await firstResult;
         await _flushAsyncWork();
 
-        expect(container.read(promptWeightScrollSettingsProvider), isFalse);
+        expect(container.read(promptWeightArrowKeysSettingsProvider), isFalse);
         expect(storage.writes, hasLength(2));
 
         storage.succeedWrite(1);
@@ -95,8 +97,11 @@ void main() {
         storage.succeedWrite(2);
         await third;
 
-        expect(container.read(promptWeightScrollSettingsProvider), isFalse);
-        expect(storage.values[StorageKeys.enablePromptWeightScroll], isFalse);
+        expect(container.read(promptWeightArrowKeysSettingsProvider), isFalse);
+        expect(
+          storage.values[StorageKeys.enablePromptWeightArrowKeys],
+          isFalse,
+        );
       },
     );
 
@@ -111,7 +116,7 @@ void main() {
         );
         addTearDown(container.dispose);
         final notifier = container.read(
-          promptWeightScrollSettingsProvider.notifier,
+          promptWeightArrowKeysSettingsProvider.notifier,
         );
 
         final first = notifier.set(false);
@@ -123,7 +128,7 @@ void main() {
           StateError('third write failed'),
         ];
 
-        expect(container.read(promptWeightScrollSettingsProvider), isFalse);
+        expect(container.read(promptWeightArrowKeysSettingsProvider), isFalse);
         await _flushAsyncWork();
         expect(storage.writes, hasLength(1));
         final results = [
@@ -138,12 +143,15 @@ void main() {
           await _flushAsyncWork();
           if (index < failures.length - 1) {
             expect(storage.writes, hasLength(index + 2));
-            expect(container.read(promptWeightScrollSettingsProvider), isFalse);
+            expect(
+              container.read(promptWeightArrowKeysSettingsProvider),
+              isFalse,
+            );
           }
         }
 
-        expect(container.read(promptWeightScrollSettingsProvider), isTrue);
-        expect(storage.values[StorageKeys.enablePromptWeightScroll], isTrue);
+        expect(container.read(promptWeightArrowKeysSettingsProvider), isTrue);
+        expect(storage.values[StorageKeys.enablePromptWeightArrowKeys], isTrue);
       },
     );
 
@@ -158,13 +166,13 @@ void main() {
         );
         addTearDown(container.dispose);
         final notifier = container.read(
-          promptWeightScrollSettingsProvider.notifier,
+          promptWeightArrowKeysSettingsProvider.notifier,
         );
 
         final first = notifier.set(false);
         final second = notifier.set(true);
 
-        expect(container.read(promptWeightScrollSettingsProvider), isTrue);
+        expect(container.read(promptWeightArrowKeysSettingsProvider), isTrue);
         await _flushAsyncWork();
         expect(storage.writes, hasLength(1));
 
@@ -172,15 +180,18 @@ void main() {
         await first;
         await _flushAsyncWork();
         expect(storage.writes, hasLength(2));
-        expect(container.read(promptWeightScrollSettingsProvider), isTrue);
+        expect(container.read(promptWeightArrowKeysSettingsProvider), isTrue);
 
         final failure = StateError('latest write failed');
         final secondResult = expectLater(second, throwsA(same(failure)));
         storage.failWrite(1, failure);
         await secondResult;
 
-        expect(container.read(promptWeightScrollSettingsProvider), isFalse);
-        expect(storage.values[StorageKeys.enablePromptWeightScroll], isFalse);
+        expect(container.read(promptWeightArrowKeysSettingsProvider), isFalse);
+        expect(
+          storage.values[StorageKeys.enablePromptWeightArrowKeys],
+          isFalse,
+        );
       },
     );
   });
@@ -190,7 +201,7 @@ Future<void> _flushAsyncWork() => Future<void>.delayed(Duration.zero);
 
 class _ControlledLocalStorageService extends LocalStorageService {
   _ControlledLocalStorageService({required bool initialValue})
-    : values = {StorageKeys.enablePromptWeightScroll: initialValue};
+    : values = {StorageKeys.enablePromptWeightArrowKeys: initialValue};
 
   final Map<String, Object?> values;
   final List<_ControlledWrite> writes = [];

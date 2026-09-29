@@ -92,9 +92,9 @@ class ResolveAliasOnCopySettings extends _$ResolveAliasOnCopySettings {
   }
 }
 
-/// 滚轮调整提示词权重设置 Notifier
+/// 方向键调整提示词权重设置 Notifier
 @Riverpod(keepAlive: true)
-class PromptWeightScrollSettings extends _$PromptWeightScrollSettings {
+class PromptWeightArrowKeysSettings extends _$PromptWeightArrowKeysSettings {
   LocalStorageService get _storage => ref.read(localStorageServiceProvider);
 
   Future<void> _writeQueue = Future<void>.value();
@@ -103,7 +103,7 @@ class PromptWeightScrollSettings extends _$PromptWeightScrollSettings {
 
   @override
   bool build() {
-    final storedValue = _storage.getEnablePromptWeightScroll();
+    final storedValue = _storage.getEnablePromptWeightArrowKeys();
     _lastConfirmedValue = storedValue;
     return storedValue;
   }
@@ -116,14 +116,14 @@ class PromptWeightScrollSettings extends _$PromptWeightScrollSettings {
 
     final operation = _writeQueue.then<void>((_) async {
       try {
-        await _storage.setEnablePromptWeightScroll(value);
+        await _storage.setEnablePromptWeightArrowKeys(value);
         _lastConfirmedValue = value;
       } catch (error, stackTrace) {
         if (revision == _latestRevision) {
           state = _lastConfirmedValue;
         }
         AppLogger.e(
-          'Failed to persist prompt weight wheel setting',
+          'Failed to persist prompt weight arrow-key setting',
           error,
           stackTrace,
         );

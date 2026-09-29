@@ -1,12 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:nai_launcher/core/utils/localization_extension.dart';
 
 import '../prompt/prompt_weight_editing.dart';
-import '../../adaptive/interaction_policy.dart';
+import '../prompt/prompt_weight_shortcuts.dart';
 import '../../../core/utils/prompt_edit_document.dart';
 import '../prompt/prompt_action_overlay.dart';
 import '../prompt/prompt_weight_controls.dart';
@@ -42,8 +41,8 @@ class WeightAdjustToolbarWrapper extends StatefulWidget {
   /// 是否启用权重调整
   final bool enabled;
 
-  /// 是否允许通过鼠标滚轮调整权重
-  final bool enableWheelAdjustment;
+  /// 是否允许通过方向键调整选中提示词的权重
+  final bool enableKeyboardAdjustment;
 
   const WeightAdjustToolbarWrapper({
     super.key,
@@ -51,7 +50,7 @@ class WeightAdjustToolbarWrapper extends StatefulWidget {
     required this.controller,
     this.focusNode,
     this.enabled = true,
-    this.enableWheelAdjustment = true,
+    this.enableKeyboardAdjustment = true,
   });
 
   @override
@@ -200,29 +199,26 @@ class _WeightAdjustToolbarWrapperState
     }
   }
 
-  void _handlePointerSignal(PointerSignalEvent event) {
-    if (event is! PointerScrollEvent ||
-        event.scrollDelta.dy == 0 ||
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    final step = promptWeightArrowStep(event);
+    final composing = widget.controller.value.composing;
+    if (step == null ||
         !widget.enabled ||
-        !widget.enableWheelAdjustment ||
+        !widget.enableKeyboardAdjustment ||
         !PromptWeightEditing.hasSelection(widget.controller) ||
+        (composing.isValid && !composing.isCollapsed) ||
         !PromptWeightEditing.protectNegativeBlockSyntax(widget.controller)) {
-      return;
+      return KeyEventResult.ignored;
     }
-
-    GestureBinding.instance.pointerSignalResolver.register(event, (
-      resolvedEvent,
-    ) {
-      final scrollEvent = resolvedEvent as PointerScrollEvent;
-      _adjustWeightByStep(scrollEvent.scrollDelta.dy < 0 ? 0.05 : -0.05);
-      scrollEvent.respond(allowPlatformDefault: false);
-    });
+    _adjustWeightByStep(step);
+    return KeyEventResult.handled;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerSignal: _handlePointerSignal,
+    return Focus(
+      canRequestFocus: false,
+      onKeyEvent: _handleKeyEvent,
       child: OverlayPortal.overlayChildLayoutBuilder(
         controller: _overlayController,
         overlayChildBuilder: _buildToolbarOverlay,
@@ -283,42 +279,11 @@ class _WeightAdjustToolbarWrapperState
       caretRect: caretRect,
       overlaySize: layoutInfo.overlaySize,
       onClose: _hideToolbar,
-      enableWheelAdjustment: widget.enableWheelAdjustment,
       onInteractingChanged: (interacting) {
         _isInteractingWithToolbar = interacting;
       },
     );
   }
-}
-
-class WeightAdjustScrollPhysics extends ScrollPhysics {
-  const WeightAdjustScrollPhysics({
-    required this.controllerProvider,
-    super.parent,
-  });
-
-  /// Resolves lazily because Flutter can retain same-type physics on rebuild.
-  final ValueGetter<TextEditingController> controllerProvider;
-
-  @override
-  WeightAdjustScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return WeightAdjustScrollPhysics(
-      controllerProvider: controllerProvider,
-      parent: buildParent(ancestor),
-    );
-  }
-
-  @override
-  bool shouldAcceptUserOffset(ScrollMetrics position) {
-    if (PromptWeightEditing.hasSelection(controllerProvider())) {
-      return false;
-    }
-    return super.shouldAcceptUserOffset(position);
-  }
-}
-
-bool supportsPromptWeightScrollPhysics(InteractionPolicy interactionPolicy) {
-  return interactionPolicy.precisePointerAvailable;
 }
 
 class _WeightAdjustToolbar extends StatelessWidget {
@@ -327,14 +292,12 @@ class _WeightAdjustToolbar extends StatelessWidget {
     required this.caretRect,
     required this.overlaySize,
     required this.onClose,
-    required this.enableWheelAdjustment,
     required this.onInteractingChanged,
   });
   final TextEditingController controller;
   final Rect caretRect;
   final Size overlaySize;
   final VoidCallback onClose;
-  final bool enableWheelAdjustment;
   final ValueChanged<bool> onInteractingChanged;
 
   void _weight(double value) {
@@ -349,19 +312,6 @@ class _WeightAdjustToolbar extends StatelessWidget {
       3.0,
     ),
   );
-  void _wheel(PointerSignalEvent event) {
-    if (!enableWheelAdjustment ||
-        event is! PointerScrollEvent ||
-        event.scrollDelta.dy == 0) {
-      return;
-    }
-    GestureBinding.instance.pointerSignalResolver.register(event, (resolved) {
-      final scroll = resolved as PointerScrollEvent;
-      _step(scroll.scrollDelta.dy < 0 ? 0.05 : -0.05);
-      scroll.respond(allowPlatformDefault: false);
-    });
-  }
-
   void _toggle(PromptEditSpan span) {
     final replacement = span.disabled
         ? span.text
@@ -397,7 +347,6 @@ class _WeightAdjustToolbar extends StatelessWidget {
           onPointerDown: (_) => onInteractingChanged(true),
           onPointerUp: (_) => onInteractingChanged(false),
           onPointerCancel: (_) => onInteractingChanged(false),
-          onPointerSignal: _wheel,
           child: PromptActionSurface(
             key: const ValueKey('weight_adjust_toolbar_surface'),
             child: Padding(

@@ -15,6 +15,11 @@ on:
         options:
           - debug
           - release
+      test-paths:
+        description: Optional comma-separated regression test paths
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -81,7 +86,7 @@ jobs:
             -ExpectedVersion $version
 
       - name: Prepare incremental Flutter build
-        if: steps.portable-cache.outputs.cache-hit != 'true'
+        if: steps.portable-cache.outputs.cache-hit != 'true' || inputs.test-paths != ''
         uses: ./.github/actions/prepare-flutter-build
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -89,6 +94,13 @@ jobs:
           cache-flutter-sdk: ${{ vars.WINDOWS_FLUTTER_SDK_CACHE || 'true' }}
           cache-pub-dependencies: ${{ vars.WINDOWS_PUB_CACHE || 'true' }}
           cache-windows-build: "true"
+
+      - name: Run requested regression tests
+        if: inputs.test-paths != '' && inputs.test-paths != null
+        shell: pwsh
+        env:
+          REGRESSION_TEST_PATHS: ${{ inputs.test-paths }}
+        run: ./scripts/run_flutter_tests.ps1 -Path $env:REGRESSION_TEST_PATHS -TimeoutSeconds 120 -NoPub
 
       - name: Setup NuGet
         if: steps.portable-cache.outputs.cache-hit != 'true'

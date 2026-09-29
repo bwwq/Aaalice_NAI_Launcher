@@ -1021,51 +1021,53 @@ void main() {
     expect(toolbar.bottom, lessThanOrEqualTo(220));
     await tester.pumpWidget(const SizedBox.shrink());
   });
-  testWidgets(
-    'mouse multiselect, selected wheel and middle disable preserve originals',
-    (tester) async {
-      final source = TextEditingController(text: 'cat, dog, bird');
-      addTearDown(source.dispose);
-      await pumpEditor(tester, source, locale: const Locale('en'));
-      await tester.tap(find.byKey(const ValueKey('tag-mode-button')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('cat'));
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.tap(find.text('dog'));
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pumpAndSettle();
-      expect(
-        tester
-            .widgetList<TagEditorCapsule>(find.byType(TagEditorCapsule))
-            .where((w) => w.selected),
-        hasLength(2),
-      );
-      await tester.sendEventToBinding(
-        PointerScrollEvent(
-          position: tester.getCenter(find.text('dog')),
-          scrollDelta: const Offset(0, -20),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(source.text, '1.05::cat, dog::, bird');
-      await tester.sendEventToBinding(
-        PointerScrollEvent(
-          position: tester.getCenter(find.text('bird')),
-          scrollDelta: const Offset(0, -20),
-        ),
-      );
-      expect(source.text, '1.05::cat, dog::, bird');
-      final pointer = await tester.startGesture(
-        tester.getCenter(find.text('bird')),
-        kind: PointerDeviceKind.mouse,
-        buttons: kMiddleMouseButton,
-      );
-      await pointer.up();
-      await tester.pumpAndSettle();
-      expect(source.text, '1.05::cat, dog::, /*disabled:bird*/');
-      await tester.pumpWidget(const SizedBox.shrink());
-    },
-  );
+  testWidgets('multiselect arrows adjust weights while wheel preserves text', (
+    tester,
+  ) async {
+    final source = TextEditingController(text: 'cat, dog, bird');
+    addTearDown(source.dispose);
+    await pumpEditor(tester, source, locale: const Locale('en'));
+    await tester.tap(find.byKey(const ValueKey('tag-mode-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('cat'));
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.tap(find.text('dog'));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widgetList<TagEditorCapsule>(find.byType(TagEditorCapsule))
+          .where((w) => w.selected),
+      hasLength(2),
+    );
+    await tester.sendEventToBinding(
+      PointerScrollEvent(
+        position: tester.getCenter(find.text('dog')),
+        scrollDelta: const Offset(0, -20),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(source.text, 'cat, dog, bird');
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+    expect(source.text, '1.05::cat, dog::, bird');
+    await tester.sendEventToBinding(
+      PointerScrollEvent(
+        position: tester.getCenter(find.text('bird')),
+        scrollDelta: const Offset(0, -20),
+      ),
+    );
+    expect(source.text, '1.05::cat, dog::, bird');
+    final pointer = await tester.startGesture(
+      tester.getCenter(find.text('bird')),
+      kind: PointerDeviceKind.mouse,
+      buttons: kMiddleMouseButton,
+    );
+    await pointer.up();
+    await tester.pumpAndSettle();
+    expect(source.text, '1.05::cat, dog::, /*disabled:bird*/');
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
   testWidgets(
     'touch long press selects multiple tags and Back clears selection',
     (tester) async {
