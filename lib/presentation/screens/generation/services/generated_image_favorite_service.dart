@@ -71,7 +71,9 @@ class GeneratedImageFavoriteService {
 
   Future<bool> toggle(GeneratedImage image) => _pending.putIfAbsent(
     image.id,
-    () => _toggle(image).whenComplete(() => _pending.remove(image.id)),
+    () => _toggle(image).whenComplete(() {
+      _pending.remove(image.id);
+    }),
   );
 
   Future<bool> _toggle(GeneratedImage original) async {
