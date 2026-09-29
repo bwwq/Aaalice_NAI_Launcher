@@ -771,7 +771,7 @@ void main() {
     expect(find.byTooltip('放大'), findsNothing);
   });
 
-  testWidgets('favorite button should appear at the top right and toggle', (
+  testWidgets('favorite button appears only while hovering and toggles', (
     tester,
   ) async {
     var toggled = false;
@@ -779,12 +779,21 @@ void main() {
       _buildCardApp(isFavorite: true, onFavoriteToggle: () => toggled = true),
     );
 
+    expect(find.byTooltip('取消收藏'), findsNothing);
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(gesture.removePointer);
+    await gesture.addPointer(location: Offset.zero);
+    await gesture.moveTo(tester.getCenter(find.byType(SelectableImageCard)));
+    await tester.pumpAndSettle();
     expect(find.byTooltip('取消收藏'), findsOneWidget);
 
     await tester.tap(find.byTooltip('取消收藏'));
     await tester.pump();
 
     expect(toggled, isTrue);
+    await gesture.moveTo(Offset.zero);
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('取消收藏'), findsNothing);
   });
 
   testWidgets('read-only card hides save and copy actions but keeps badge', (

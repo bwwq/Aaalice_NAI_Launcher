@@ -147,7 +147,8 @@ class ImageCardSurface extends StatelessWidget {
                     onChanged: capabilities.onSelectionChanged,
                   ),
                 ),
-              if (capabilities.onFavoriteToggle != null &&
+              if (controller.isHovering &&
+                  capabilities.onFavoriteToggle != null &&
                   !capabilities.selectionMode)
                 Positioned(
                   top: 8,
