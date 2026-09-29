@@ -10,15 +10,12 @@ import '../../data/services/bulk_operation_service.dart';
 import '../../core/utils/undo_redo_history.dart';
 import '../../l10n/app_localizations.dart';
 import 'collection_provider.dart';
+import 'local_image_favorite_provider.dart';
 
 part 'bulk_operation_provider.freezed.dart';
 part 'bulk_operation_provider.g.dart';
 
-typedef BulkOperationSummary = ({
-  int success,
-  int failed,
-  List<String> errors,
-});
+typedef BulkOperationSummary = ({int success, int failed, List<String> errors});
 
 /// Bulk operation type
 enum BulkOperationType {
@@ -507,6 +504,7 @@ class BulkOperationNotifier extends _$BulkOperationNotifier {
       );
 
       final result = outcome.result;
+      ref.read(galleryFavoriteRevisionProvider.notifier).state++;
       if (outcome.previous.isNotEmpty) {
         final command = _BulkToggleFavoriteCommand(
           'Toggle favorite for ${outcome.previous.length} images to $isFavorite',
@@ -633,6 +631,7 @@ class BulkOperationNotifier extends _$BulkOperationNotifier {
 
     try {
       await _history.undo();
+      ref.read(galleryFavoriteRevisionProvider.notifier).state++;
 
       state = state.copyWith(
         canUndo: _history.canUndo,
@@ -665,6 +664,7 @@ class BulkOperationNotifier extends _$BulkOperationNotifier {
 
     try {
       await _history.redo();
+      ref.read(galleryFavoriteRevisionProvider.notifier).state++;
 
       state = state.copyWith(
         canUndo: _history.canUndo,

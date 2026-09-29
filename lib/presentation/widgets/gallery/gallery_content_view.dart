@@ -615,7 +615,10 @@ class LocalGalleryContentView extends ConsumerWidget {
               : null,
           onFavoriteToggle: (data) => ref
               .read(localGalleryNotifierProvider.notifier)
-              .toggleFavorite((data as LocalImageDetailData).record.path),
+              .toggleFavorite(
+                (data as LocalImageDetailData).record.path,
+                rethrowError: true,
+              ),
           onSendToImg2Img: (data) async {
             try {
               final bytes = await data.getImageBytes();

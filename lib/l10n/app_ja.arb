@@ -1,4 +1,7 @@
 {
+  "imagePicker_favoriteImages": "お気に入りの画像",
+  "imagePicker_chooseLocalFile": "ローカルファイルを選択",
+  "imagePicker_noFavoriteImages": "お気に入りの画像はありません",
   "sidebarSort_title": "並び順",
   "sidebarSort_saveAfterMoveFailed": "順序は変更されましたが、並び順の設定を保存できませんでした：{error}",
   "@sidebarSort_saveAfterMoveFailed": {"placeholders": {"error": {"type": "String"}}},

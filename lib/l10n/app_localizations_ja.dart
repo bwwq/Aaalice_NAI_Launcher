@@ -9,6 +9,15 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
+  String get imagePicker_favoriteImages => 'お気に入りの画像';
+
+  @override
+  String get imagePicker_chooseLocalFile => 'ローカルファイルを選択';
+
+  @override
+  String get imagePicker_noFavoriteImages => 'お気に入りの画像はありません';
+
+  @override
   String get sidebarSort_title => '並び順';
 
   @override

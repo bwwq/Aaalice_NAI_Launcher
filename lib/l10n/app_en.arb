@@ -1,4 +1,7 @@
 {
+  "imagePicker_favoriteImages": "Favorite images",
+  "imagePicker_chooseLocalFile": "Choose a local file",
+  "imagePicker_noFavoriteImages": "No favorite images yet",
   "sidebarSort_title": "Sort by",
   "sidebarSort_saveAfterMoveFailed": "The order was changed, but the sort preference could not be saved: {error}",
   "@sidebarSort_saveAfterMoveFailed": {"placeholders": {"error": {"type": "String"}}},

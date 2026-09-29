@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +12,7 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/utils/thumbnail_image_normalizer.dart';
 import '../../../../data/models/tag_library/tag_library_category.dart';
 import '../../../../data/models/tag_library/tag_library_entry.dart';
+import '../../../../data/services/tag_library_thumbnail_store.dart';
 import '../../../adaptive/adaptive_presenter.dart';
 import '../../../adaptive/interaction_policy.dart';
 import '../../../prompt_assistant/providers/prompt_assistant_history_provider.dart';
@@ -30,6 +30,7 @@ import '../../../widgets/prompt/prompt_formatter_wrapper.dart';
 import '../../../widgets/prompt/tag_mode_prompt_field.dart';
 import 'thumbnail_crop_dialog.dart';
 import 'thumbnail_selection_preview.dart';
+import 'thumbnail_source_picker.dart';
 
 /// 添加/编辑词库条目对话框
 class EntryAddDialog extends ConsumerStatefulWidget {
@@ -144,13 +145,13 @@ class _EntryAddDialogState extends ConsumerState<EntryAddDialog> {
   String? _thumbnailPath;
   final Set<String> _temporaryThumbnailPaths = {};
   int _thumbnailImportRevision = 0;
+  bool _saving = false;
+  bool _thumbnailImporting = false;
 
   // 预览图显示范围调整参数
   double _thumbnailOffsetX = 0.0;
   double _thumbnailOffsetY = 0.0;
   double _thumbnailScale = 1.0;
-
-  bool get _isEditing => widget.entry != null;
 
   void _syncSyntaxHighlightSettings() {
     _contentController.highlightEnabled = ref.watch(
@@ -200,39 +201,63 @@ class _EntryAddDialogState extends ConsumerState<EntryAddDialog> {
     try {
       await _saveImageBytesToTemp(bytes);
     } catch (e) {
-      debugPrint('保存临时图像失败: $e');
+      if (mounted) {
+        AppToast.error(
+          context,
+          context.l10n.imagePicker_fileSelectionFailed('$e'),
+        );
+      }
     }
   }
 
   /// 统一转换为 PNG，避免 TIFF、TGA 等格式无法由 Flutter 直接预览。
-  Future<void> _saveImageBytesToTemp(Uint8List bytes) async {
+  Future<void> _saveImageBytesToTemp(
+    Uint8List bytes, {
+    bool normalized = false,
+  }) async {
     final importRevision = ++_thumbnailImportRevision;
-    final normalizedBytes = await compute(normalizeThumbnailImageToPng, bytes);
-    final tempDir = await getTemporaryDirectory();
-    final fileName = 'temp_${const Uuid().v4()}.png';
-    final file = File(path.join(tempDir.path, fileName));
-    await file.writeAsBytes(normalizedBytes);
+    setState(() => _thumbnailImporting = true);
+    try {
+      final normalizedBytes = normalized
+          ? bytes
+          : await compute(normalizeThumbnailImageToPng, bytes);
+      final tempDir = await getTemporaryDirectory();
+      final fileName = 'temp_${const Uuid().v4()}.png';
+      final file = File(path.join(tempDir.path, fileName));
+      await file.writeAsBytes(normalizedBytes);
 
-    if (!mounted || importRevision != _thumbnailImportRevision) {
-      await _deleteTemporaryThumbnail(file.path);
-      return;
-    }
+      if (!mounted || importRevision != _thumbnailImportRevision) {
+        await _deleteTemporaryThumbnail(file.path);
+        return;
+      }
 
-    final previousPath = _thumbnailPath;
-    _temporaryThumbnailPaths.add(file.path);
-    setState(() {
-      _thumbnailPath = file.path;
-    });
+      final previousPath = _thumbnailPath;
+      _temporaryThumbnailPaths.add(file.path);
+      setState(() {
+        _thumbnailPath = file.path;
+        _thumbnailOffsetX = 0;
+        _thumbnailOffsetY = 0;
+        _thumbnailScale = 1;
+      });
 
-    if (previousPath != null && _temporaryThumbnailPaths.remove(previousPath)) {
-      unawaited(_deleteTemporaryThumbnail(previousPath));
+      if (previousPath != null &&
+          _temporaryThumbnailPaths.remove(previousPath)) {
+        unawaited(_deleteTemporaryThumbnail(previousPath));
+      }
+    } finally {
+      if (mounted && importRevision == _thumbnailImportRevision) {
+        setState(() => _thumbnailImporting = false);
+      }
     }
   }
 
   void _clearThumbnail() {
     final previousPath = _thumbnailPath;
     _thumbnailImportRevision++;
-    setState(() => _thumbnailPath = null);
+    setState(() {
+      _thumbnailPath = null;
+      _thumbnailImporting = false;
+    });
     if (previousPath != null && _temporaryThumbnailPaths.remove(previousPath)) {
       unawaited(_deleteTemporaryThumbnail(previousPath));
     }
@@ -276,7 +301,13 @@ class _EntryAddDialogState extends ConsumerState<EntryAddDialog> {
   @override
   Widget build(BuildContext context) {
     _syncSyntaxHighlightSettings();
-    return _buildContent(Theme.of(context));
+    return PopScope(
+      canPop: !_saving,
+      child: AbsorbPointer(
+        absorbing: _saving,
+        child: _buildContent(Theme.of(context)),
+      ),
+    );
   }
 
   Widget _buildContent(ThemeData theme) {
@@ -419,7 +450,12 @@ class _EntryAddDialogState extends ConsumerState<EntryAddDialog> {
                 );
                 final save = FilledButton(
                   onPressed: _canSave() ? _save : null,
-                  child: Text(context.l10n.common_save),
+                  child: _saving
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(context.l10n.common_save),
                 );
                 if (stacked) {
                   return Column(
@@ -693,170 +729,102 @@ class _EntryAddDialogState extends ConsumerState<EntryAddDialog> {
   }
 
   Future<void> _selectThumbnail() async {
+    final result = await ThumbnailSourcePicker.show(context);
+    if (result == null || !mounted) return;
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: supportedThumbnailImageExtensions,
-        allowMultiple: false,
-      );
-      if (result == null) return;
-
-      final selectedFile = result.files.single;
-      final bytes =
-          selectedFile.bytes ??
-          (selectedFile.path == null
-              ? null
-              : await File(selectedFile.path!).readAsBytes());
-      if (bytes == null) {
-        throw const FileSystemException('无法读取所选图像');
-      }
-
-      await _saveImageBytesToTemp(bytes);
-    } catch (e) {
+      await _saveImageBytesToTemp(result.bytes, normalized: true);
+    } catch (error) {
       if (mounted) {
         AppToast.error(
           context,
-          context.l10n.imagePicker_fileSelectionFailed(e.toString()),
+          context.l10n.imagePicker_fileSelectionFailed('$error'),
         );
       }
     }
   }
 
   bool _canSave() {
-    return _contentController.text.trim().isNotEmpty;
-  }
-
-  /// 确保缩略图存储在应用目录内
-  /// 如果缩略图在外部路径，则复制到应用目录并返回新路径
-  Future<String?> _ensureThumbnailInAppDir(String? thumbnailPath) async {
-    if (thumbnailPath == null || thumbnailPath.isEmpty) {
-      return null;
-    }
-
-    // 检查文件是否已存在于应用目录内
-    final appDir = await getApplicationDocumentsDirectory();
-    final thumbnailsDir = Directory(
-      path.join(appDir.path, 'tag_library_thumbnails'),
-    );
-
-    // 如果路径已经在应用目录内，直接返回
-    if (thumbnailPath.startsWith(thumbnailsDir.path)) {
-      return thumbnailPath;
-    }
-
-    // 确保缩略图目录存在
-    if (!await thumbnailsDir.exists()) {
-      await thumbnailsDir.create(recursive: true);
-    }
-
-    // 复制文件到应用目录
-    final sourceFile = File(thumbnailPath);
-    if (!await sourceFile.exists()) {
-      // 原文件不存在，返回 null（图片可能被删除了）
-      return null;
-    }
-
-    final ext = path.extension(thumbnailPath);
-    final newFileName = '${const Uuid().v4()}$ext';
-    final newPath = path.join(thumbnailsDir.path, newFileName);
-
-    await sourceFile.copy(newPath);
-    return newPath;
-  }
-
-  /// 删除应用目录内的旧缩略图文件
-  Future<void> _deleteOldThumbnail(String? oldThumbnailPath) async {
-    if (oldThumbnailPath == null || oldThumbnailPath.isEmpty) {
-      return;
-    }
-
-    try {
-      final appDir = await getApplicationDocumentsDirectory();
-      final thumbnailsDir = path.join(appDir.path, 'tag_library_thumbnails');
-
-      // 只删除应用目录内的文件，避免误删外部文件
-      if (oldThumbnailPath.startsWith(thumbnailsDir)) {
-        final file = File(oldThumbnailPath);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      }
-    } catch (e) {
-      // 忽略删除失败，不影响保存流程
-      debugPrint('删除旧缩略图失败: $e');
-    }
+    return !_saving &&
+        !_thumbnailImporting &&
+        _contentController.text.trim().isNotEmpty;
   }
 
   Future<void> _save() async {
+    if (!_canSave()) return;
+    final notifier = ref.read(tagLibraryPageNotifierProvider.notifier);
+    final container = ProviderScope.containerOf(context, listen: false);
+    final l10n = context.l10n;
     final name = _nameController.text.trim();
     final content = _contentController.text.trim();
-    final tagsText = _tagsController.text.trim();
-    final tags = tagsText.isNotEmpty
-        ? tagsText
-              .split(',')
-              .map((t) => t.trim())
-              .where((t) => t.isNotEmpty)
-              .toList()
-        : <String>[];
-
-    if (content.isEmpty) return;
-
-    // 获取旧的缩略图路径（用于后续清理）
-    final String? oldThumbnailPath = _isEditing
-        ? widget.entry?.thumbnail
-        : null;
-
-    // 处理缩略图：确保存储在应用目录内
-    final String? savedThumbnailPath = await _ensureThumbnailInAppDir(
-      _thumbnailPath,
-    );
-
-    // 如果缩略图发生了变化，删除旧的
-    if (oldThumbnailPath != null &&
-        oldThumbnailPath != savedThumbnailPath &&
-        oldThumbnailPath != _thumbnailPath) {
-      await _deleteOldThumbnail(oldThumbnailPath);
-    }
-
-    final notifier = ref.read(tagLibraryPageNotifierProvider.notifier);
-
-    if (_isEditing) {
-      // 编辑模式：更新现有条目
-      final updatedEntry = widget.entry!.copyWith(
-        name: name,
-        content: content,
-        thumbnail: savedThumbnailPath,
-        thumbnailOffsetX: _thumbnailOffsetX,
-        thumbnailOffsetY: _thumbnailOffsetY,
-        thumbnailScale: _thumbnailScale,
-        tags: tags,
-        categoryId: _selectedCategoryId,
-        updatedAt: DateTime.now(),
+    final tags = _tagsController.text
+        .split(',')
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty)
+        .toList();
+    final selectedPath = _thumbnailPath;
+    final category = _selectedCategoryId;
+    final offsetX = _thumbnailOffsetX;
+    final offsetY = _thumbnailOffsetY;
+    final scale = _thumbnailScale;
+    final entry = widget.entry;
+    FocusScope.of(context).unfocus();
+    setState(() => _saving = true);
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final store = TagLibraryThumbnailStore(
+        Directory(path.join(appDir.path, 'tag_library_thumbnails')),
       );
-      notifier.updateEntry(updatedEntry);
-    } else {
-      // 新建模式：添加新条目
-      notifier.addEntry(
-        name: name,
-        content: content,
-        thumbnail: savedThumbnailPath,
-        thumbnailOffsetX: _thumbnailOffsetX,
-        thumbnailOffsetY: _thumbnailOffsetY,
-        thumbnailScale: _thumbnailScale,
-        tags: tags,
-        categoryId: _selectedCategoryId,
+      await store.commit(
+        selectedPath: selectedPath,
+        previousPath: entry?.thumbnail,
+        isReferenced: (oldPath) => container
+            .read(tagLibraryPageNotifierProvider)
+            .entries
+            .any((item) => item.thumbnail == oldPath),
+        persist: (savedPath) async {
+          if (entry != null) {
+            await notifier.updateEntry(
+              entry.copyWith(
+                name: name,
+                content: content,
+                tags: tags,
+                categoryId: category,
+                thumbnail: savedPath,
+                thumbnailOffsetX: offsetX,
+                thumbnailOffsetY: offsetY,
+                thumbnailScale: scale,
+                updatedAt: DateTime.now(),
+              ),
+              failOnPersistenceError: true,
+            );
+          } else {
+            await notifier.addEntry(
+              name: name,
+              content: content,
+              tags: tags,
+              categoryId: category,
+              thumbnail: savedPath,
+              thumbnailOffsetX: offsetX,
+              thumbnailOffsetY: offsetY,
+              thumbnailScale: scale,
+              failOnPersistenceError: true,
+            );
+          }
+        },
       );
-    }
-
-    if (mounted) {
-      Navigator.of(context).pop();
-      // 显示保存成功提示
+      if (!mounted) return;
+      setState(() => _saving = false);
       AppToast.success(
         context,
-        _isEditing
-            ? context.l10n.tagLibrary_entryUpdated
-            : context.l10n.tagLibrary_entrySaved,
+        entry != null
+            ? l10n.tagLibrary_entryUpdated
+            : l10n.tagLibrary_entrySaved,
       );
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (mounted) AppToast.error(context, l10n.image_saveFailed('$error'));
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 }

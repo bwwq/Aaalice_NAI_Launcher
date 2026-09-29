@@ -3,6 +3,7 @@ import '../../../selection/card_selection_scope.dart';
 import '../../../widgets/common/image_card_batch_scope.dart';
 import '../../../widgets/bulk_action_bar.dart';
 import '../services/generation_image_batch_actions.dart';
+import '../services/generated_image_favorite_service.dart';
 import 'package:nai_launcher/data/models/image/image_postprocess_phase.dart';
 import 'dart:async';
 import 'dart:io';
@@ -732,6 +733,12 @@ class _ImagePreviewWidgetState extends ConsumerState<ImagePreviewWidget> {
       imageBytes: imageBytes,
       sourceFilePath: image.filePath,
       imageIdentity: image.id,
+      isFavorite:
+          ref.watch(generatedImageFavoriteProvider(image.id)).valueOrNull ??
+          false,
+      onFavoriteToggle: image.canFavorite
+          ? () => toggleGeneratedImageFavorite(context, ref, image)
+          : null,
       index: index,
       showIndex: showIndex,
       // 透明像素透出所选底色（棋盘格/纯色），与官网结果区一致
@@ -1169,6 +1176,7 @@ class _ImagePreviewWidgetState extends ConsumerState<ImagePreviewWidget> {
           id: img.id,
           initialMetadata: img.metadata,
           showCopyButton: img.canSave,
+          showFavoriteButton: img.canFavorite,
         );
       }
 
@@ -1179,6 +1187,7 @@ class _ImagePreviewWidgetState extends ConsumerState<ImagePreviewWidget> {
         id: img.id,
         showSaveButton: img.canSave,
         showCopyButton: img.canSave,
+        showFavoriteButton: img.canFavorite,
         preserveOriginalBytesOnSave: img.preserveOriginalBytesOnSave,
         fixedTagUsageSnapshot: img.fixedTagUsageSnapshot,
       );
@@ -1192,6 +1201,14 @@ class _ImagePreviewWidgetState extends ConsumerState<ImagePreviewWidget> {
       showMetadataPanel: true,
       showThumbnails: allImages.length > 1,
       callbacks: ImageDetailCallbacks(
+        favoriteProvider: (detail) =>
+            generatedImageFavoriteProvider(detail.identifier),
+        onFavoriteToggle: (detail) async {
+          final target = sequence.firstWhere(
+            (item) => item.id == detail.identifier,
+          );
+          await toggleGeneratedImageFavorite(context, ref, target);
+        },
         onSave: (image) async {
           if (!image.showSaveButton) return;
           await _saveImage(context, image);

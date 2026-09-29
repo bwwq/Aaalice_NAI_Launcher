@@ -170,7 +170,9 @@ class LocalGalleryRepository {
     final file = File(filePath);
     var imageId = await _dataSource.getImageIdByPath(filePath);
     if (imageId == null) {
-      if (!await file.exists()) return false;
+      if (!await file.exists()) {
+        throw FileSystemException('Image no longer exists', filePath);
+      }
       final stat = await file.stat();
       imageId = await _dataSource.upsertImage(
         filePath: filePath,

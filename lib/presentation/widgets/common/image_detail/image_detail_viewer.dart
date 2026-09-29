@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
@@ -14,6 +16,7 @@ import '../../../../core/utils/window_focus_tracker.dart';
 import '../../../../core/windowing/workspace_side_panel_contract.dart';
 import '../../../adaptive/adaptive_presenter.dart';
 import '../../../providers/share_image_settings_provider.dart';
+import '../../../providers/local_image_favorite_provider.dart';
 import '../../../providers/copy_drag_watermark_provider.dart';
 import '../../../screens/mosaic/mosaic_editor_launcher.dart';
 import '../../../screens/watermark/watermark_editor_launcher.dart';
@@ -32,7 +35,9 @@ import 'image_detail_data.dart';
 /// 图像详情查看器回调函数
 class ImageDetailCallbacks {
   /// 收藏切换回调
-  final void Function(ImageDetailData image)? onFavoriteToggle;
+  final FutureOr<void> Function(ImageDetailData image)? onFavoriteToggle;
+  final ProviderListenable<AsyncValue<bool>> Function(ImageDetailData image)?
+  favoriteProvider;
 
   /// 复用元数据回调
   final Future<void> Function(ImageDetailData image)? onReuseMetadata;
@@ -51,6 +56,7 @@ class ImageDetailCallbacks {
 
   const ImageDetailCallbacks({
     this.onFavoriteToggle,
+    this.favoriteProvider,
     this.onReuseMetadata,
     this.onSave,
     this.onCopyImage,
@@ -187,6 +193,7 @@ class _ImageDetailViewerState extends ConsumerState<ImageDetailViewer> {
   final _focusNode = FocusNode();
   final Map<String, TransformationController> _transformationControllers = {};
   bool _isClosing = false;
+  final Set<String> _favoritePendingIds = {};
   DateTime? _lastCloseRequestedAt;
   late final ResizablePaneController _metadataPanelWidthController;
 
@@ -403,12 +410,39 @@ class _ImageDetailViewerState extends ConsumerState<ImageDetailViewer> {
     _requestClose('toggle-fullscreen');
   }
 
+  bool? _watchFavoriteValue() {
+    final provider = widget.callbacks?.favoriteProvider?.call(_currentImage);
+    if (provider != null) return ref.watch(provider).valueOrNull;
+    if (_currentImage is LocalImageDetailData) {
+      return ref
+          .watch(localImageFavoriteProvider(_currentImage.identifier))
+          .valueOrNull;
+    }
+    return null;
+  }
+
   /// 切换收藏
-  void _toggleFavorite() {
-    if (widget.callbacks?.onFavoriteToggle != null) {
-      widget.callbacks!.onFavoriteToggle!(_currentImage);
-      // 触发重建以更新收藏按钮状态
-      setState(() {});
+  Future<void> _toggleFavorite() async {
+    final image = _currentImage;
+    final callback = widget.callbacks?.onFavoriteToggle;
+    if (callback == null ||
+        !image.showFavoriteButton ||
+        !_favoritePendingIds.add(image.identifier)) {
+      return;
+    }
+    setState(() {});
+    try {
+      await callback(image);
+    } catch (error) {
+      if (mounted) {
+        AppToast.error(
+          context,
+          context.l10n.toast_favoriteUpdateFailed('$error'),
+        );
+      }
+    } finally {
+      _favoritePendingIds.remove(image.identifier);
+      if (mounted) setState(() {});
     }
   }
 
@@ -591,8 +625,12 @@ class _ImageDetailViewerState extends ConsumerState<ImageDetailViewer> {
                 ? () => _handleReuseMetadata(context)
                 : null,
             onFavoriteToggle: widget.callbacks?.onFavoriteToggle != null
-                ? () => widget.callbacks!.onFavoriteToggle!(_currentImage)
+                ? _toggleFavorite
                 : null,
+            favoriteValue: _watchFavoriteValue(),
+            favoriteBusy: _favoritePendingIds.contains(
+              _currentImage.identifier,
+            ),
             onSave: widget.callbacks?.onSave != null
                 ? () => widget.callbacks!.onSave!(_currentImage)
                 : null,

@@ -101,6 +101,24 @@ abstract class AppLocalizations {
     Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
   ];
 
+  /// No description provided for @imagePicker_favoriteImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite images'**
+  String get imagePicker_favoriteImages;
+
+  /// No description provided for @imagePicker_chooseLocalFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a local file'**
+  String get imagePicker_chooseLocalFile;
+
+  /// No description provided for @imagePicker_noFavoriteImages.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorite images yet'**
+  String get imagePicker_noFavoriteImages;
+
   /// No description provided for @sidebarSort_title.
   ///
   /// In en, this message translates to:

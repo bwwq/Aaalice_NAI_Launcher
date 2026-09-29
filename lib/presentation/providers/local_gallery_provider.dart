@@ -16,6 +16,7 @@ import '../../data/services/gallery/gallery_stream_scanner.dart';
 import '../../data/services/gallery/scan_state_manager.dart';
 import '../../data/services/gallery/unified_gallery_service.dart';
 import '../../l10n/app_localizations.dart';
+import 'local_image_favorite_provider.dart';
 
 part 'local_gallery_provider.freezed.dart';
 part 'local_gallery_provider.g.dart';
@@ -460,6 +461,7 @@ class LocalGalleryNotifier extends _$LocalGalleryNotifier {
         // 刷新当前页
         await loadPage(state.currentPage, showLoading: false);
       }
+      ref.read(galleryFavoriteRevisionProvider.notifier).state++;
       _favoriteCountLoad = null;
       _lastSynchronizedAt = DateTime.now();
     } on GalleryScanException catch (e) {
@@ -958,10 +960,14 @@ class LocalGalleryNotifier extends _$LocalGalleryNotifier {
   // 收藏
   // ============================================================
 
-  Future<bool> toggleFavorite(String filePath) async {
+  Future<bool> toggleFavorite(
+    String filePath, {
+    bool rethrowError = false,
+  }) async {
     try {
       final service = await getService();
       final isFav = await service.toggleFavorite(filePath);
+      ref.read(galleryFavoriteRevisionProvider.notifier).state++;
       final targetKey = galleryFilePathKey(filePath);
 
       // 更新当前页显示
@@ -972,7 +978,18 @@ class LocalGalleryNotifier extends _$LocalGalleryNotifier {
         return record;
       }).toList();
 
-      _setState(state.copyWith(currentImages: updatedImages));
+      _setState(
+        state.copyWith(
+          currentImages: updatedImages,
+          groupedImages: state.groupedImages
+              .map(
+                (record) => galleryFilePathKey(record.path) == targetKey
+                    ? record.copyWith(isFavorite: isFav)
+                    : record,
+              )
+              .toList(),
+        ),
+      );
 
       // 如果启用了收藏过滤，收藏/取消收藏都要重新应用，保证收藏栏即时增删。
       if (state.filterCriteria.showFavoritesOnly) {
@@ -991,9 +1008,11 @@ class LocalGalleryNotifier extends _$LocalGalleryNotifier {
           ),
         ),
       );
+      if (rethrowError) rethrow;
       return false;
     } catch (e) {
       AppLogger.e('Toggle favorite failed', e, null, 'LocalGalleryNotifier');
+      if (rethrowError) rethrow;
       return false;
     }
   }

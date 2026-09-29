@@ -23,6 +23,8 @@ class DetailTopBar extends StatelessWidget {
   final VoidCallback? onShowMetadata;
   final VoidCallback? onReuseMetadata;
   final VoidCallback? onFavoriteToggle;
+  final bool? favoriteValue;
+  final bool favoriteBusy;
   final VoidCallback? onSave;
   final VoidCallback? onCopyImage;
   final VoidCallback? onShare;
@@ -40,6 +42,8 @@ class DetailTopBar extends StatelessWidget {
     this.onShowMetadata,
     this.onReuseMetadata,
     this.onFavoriteToggle,
+    this.favoriteValue,
+    this.favoriteBusy = false,
     this.onSave,
     this.onCopyImage,
     this.onShare,
@@ -116,6 +120,8 @@ class DetailTopBar extends StatelessWidget {
                 onShowMetadata: onShowMetadata,
                 onReuseMetadata: onReuseMetadata,
                 onFavoriteToggle: onFavoriteToggle,
+                favoriteValue: favoriteValue,
+                favoriteBusy: favoriteBusy,
                 onSave: onSave,
                 onCopyImage: onCopyImage,
                 onShare: onShare,
@@ -151,6 +157,8 @@ class _DetailTopBarActions extends ConsumerWidget {
     this.onShowMetadata,
     this.onReuseMetadata,
     this.onFavoriteToggle,
+    this.favoriteValue,
+    this.favoriteBusy = false,
     this.onSave,
     this.onCopyImage,
     this.onShare,
@@ -165,6 +173,8 @@ class _DetailTopBarActions extends ConsumerWidget {
   final VoidCallback? onShowMetadata;
   final VoidCallback? onReuseMetadata;
   final VoidCallback? onFavoriteToggle;
+  final bool? favoriteValue;
+  final bool favoriteBusy;
   final VoidCallback? onSave;
   final VoidCallback? onCopyImage;
   final VoidCallback? onShare;
@@ -241,14 +251,15 @@ class _DetailTopBarActions extends ConsumerWidget {
         if (veryCompact && favorite != null)
           PopupMenuItem(
             value: _DetailOverflowAction.favorite,
+            enabled: !favoriteBusy,
             child: ListTile(
               leading: Icon(
-                currentImage.isFavorite
+                (favoriteValue ?? currentImage.isFavorite)
                     ? Icons.favorite
                     : Icons.favorite_border,
               ),
               title: Text(
-                currentImage.isFavorite
+                (favoriteValue ?? currentImage.isFavorite)
                     ? l10n.common_unfavorite
                     : l10n.common_favorite,
               ),
@@ -426,8 +437,9 @@ class _DetailTopBarActions extends ConsumerWidget {
   }
 
   Widget _buildFavorite(WidgetRef ref) {
-    var isFavorite = currentImage.isFavorite;
-    if (currentImage.identifier.isNotEmpty &&
+    var isFavorite = favoriteValue ?? currentImage.isFavorite;
+    if (favoriteValue == null &&
+        currentImage.identifier.isNotEmpty &&
         currentImage is LocalImageDetailData) {
       final galleryState = ref.watch(localGalleryNotifierProvider);
       final record = galleryState.currentImages
@@ -448,7 +460,7 @@ class _DetailTopBarActions extends ConsumerWidget {
           inactiveColor: Colors.white,
           showBackground: true,
           backgroundColor: Colors.black.withValues(alpha: 0.4),
-          onToggle: onFavoriteToggle,
+          onToggle: favoriteBusy ? null : onFavoriteToggle,
         ),
       ),
     );

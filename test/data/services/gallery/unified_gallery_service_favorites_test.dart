@@ -154,6 +154,60 @@ void main() {
       },
     );
 
+    test(
+      'independent favorite pagination ignores and preserves the active filter',
+      () async {
+        final files = [
+          File(p.join(galleryRoot.path, 'favorite_a.png')),
+          File(p.join(galleryRoot.path, 'favorite_b.png')),
+          File(p.join(galleryRoot.path, 'ordinary.png')),
+        ];
+        for (final file in files) {
+          await file.writeAsBytes(<int>[137, 80, 78, 71]);
+        }
+        await service.initialize();
+        await service.toggleFavorite(files[0].path);
+        await service.toggleFavorite(files[1].path);
+        await service.setSearchQuery('ordinary');
+        final filter = service.currentFilter;
+        final count = service.filteredCount;
+        final first = await service.queryPage(
+          page: 0,
+          pageSize: 1,
+          favoritesOnly: true,
+        );
+        final second = await service.queryPage(
+          page: 1,
+          pageSize: 1,
+          favoritesOnly: true,
+        );
+        expect(first.totalCount, 2);
+        expect(first.hasMore, isTrue);
+        expect(second.hasMore, isFalse);
+        expect(
+          [
+            ...first.records,
+            ...second.records,
+          ].map((image) => image.path).toSet(),
+          {files[0].path, files[1].path},
+        );
+        expect(service.currentFilter, filter);
+        expect(service.filteredCount, count);
+        final matching = await service.queryPage(
+          page: 0,
+          favoritesOnly: true,
+          searchQuery: 'favorite_a',
+        );
+        expect(matching.records.single.path, files[0].path);
+        final ordinary = await service.queryPage(
+          page: 0,
+          favoritesOnly: true,
+          searchQuery: 'ordinary',
+        );
+        expect(ordinary.records, isEmpty);
+      },
+    );
+
     test('queries favorite image records directly in modified order', () async {
       final olderFile = File(p.join(galleryRoot.path, 'older.png'));
       final newerFile = File(p.join(galleryRoot.path, 'newer.png'));

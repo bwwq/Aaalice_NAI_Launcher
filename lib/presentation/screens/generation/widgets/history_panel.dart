@@ -4,6 +4,7 @@ import '../../../widgets/common/image_card_action.dart';
 import '../../../widgets/common/image_card_action_dispatch.dart';
 import '../../../widgets/common/image_card_batch_scope.dart';
 import '../services/generation_image_batch_actions.dart';
+import '../services/generated_image_favorite_service.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -112,10 +113,6 @@ class _HistoryPanelState extends ConsumerState<HistoryPanel> {
   Timer? _hoverPreheatTimer;
   bool _isHistoryScrolling = false;
   String? _lastSharePreparationMaintenanceKey;
-  final Map<String, bool> _favoriteStates = {};
-  final Map<String, String?> _favoriteStatePaths = {};
-  final Set<String> _favoriteStatusLoadingIds = {};
-  final Set<String> _favoriteToggleLoadingIds = {};
   late final OwnedScrollController _scrollController;
   final Map<String, GlobalKey> _imageKeys = {};
   List<_HistoryRowDescriptor> _rowDescriptors = const [];
@@ -1268,129 +1265,13 @@ class _HistoryPanelState extends ConsumerState<HistoryPanel> {
     _showLinkedDetail(context, image);
   }
 
-  bool _favoriteStateFor(GeneratedImage image) {
-    _ensureFavoriteStateLoaded(image);
-    return _favoriteStates[image.id] ?? false;
-  }
-
-  void _ensureFavoriteStateLoaded(GeneratedImage image) {
-    final filePath = image.filePath;
-    if (filePath == null || filePath.isEmpty) {
-      if (_favoriteStatePaths[image.id] != null ||
-          _favoriteStates[image.id] == true) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          setState(() {
-            _favoriteStatePaths[image.id] = null;
-            _favoriteStates[image.id] = false;
-          });
-        });
-      }
-      return;
-    }
-
-    if (_favoriteStatePaths[image.id] == filePath &&
-        (_favoriteStates.containsKey(image.id) ||
-            _favoriteStatusLoadingIds.contains(image.id))) {
-      return;
-    }
-
-    _favoriteStatePaths[image.id] = filePath;
-    _favoriteStatusLoadingIds.add(image.id);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(
-        () async {
-          final isFavorite = await ref
-              .read(localGalleryNotifierProvider.notifier)
-              .isFavorite(filePath);
-          if (!mounted || _favoriteStatePaths[image.id] != filePath) return;
-          setState(() {
-            _favoriteStates[image.id] = isFavorite;
-            _favoriteStatusLoadingIds.remove(image.id);
-          });
-        }().catchError((Object error, StackTrace stack) {
-          if (!mounted) return;
-          setState(() {
-            _favoriteStatusLoadingIds.remove(image.id);
-          });
-        }),
-      );
-    });
-  }
+  bool _favoriteStateFor(GeneratedImage image) =>
+      ref.watch(generatedImageFavoriteProvider(image.id)).valueOrNull ?? false;
 
   Future<void> _toggleHistoryFavorite(
     BuildContext context,
     GeneratedImage image,
-  ) async {
-    if (!_favoriteToggleLoadingIds.add(image.id)) return;
-
-    try {
-      final filePath = await _ensureHistoryImageSaved(image);
-      final isFavorite = await ref
-          .read(localGalleryNotifierProvider.notifier)
-          .toggleFavorite(filePath);
-
-      if (!mounted) return;
-      setState(() {
-        _favoriteStatePaths[image.id] = filePath;
-        _favoriteStates[image.id] = isFavorite;
-      });
-
-      if (context.mounted) {
-        AppToast.success(
-          context,
-          isFavorite
-              ? context.l10n.toast_favorited
-              : context.l10n.toast_unfavorited,
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        AppToast.error(
-          context,
-          context.l10n.toast_favoriteUpdateFailed(e.toString()),
-        );
-      }
-    } finally {
-      _favoriteToggleLoadingIds.remove(image.id);
-    }
-  }
-
-  Future<String> _ensureHistoryImageSaved(GeneratedImage image) async {
-    final l10n = context.l10n;
-    final existingPath = image.filePath;
-    if (existingPath != null &&
-        existingPath.isNotEmpty &&
-        await File(existingPath).exists()) {
-      return existingPath;
-    }
-
-    final saveDirPath = await GalleryFolderRepository.instance.getRootPath();
-    if (saveDirPath == null || saveDirPath.isEmpty) {
-      throw StateError(l10n.localGallery_saveDirectoryNotSet);
-    }
-
-    // 原子保存：日期分类路径 + 独占防冲突 + 失败清理，全部在工具内完成
-    final filePath = await ImageSaveUtils.saveBytesToDatedPath(
-      rootPath: saveDirPath,
-      bytes: image.bytes,
-      seed: await ImageSaveUtils.resolveSeed(
-        metadata: image.metadata,
-        bytes: image.bytes,
-      ),
-    );
-
-    ref
-        .read(imageGenerationNotifierProvider.notifier)
-        .updateImageFilePath(image.id, filePath);
-    await ref.read(localGalleryNotifierProvider.notifier).addNewlySavedImages([
-      filePath,
-    ]);
-
-    return filePath;
-  }
+  ) => toggleGeneratedImageFavorite(context, ref, image);
 
   String _historyImageFileName(GeneratedImage image) {
     final filePath = image.filePath;
@@ -1608,6 +1489,14 @@ class _HistoryPanelState extends ConsumerState<HistoryPanel> {
       showMetadataPanel: true,
       showThumbnails: detailImages.length > 1,
       callbacks: ImageDetailCallbacks(
+        favoriteProvider: (detail) =>
+            generatedImageFavoriteProvider(detail.identifier),
+        onFavoriteToggle: (detail) async {
+          final target = sequence.firstWhere(
+            (item) => item.id == detail.identifier,
+          );
+          await toggleGeneratedImageFavorite(context, ref, target);
+        },
         onSave: (detail) async {
           if (!detail.showSaveButton) return;
           await GenerationSaveService.saveImageFromDetail(context, ref, detail);
@@ -1629,6 +1518,7 @@ class _HistoryPanelState extends ConsumerState<HistoryPanel> {
         id: image.id,
         initialMetadata: image.metadata,
         showCopyButton: image.canSave,
+        showFavoriteButton: image.canFavorite,
       );
     }
     return GeneratedImageDetailData(
@@ -1637,6 +1527,7 @@ class _HistoryPanelState extends ConsumerState<HistoryPanel> {
       id: image.id,
       showSaveButton: image.canSave,
       showCopyButton: image.canSave,
+      showFavoriteButton: image.canFavorite,
       preserveOriginalBytesOnSave: image.preserveOriginalBytesOnSave,
       fixedTagUsageSnapshot: image.fixedTagUsageSnapshot,
     );

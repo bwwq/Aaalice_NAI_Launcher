@@ -9,6 +9,15 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get imagePicker_favoriteImages => '收藏图片';
+
+  @override
+  String get imagePicker_chooseLocalFile => '选择本地文件';
+
+  @override
+  String get imagePicker_noFavoriteImages => '暂无收藏图片';
+
+  @override
   String get sidebarSort_title => '排序方式';
 
   @override
@@ -14719,6 +14728,15 @@ class AppLocalizationsZh extends AppLocalizations {
 /// The translations for Chinese, using the Han script (`zh_Hant`).
 class AppLocalizationsZhHant extends AppLocalizationsZh {
   AppLocalizationsZhHant() : super('zh_Hant');
+
+  @override
+  String get imagePicker_favoriteImages => '收藏圖片';
+
+  @override
+  String get imagePicker_chooseLocalFile => '選擇本機檔案';
+
+  @override
+  String get imagePicker_noFavoriteImages => '暫無收藏圖片';
 
   @override
   String get sidebarSort_title => '排序方式';

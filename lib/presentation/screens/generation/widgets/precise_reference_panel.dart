@@ -458,7 +458,7 @@ class _PreciseReferencePanelState extends ConsumerState<PreciseReferencePanel> {
   Future<void> _addReference() async {
     // 先选择类型
     final selectedType = await PreciseReferenceTypeDialog.show(context);
-    if (selectedType == null) return; // 用户取消了类型选择
+    if (selectedType == null || !mounted) return; // 用户取消了类型选择
 
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -466,27 +466,36 @@ class _PreciseReferencePanelState extends ConsumerState<PreciseReferencePanel> {
         allowMultiple: true,
       );
 
-      if (result != null && result.files.isNotEmpty) {
+      if (mounted && result != null && result.files.isNotEmpty) {
         final notifier = ref.read(generationParamsNotifierProvider.notifier);
-        final addOperations = <Future<void>>[];
-
-        for (final file in result.files) {
+        final batch = await ImageCardBatchResult.execute(result.files, (
+          file,
+        ) async {
           final bytes = await _readPickedImageBytes(file);
           if (bytes == null) {
-            continue;
+            throw FileSystemException('Image data unavailable', file.name);
           }
-
-          addOperations.add(
-            notifier.addPreciseReferenceFromImage(
-              bytes,
-              type: selectedType,
-              strength: 1.0,
-              fidelity: 1.0,
-            ),
+          await notifier.addPreciseReferenceFromImage(
+            bytes,
+            type: selectedType,
+            strength: 1.0,
+            fidelity: 1.0,
+          );
+        });
+        if (!mounted) return;
+        if (batch.succeeded.isNotEmpty) {
+          AppToast.success(
+            context,
+            context.l10n.preciseRef_addedCount(batch.succeeded.length),
           );
         }
-
-        await Future.wait(addOperations);
+        if (batch.failures.isNotEmpty) {
+          AppToast.error(
+            context,
+            '${context.l10n.preciseRefLib_importFailedCount(batch.failures.length)}: '
+            '${batch.failures.entries.map((item) => '${item.key.name}: ${item.value.error}').join('; ')}',
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

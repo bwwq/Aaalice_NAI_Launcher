@@ -153,6 +153,7 @@ class LocalGalleryQuery {
     required int page,
     required int pageSize,
     String searchQuery = '',
+    bool favoritesOnly = false,
   }) async {
     if (page < 0) throw RangeError.range(page, 0, null, 'page');
     if (pageSize <= 0) throw RangeError.range(pageSize, 1, null, 'pageSize');
@@ -163,6 +164,19 @@ class LocalGalleryQuery {
     final snapshotGeneration = _fileListGeneration;
     final normalizedQuery = searchQuery.trim();
     var matchingFiles = filesSnapshot;
+    if (favoritesOnly) {
+      final records = await _repository.queryFavoriteImages(
+        limit: max(1, await _repository.getFavoriteCount()),
+      );
+      final favoritePaths = {
+        for (final record in records) galleryFilePathKey(record.filePath),
+      };
+      matchingFiles = filesSnapshot
+          .where(
+            (file) => favoritePaths.contains(galleryFilePathKey(file.path)),
+          )
+          .toList(growable: false);
+    }
     if (normalizedQuery.isNotEmpty) {
       final queryGeneration = ++_independentQueryGeneration;
       final result = await _filterService.applyFilters(
@@ -175,7 +189,7 @@ class LocalGalleryQuery {
         for (final file in result.files) galleryFilePathKey(file.path),
       };
       final normalizedText = normalizedQuery.toLowerCase();
-      matchingFiles = filesSnapshot
+      matchingFiles = matchingFiles
           .where(
             (file) =>
                 databaseMatches.contains(galleryFilePathKey(file.path)) ||

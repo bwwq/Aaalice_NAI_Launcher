@@ -362,6 +362,7 @@ void main() {
           .where((item) => !item.isDivider)
           .map((item) => item.id)
           .toList();
+      expect(itemIds, contains(ImageCardActionId.favorite.name));
       final addToAgentIndex = itemIds.indexOf(
         ImageCardActionId.addToAgent.name,
       );

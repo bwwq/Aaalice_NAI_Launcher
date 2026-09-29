@@ -1,4 +1,7 @@
 {
+  "imagePicker_favoriteImages": "收藏图片",
+  "imagePicker_chooseLocalFile": "选择本地文件",
+  "imagePicker_noFavoriteImages": "暂无收藏图片",
   "sidebarSort_title": "排序方式",
   "sidebarSort_saveAfterMoveFailed": "顺序已调整，但未能记住排序方式：{error}",
   "@sidebarSort_saveAfterMoveFailed": {"placeholders": {"error": {"type": "String"}}},

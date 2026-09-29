@@ -9,6 +9,15 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get imagePicker_favoriteImages => 'Favorite images';
+
+  @override
+  String get imagePicker_chooseLocalFile => 'Choose a local file';
+
+  @override
+  String get imagePicker_noFavoriteImages => 'No favorite images yet';
+
+  @override
   String get sidebarSort_title => 'Sort by';
 
   @override

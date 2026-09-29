@@ -90,14 +90,25 @@ class _VibePreviewDropZoneState extends State<VibePreviewDropZone> {
   }
 
   Future<void> _pickImage() async {
-    final result = await PickerHandler.pickImage(
-      l10n: context.l10n,
-      onError: (msg) => AppLogger.w(msg, 'VibePreviewDropZone'),
-    );
-    if (result == null) return;
-
-    final resized = await _resizeImage(result.bytes);
-    widget.onThumbnailChanged?.call(resized);
+    try {
+      final result = await PickerHandler.pickImage(
+        l10n: context.l10n,
+        onError: (message) {
+          AppLogger.w(message, 'VibePreviewDropZone');
+          if (mounted) AppToast.error(context, message);
+        },
+      );
+      if (result == null || !mounted) return;
+      final resized = await _resizeImage(result.bytes);
+      if (mounted) widget.onThumbnailChanged?.call(resized);
+    } catch (error) {
+      if (mounted) {
+        AppToast.error(
+          context,
+          context.l10n.imagePicker_fileSelectionFailed('$error'),
+        );
+      }
+    }
   }
 
   static const _dropPolicy = CardDropPolicy(allowMultiple: false);
@@ -129,7 +140,7 @@ class _VibePreviewDropZoneState extends State<VibePreviewDropZone> {
   static Future<Uint8List> _resizeImage(Uint8List bytes) async {
     try {
       final codec = await ui.instantiateImageCodec(bytes);
-      final frame = await codec.getNextFrame();
+      final frame = await codec.getNextFrame().whenComplete(codec.dispose);
       final image = frame.image;
 
       final srcW = image.width;
@@ -167,7 +178,7 @@ class _VibePreviewDropZoneState extends State<VibePreviewDropZone> {
       return byteData?.buffer.asUint8List() ?? bytes;
     } catch (e) {
       AppLogger.w('Failed to resize image: $e', 'VibePreviewDropZone');
-      return bytes;
+      rethrow;
     }
   }
 
