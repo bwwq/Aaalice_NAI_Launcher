@@ -1,3 +1,4 @@
+import 'package:nai_launcher/presentation/providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +32,7 @@ void main() {
   testWidgets('MainShell 消费启动前 pending 提示并顺序处理后续提示', (tester) async {
     final container = ProviderContainer(
       overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
         accountManagerNotifierProvider.overrideWith(
           _TestAccountManagerNotifier.new,
         ),
@@ -109,6 +111,7 @@ void main() {
   testWidgets('认证恢复提示在桌面和手机保持紧凑并可关闭', (tester) async {
     final container = ProviderContainer(
       overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
         accountManagerNotifierProvider.overrideWith(
           _TestAccountManagerNotifier.new,
         ),
@@ -321,6 +324,7 @@ void main() {
   testWidgets('桌面智能体抽屉跨分支保持并由 Escape 关闭后恢复入口焦点', (tester) async {
     final container = ProviderContainer(
       overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
         accountManagerNotifierProvider.overrideWith(
           _TestAccountManagerNotifier.new,
         ),
@@ -467,6 +471,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
         accountManagerNotifierProvider.overrideWith(
           _TestAccountManagerNotifier.new,
         ),

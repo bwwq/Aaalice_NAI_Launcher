@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/windowing/workspace_side_panel_contract.dart';
 import '../agent_chat/widgets/agent_chat_panel.dart';
-import '../external_agent/built_in_agent_visibility.dart';
+import '../providers/external_agent_config_provider.dart';
 import '../themes/theme_extension.dart';
 import '../widgets/queue/queue_management_page.dart';
 
@@ -13,7 +13,7 @@ enum ShellPanel { agent, queue }
 final shellPanelProvider = StateProvider<ShellPanel?>((ref) => null);
 
 /// Shell 级持久面板槽位。切换面板时只替换内容，不叠加两个抽屉。
-class ShellPanelsOverlay extends StatefulWidget {
+class ShellPanelsOverlay extends ConsumerStatefulWidget {
   const ShellPanelsOverlay({
     super.key,
     required this.activePanel,
@@ -30,10 +30,10 @@ class ShellPanelsOverlay extends StatefulWidget {
   final VoidCallback onOpenAgentSettings;
 
   @override
-  State<ShellPanelsOverlay> createState() => _ShellPanelsOverlayState();
+  ConsumerState<ShellPanelsOverlay> createState() => _ShellPanelsOverlayState();
 }
 
-class _ShellPanelsOverlayState extends State<ShellPanelsOverlay> {
+class _ShellPanelsOverlayState extends ConsumerState<ShellPanelsOverlay> {
   final _panelFocusScopeNode = FocusScopeNode(
     debugLabel: 'shell-panel-focus-scope',
   );
@@ -69,7 +69,7 @@ class _ShellPanelsOverlayState extends State<ShellPanelsOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final agentEnabled = BuiltInAgentVisibility.of(context);
+    final agentEnabled = ref.watch(builtInAgentEnabledProvider);
     if (!agentEnabled) _hasOpenedAgent = false;
     if (!agentEnabled && widget.activePanel == ShellPanel.agent) {
       return const SizedBox.shrink();

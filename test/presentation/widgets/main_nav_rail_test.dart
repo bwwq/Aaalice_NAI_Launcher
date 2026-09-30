@@ -1,3 +1,4 @@
+import 'package:nai_launcher/presentation/providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -103,6 +104,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          builtInAgentEnabledProvider.overrideWithValue(true),
           localStorageServiceProvider.overrideWith((ref) => storage),
           authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
           accountManagerNotifierProvider.overrideWith(
@@ -275,6 +277,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          builtInAgentEnabledProvider.overrideWithValue(true),
           localStorageServiceProvider.overrideWith((ref) => storage),
           authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
           accountManagerNotifierProvider.overrideWith(
@@ -367,6 +370,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          builtInAgentEnabledProvider.overrideWithValue(true),
           localStorageServiceProvider.overrideWith((ref) => storage),
           authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
           accountManagerNotifierProvider.overrideWith(
@@ -496,6 +500,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          builtInAgentEnabledProvider.overrideWithValue(true),
           localStorageServiceProvider.overrideWith((ref) => storage),
           authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
           accountManagerNotifierProvider.overrideWith(
@@ -542,6 +547,7 @@ Future<void> _pumpAuthenticatedRail(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
         localStorageServiceProvider.overrideWith((ref) => storage),
         authNotifierProvider.overrideWith(_AuthenticatedAuthNotifier.new),
         accountManagerNotifierProvider.overrideWith(

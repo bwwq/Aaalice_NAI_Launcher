@@ -1,3 +1,4 @@
+import 'package:nai_launcher/presentation/providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,7 +21,10 @@ void main() {
   testWidgets('窄屏和大字下可移动全部图标并恢复默认', (tester) async {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final container = ProviderContainer(
-      overrides: [localStorageServiceProvider.overrideWithValue(_Storage())],
+      overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
+        localStorageServiceProvider.overrideWithValue(_Storage()),
+      ],
     );
     addTearDown(container.dispose);
     for (final width in [320.0, 600.0, 840.0, 1180.0, 1600.0]) {
