@@ -74,6 +74,9 @@ void main() {
       expect(find.byType(SingleChildScrollView), findsOneWidget);
       expect(find.byType(ListView), findsNothing);
       expect(tester.takeException(), isNull);
+      expect(find.text('Per-call limit'), findsOneWidget);
+      expect(find.text('Daily limit'), findsOneWidget);
+      expect(find.text('Anlas; 0 means unlimited'), findsNWidgets(2));
       await tester.ensureVisible(find.text('Copy Codex configuration'));
       await tester.pump();
       expect(tester.takeException(), isNull);

@@ -15078,25 +15078,25 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get externalAgent_permissionsDescription =>
-      '確認する：書き込みと課金操作を確認します。自動承認：通常の操作と累計上限内の課金を承認し、超過や不明な料金は確認します。完全な操作：許可された操作を直接実行します。アカウントの秘密情報取得、データ全消去、バックアップ削除、上書き復元は禁止です。権限はここでのみ変更できます。';
+      '確認する：書き込みと課金操作を確認します。自動承認：通常の操作を直接実行し、課金は 1 回と 1 日の両方の上限で管理します。0 は制限なしです。超過や不明な料金は確認します。完全な操作：許可された操作を直接実行します。アカウントの秘密情報取得、データ全消去、バックアップ削除、上書き復元は禁止です。権限はここでのみ変更できます。';
 
   @override
-  String get externalAgent_budget => '累計 Anlas 上限';
+  String get externalAgent_budget => '1 日の上限';
 
   @override
   String get externalAgent_invalidBudget => '上限は 0 以上の整数で入力してください。';
 
   @override
-  String get externalAgent_resetSpent => '累計使用量をリセット';
+  String get externalAgent_resetSpent => '今日の使用量をリセット';
 
   @override
   String externalAgent_spent(int spent, int reserved) {
-    return '送信済みリクエスト：$spent Anlas、予約分：$reserved Anlas';
+    return '今日の使用量：$spent Anlas、予約分：$reserved Anlas';
   }
 
   @override
   String get externalAgent_spentDescription =>
-      '送信前の推定料金を再試行も含めて累計します。通信失敗時も推定額は自動で戻しません。実際の課金はサーバーに従います。';
+      '1 回の呼び出しにバッチと再試行の合計を含めます。1 日の使用量は端末の日付でリセットされます。送信前の推定額を記録し、失敗しても自動では戻しません。実際の課金はサーバーに従います。';
 
   @override
   String get externalAgent_calls => 'タスクと最近の呼び出し';
@@ -15190,4 +15190,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get externalAgent_imageUnavailable => '画像を読み取れません';
+
+  @override
+  String get externalAgent_perCallBudget => '1 回の上限';
+
+  @override
+  String get externalAgent_unlimitedHint => 'Anlas ポイント。0 は制限なし';
 }

@@ -7412,12 +7412,12 @@
   "externalAgent_modeAsk": "詢問",
   "externalAgent_modeAutomatic": "自動同意",
   "externalAgent_modeFull": "完全控制",
-  "externalAgent_permissionsDescription": "詢問：寫入及收費操作先確認。自動同意：一般操作直接執行，收費在累計額度內執行，超額或未知費用需確認。完全控制：允許的操作直接執行。始終禁止讀取帳號金鑰、清空資料、刪除備份和覆蓋還原；權限只能在此修改。",
-  "externalAgent_budget": "累計 Anlas 額度",
+  "externalAgent_permissionsDescription": "詢問：寫入及收費操作先確認。自動同意：一般操作直接執行，收費同時受單次和每日上限控制，0 表示不限制；超限或未知費用需確認。完全控制：允許的操作直接執行。始終禁止讀取帳號金鑰、清空資料、刪除備份和覆蓋還原；權限只能在此修改。",
+  "externalAgent_budget": "每日上限",
   "externalAgent_invalidBudget": "額度請輸入不小於 0 的整數。",
-  "externalAgent_resetSpent": "重設累計用量",
-  "externalAgent_spent": "累計已送出請求：{spent} Anlas；待執行預留：{reserved} Anlas",
-  "externalAgent_spentDescription": "依請求送出前的費用估算累計，重試也計入；網路失敗不自動退回估算額度。實際扣費以伺服器為準。",
+  "externalAgent_resetSpent": "重設今日用量",
+  "externalAgent_spent": "今日已用：{spent} Anlas；待執行預留：{reserved} Anlas",
+  "externalAgent_spentDescription": "單次按一次呼叫的總費用計算，批次和重試都計入；每日用量依本機日期自動重設。按送出前的估算記帳，失敗不自動退回，實際扣費以伺服器為準。",
   "externalAgent_calls": "工作與最近呼叫",
   "externalAgent_noCalls": "尚無外部呼叫",
   "externalAgent_pending": "排隊中",
@@ -7464,5 +7464,7 @@
   "externalAgent_edit": "修改",
   "externalAgent_execute": "執行",
   "externalAgent_control": "工作控制",
-  "externalAgent_imageUnavailable": "圖片已無法讀取"
+  "externalAgent_imageUnavailable": "圖片已無法讀取",
+  "externalAgent_perCallBudget": "單次上限",
+  "externalAgent_unlimitedHint": "Anlas 點數，0 表示不限制"
 }

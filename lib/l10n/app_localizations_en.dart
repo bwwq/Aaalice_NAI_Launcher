@@ -15488,26 +15488,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get externalAgent_permissionsDescription =>
-      'Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges within the cumulative budget are approved, otherwise ask. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.';
+      'Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges must fit both per-call and daily limits, with 0 meaning unlimited. Excess or unknown costs require approval. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.';
 
   @override
-  String get externalAgent_budget => 'Cumulative Anlas budget';
+  String get externalAgent_budget => 'Daily limit';
 
   @override
   String get externalAgent_invalidBudget =>
       'Enter a non-negative whole number.';
 
   @override
-  String get externalAgent_resetSpent => 'Reset usage';
+  String get externalAgent_resetSpent => 'Reset today\'s usage';
 
   @override
   String externalAgent_spent(int spent, int reserved) {
-    return 'Dispatched requests: $spent Anlas; reserved: $reserved Anlas';
+    return 'Used today: $spent Anlas; reserved: $reserved Anlas';
   }
 
   @override
   String get externalAgent_spentDescription =>
-      'Usage sums estimates before dispatch, including retries. Failed requests do not automatically refund the estimate. Actual billing is determined by the server.';
+      'Each call includes its entire batch and retries. Daily usage resets by the local calendar date. Estimates are recorded before dispatch; failures do not automatically refund them. Actual billing is determined by the server.';
 
   @override
   String get externalAgent_calls => 'Tasks and recent calls';
@@ -15602,4 +15602,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get externalAgent_imageUnavailable => 'Image is no longer readable';
+
+  @override
+  String get externalAgent_perCallBudget => 'Per-call limit';
+
+  @override
+  String get externalAgent_unlimitedHint => 'Anlas; 0 means unlimited';
 }

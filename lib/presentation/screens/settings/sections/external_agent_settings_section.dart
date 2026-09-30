@@ -22,7 +22,7 @@ class ExternalAgentSettingsSection extends ConsumerStatefulWidget {
 
 class _ExternalAgentSettingsSectionState
     extends ConsumerState<ExternalAgentSettingsSection> {
-  late final TextEditingController _port, _budget;
+  late final TextEditingController _port, _budget, _perCallBudget;
   bool _saving = false;
   String? _address;
   @override
@@ -31,12 +31,14 @@ class _ExternalAgentSettingsSectionState
     final config = ref.read(externalAgentConfigProvider);
     _port = TextEditingController(text: '${config.port}');
     _budget = TextEditingController(text: '${config.budget}');
+    _perCallBudget = TextEditingController(text: '${config.perCallBudget}');
   }
 
   @override
   void dispose() {
     _port.dispose();
     _budget.dispose();
+    _perCallBudget.dispose();
     super.dispose();
   }
 
@@ -412,49 +414,83 @@ class _ExternalAgentSettingsSectionState
             const SizedBox(height: 12),
             Text(l10n.externalAgent_permissionsDescription),
             const SizedBox(height: 12),
-            TextField(
-              controller: _budget,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: l10n.externalAgent_budget),
-            ),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                TextButton(
-                  onPressed: _saving
-                      ? null
-                      : () => _save((c) {
-                          final value = int.tryParse(_budget.text);
-                          if (value == null || value < 0) {
-                            throw FormatException(
-                              l10n.externalAgent_invalidBudget,
-                            );
-                          }
-                          return c.copyWith(budget: value);
-                        }),
-                  child: Text(l10n.externalAgent_save),
-                ),
-                TextButton(
-                  onPressed: _saving || (controller.runtime?.reserved ?? 0) > 0
-                      ? null
-                      : () => controller.runtime == null
-                            ? _save((c) => c.copyWith(spent: 0))
-                            : _saveAction(controller.runtime!.resetSpent),
-                  child: Text(l10n.externalAgent_resetSpent),
-                ),
-              ],
-            ),
-            Text(
-              l10n.externalAgent_spent(
-                config.spent,
-                controller.runtime?.reserved ?? 0,
-              ),
-            ),
-            Text(l10n.externalAgent_spentDescription),
+            _limits(config, controller),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _limits(
+    ExternalAgentConfig config,
+    ExternalAgentController controller,
+  ) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _perCallBudget,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: l10n.externalAgent_perCallBudget,
+            helperText: l10n.externalAgent_unlimitedHint,
+            helperMaxLines: 3,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _budget,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: l10n.externalAgent_budget,
+            helperText: l10n.externalAgent_unlimitedHint,
+            helperMaxLines: 3,
+          ),
+        ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            TextButton(
+              onPressed: _saving
+                  ? null
+                  : () => _save((c) {
+                      final value = int.tryParse(_budget.text);
+                      final perCall = int.tryParse(_perCallBudget.text);
+                      if (value == null ||
+                          value < 0 ||
+                          perCall == null ||
+                          perCall < 0) {
+                        throw FormatException(l10n.externalAgent_invalidBudget);
+                      }
+                      return c.copyWith(budget: value, perCallBudget: perCall);
+                    }),
+              child: Text(l10n.externalAgent_save),
+            ),
+            TextButton(
+              onPressed: _saving || (controller.runtime?.reserved ?? 0) > 0
+                  ? null
+                  : () => controller.runtime == null
+                        ? _save(
+                            (c) => c.copyWith(
+                              spent: 0,
+                              spentDay: externalAgentDay(DateTime.now()),
+                            ),
+                          )
+                        : _saveAction(controller.runtime!.resetSpent),
+              child: Text(l10n.externalAgent_resetSpent),
+            ),
+          ],
+        ),
+        Text(
+          l10n.externalAgent_spent(
+            config.spentOn(DateTime.now()),
+            controller.runtime?.reserved ?? 0,
+          ),
+        ),
+        Text(l10n.externalAgent_spentDescription),
+      ],
     );
   }
 

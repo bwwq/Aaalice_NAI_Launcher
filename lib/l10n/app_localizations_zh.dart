@@ -14808,25 +14808,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get externalAgent_permissionsDescription =>
-      '询问：写入及收费操作先确认。自动同意：普通操作直接执行，收费在累计额度内执行，超额或未知费用需确认。完全控制：允许的操作直接执行。始终禁止读取账号密钥、清空数据、删除备份和覆盖恢复；权限只能在此修改。';
+      '询问：写入及收费操作先确认。自动同意：普通操作直接执行，收费同时受单次和每日上限控制，0 表示不限制；超限或未知费用需确认。完全控制：允许的操作直接执行。始终禁止读取账号密钥、清空数据、删除备份和覆盖恢复；权限只能在此修改。';
 
   @override
-  String get externalAgent_budget => '累计 Anlas 额度';
+  String get externalAgent_budget => '每日上限';
 
   @override
   String get externalAgent_invalidBudget => '额度请输入不小于 0 的整数。';
 
   @override
-  String get externalAgent_resetSpent => '重置累计用量';
+  String get externalAgent_resetSpent => '重置今日用量';
 
   @override
   String externalAgent_spent(int spent, int reserved) {
-    return '累计已发出请求：$spent Anlas；待执行预留：$reserved Anlas';
+    return '今日已用：$spent Anlas；待执行预留：$reserved Anlas';
   }
 
   @override
   String get externalAgent_spentDescription =>
-      '按请求发送前的费用估算累计，重试也计入；网络失败不自动退回估算额度。实际扣费以服务端为准。';
+      '单次按一次调用的总费用计算，批量和重试都计入；每日用量按本机日期自动重置。按发送前的估算记账，失败不自动退回，实际扣费以服务端为准。';
 
   @override
   String get externalAgent_calls => '任务与最近调用';
@@ -14920,6 +14920,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get externalAgent_imageUnavailable => '图片已无法读取';
+
+  @override
+  String get externalAgent_perCallBudget => '单次上限';
+
+  @override
+  String get externalAgent_unlimitedHint => 'Anlas 点数，0 表示不限制';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -29727,25 +29733,25 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get externalAgent_permissionsDescription =>
-      '詢問：寫入及收費操作先確認。自動同意：一般操作直接執行，收費在累計額度內執行，超額或未知費用需確認。完全控制：允許的操作直接執行。始終禁止讀取帳號金鑰、清空資料、刪除備份和覆蓋還原；權限只能在此修改。';
+      '詢問：寫入及收費操作先確認。自動同意：一般操作直接執行，收費同時受單次和每日上限控制，0 表示不限制；超限或未知費用需確認。完全控制：允許的操作直接執行。始終禁止讀取帳號金鑰、清空資料、刪除備份和覆蓋還原；權限只能在此修改。';
 
   @override
-  String get externalAgent_budget => '累計 Anlas 額度';
+  String get externalAgent_budget => '每日上限';
 
   @override
   String get externalAgent_invalidBudget => '額度請輸入不小於 0 的整數。';
 
   @override
-  String get externalAgent_resetSpent => '重設累計用量';
+  String get externalAgent_resetSpent => '重設今日用量';
 
   @override
   String externalAgent_spent(int spent, int reserved) {
-    return '累計已送出請求：$spent Anlas；待執行預留：$reserved Anlas';
+    return '今日已用：$spent Anlas；待執行預留：$reserved Anlas';
   }
 
   @override
   String get externalAgent_spentDescription =>
-      '依請求送出前的費用估算累計，重試也計入；網路失敗不自動退回估算額度。實際扣費以伺服器為準。';
+      '單次按一次呼叫的總費用計算，批次和重試都計入；每日用量依本機日期自動重設。按送出前的估算記帳，失敗不自動退回，實際扣費以伺服器為準。';
 
   @override
   String get externalAgent_calls => '工作與最近呼叫';
@@ -29839,4 +29845,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get externalAgent_imageUnavailable => '圖片已無法讀取';
+
+  @override
+  String get externalAgent_perCallBudget => '單次上限';
+
+  @override
+  String get externalAgent_unlimitedHint => 'Anlas 點數，0 表示不限制';
 }

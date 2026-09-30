@@ -39,7 +39,10 @@ class ExternalAgentConfigNotifier extends Notifier<ExternalAgentConfig> {
   }
 
   Future<void> _save(ExternalAgentConfig config) async {
-    if (config.port < 1024 || config.port > 65535 || config.budget < 0) {
+    if (config.port < 1024 ||
+        config.port > 65535 ||
+        config.budget < 0 ||
+        config.perCallBudget < 0) {
       throw ArgumentError('Invalid port or budget.');
     }
     await ref
@@ -48,6 +51,6 @@ class ExternalAgentConfigNotifier extends Notifier<ExternalAgentConfig> {
     state = config;
   }
 
-  Future<void> recordSpent(int value) =>
-      updateWith((c) => c.copyWith(spent: value));
+  Future<void> recordSpent(int value, String day) =>
+      updateWith((c) => c.copyWith(spent: value, spentDay: day));
 }

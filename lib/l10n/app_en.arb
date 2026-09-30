@@ -7065,12 +7065,12 @@
   "externalAgent_modeAsk": "Ask",
   "externalAgent_modeAutomatic": "Automatic",
   "externalAgent_modeFull": "Full control",
-  "externalAgent_permissionsDescription": "Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges within the cumulative budget are approved, otherwise ask. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.",
-  "externalAgent_budget": "Cumulative Anlas budget",
+  "externalAgent_permissionsDescription": "Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges must fit both per-call and daily limits, with 0 meaning unlimited. Excess or unknown costs require approval. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.",
+  "externalAgent_budget": "Daily limit",
   "externalAgent_invalidBudget": "Enter a non-negative whole number.",
-  "externalAgent_resetSpent": "Reset usage",
-  "externalAgent_spent": "Dispatched requests: {spent} Anlas; reserved: {reserved} Anlas",
-  "externalAgent_spentDescription": "Usage sums estimates before dispatch, including retries. Failed requests do not automatically refund the estimate. Actual billing is determined by the server.",
+  "externalAgent_resetSpent": "Reset today's usage",
+  "externalAgent_spent": "Used today: {spent} Anlas; reserved: {reserved} Anlas",
+  "externalAgent_spentDescription": "Each call includes its entire batch and retries. Daily usage resets by the local calendar date. Estimates are recorded before dispatch; failures do not automatically refund them. Actual billing is determined by the server.",
   "externalAgent_calls": "Tasks and recent calls",
   "externalAgent_noCalls": "No external calls yet",
   "externalAgent_pending": "Queued",
@@ -7117,5 +7117,7 @@
   "externalAgent_edit": "Modify",
   "externalAgent_execute": "Execute",
   "externalAgent_control": "Task control",
-  "externalAgent_imageUnavailable": "Image is no longer readable"
+  "externalAgent_imageUnavailable": "Image is no longer readable",
+  "externalAgent_perCallBudget": "Per-call limit",
+  "externalAgent_unlimitedHint": "Anlas; 0 means unlimited"
 }

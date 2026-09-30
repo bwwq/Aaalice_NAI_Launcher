@@ -74,8 +74,9 @@ class ExternalAgentController extends ChangeNotifier {
       runtime = ExternalAgentRuntime(
         directory: directory,
         readConfig: () => ref.read(externalAgentConfigProvider),
-        saveSpent: (value) =>
-            ref.read(externalAgentConfigProvider.notifier).recordSpent(value),
+        saveSpent: (value, day) => ref
+            .read(externalAgentConfigProvider.notifier)
+            .recordSpent(value, day),
         estimateRequest: _estimateRequest,
         operations: registry.build(),
         onChanged: _changed,

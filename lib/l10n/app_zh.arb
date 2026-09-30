@@ -7134,12 +7134,12 @@
   "externalAgent_modeAsk": "询问",
   "externalAgent_modeAutomatic": "自动同意",
   "externalAgent_modeFull": "完全控制",
-  "externalAgent_permissionsDescription": "询问：写入及收费操作先确认。自动同意：普通操作直接执行，收费在累计额度内执行，超额或未知费用需确认。完全控制：允许的操作直接执行。始终禁止读取账号密钥、清空数据、删除备份和覆盖恢复；权限只能在此修改。",
-  "externalAgent_budget": "累计 Anlas 额度",
+  "externalAgent_permissionsDescription": "询问：写入及收费操作先确认。自动同意：普通操作直接执行，收费同时受单次和每日上限控制，0 表示不限制；超限或未知费用需确认。完全控制：允许的操作直接执行。始终禁止读取账号密钥、清空数据、删除备份和覆盖恢复；权限只能在此修改。",
+  "externalAgent_budget": "每日上限",
   "externalAgent_invalidBudget": "额度请输入不小于 0 的整数。",
-  "externalAgent_resetSpent": "重置累计用量",
-  "externalAgent_spent": "累计已发出请求：{spent} Anlas；待执行预留：{reserved} Anlas",
-  "externalAgent_spentDescription": "按请求发送前的费用估算累计，重试也计入；网络失败不自动退回估算额度。实际扣费以服务端为准。",
+  "externalAgent_resetSpent": "重置今日用量",
+  "externalAgent_spent": "今日已用：{spent} Anlas；待执行预留：{reserved} Anlas",
+  "externalAgent_spentDescription": "单次按一次调用的总费用计算，批量和重试都计入；每日用量按本机日期自动重置。按发送前的估算记账，失败不自动退回，实际扣费以服务端为准。",
   "externalAgent_calls": "任务与最近调用",
   "externalAgent_noCalls": "还没有外部调用",
   "externalAgent_pending": "排队中",
@@ -7186,5 +7186,7 @@
   "externalAgent_edit": "修改",
   "externalAgent_execute": "执行",
   "externalAgent_control": "任务控制",
-  "externalAgent_imageUnavailable": "图片已无法读取"
+  "externalAgent_imageUnavailable": "图片已无法读取",
+  "externalAgent_perCallBudget": "单次上限",
+  "externalAgent_unlimitedHint": "Anlas 点数，0 表示不限制"
 }

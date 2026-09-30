@@ -26974,13 +26974,13 @@ abstract class AppLocalizations {
   /// No description provided for @externalAgent_permissionsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges within the cumulative budget are approved, otherwise ask. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.'**
+  /// **'Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges must fit both per-call and daily limits, with 0 meaning unlimited. Excess or unknown costs require approval. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.'**
   String get externalAgent_permissionsDescription;
 
   /// No description provided for @externalAgent_budget.
   ///
   /// In en, this message translates to:
-  /// **'Cumulative Anlas budget'**
+  /// **'Daily limit'**
   String get externalAgent_budget;
 
   /// No description provided for @externalAgent_invalidBudget.
@@ -26992,19 +26992,19 @@ abstract class AppLocalizations {
   /// No description provided for @externalAgent_resetSpent.
   ///
   /// In en, this message translates to:
-  /// **'Reset usage'**
+  /// **'Reset today\'s usage'**
   String get externalAgent_resetSpent;
 
   /// No description provided for @externalAgent_spent.
   ///
   /// In en, this message translates to:
-  /// **'Dispatched requests: {spent} Anlas; reserved: {reserved} Anlas'**
+  /// **'Used today: {spent} Anlas; reserved: {reserved} Anlas'**
   String externalAgent_spent(int spent, int reserved);
 
   /// No description provided for @externalAgent_spentDescription.
   ///
   /// In en, this message translates to:
-  /// **'Usage sums estimates before dispatch, including retries. Failed requests do not automatically refund the estimate. Actual billing is determined by the server.'**
+  /// **'Each call includes its entire batch and retries. Daily usage resets by the local calendar date. Estimates are recorded before dispatch; failures do not automatically refund them. Actual billing is determined by the server.'**
   String get externalAgent_spentDescription;
 
   /// No description provided for @externalAgent_calls.
@@ -27186,6 +27186,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Image is no longer readable'**
   String get externalAgent_imageUnavailable;
+
+  /// No description provided for @externalAgent_perCallBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Per-call limit'**
+  String get externalAgent_perCallBudget;
+
+  /// No description provided for @externalAgent_unlimitedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anlas; 0 means unlimited'**
+  String get externalAgent_unlimitedHint;
 }
 
 class _AppLocalizationsDelegate

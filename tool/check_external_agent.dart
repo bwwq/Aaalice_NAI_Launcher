@@ -15,7 +15,9 @@ import 'package:path/path.dart' as p;
 final externalAgentChecks = <String, Future<void> Function()>{
   'defaults and explicit LAN binding': _defaults,
   'ask permissions and rejection': _ask,
-  'automatic cumulative budget and unknown charge': _budget,
+  'shared daily budget and unknown charge': _budget,
+  'single-call limits include retries and zero is unlimited': _callLimits,
+  'daily usage rolls over across midnight and restart': _dailyRollover,
   'full control and forbidden operations': _full,
   'shared FIFO queue, immediate reads and controls': _queue,
   'queue billing survives detached callbacks and resume': _queueBilling,
@@ -23,6 +25,7 @@ final externalAgentChecks = <String, Future<void> Function()>{
   'cancellation and retained partial results': _cancel,
   'restart does not replay accepted requests': _restart,
   'spending persistence failure blocks dispatch': _storageFailure,
+  'job persistence failure does not consume quota': _jobStorageFailure,
   'unknown-cost approval is applied once to the first request':
       _unknownApproval,
   'HTTP and MCP discovery, execution, polling and image read': _protocol,
@@ -82,6 +85,7 @@ class _Fixture {
   );
   bool failSpent = false;
   int updates = 0;
+  DateTime currentTime = DateTime(2026, 9, 30, 12);
   late ExternalAgentRuntime runtime;
   Future<void> initialize() async {
     runtime = newRuntime();
@@ -91,14 +95,15 @@ class _Fixture {
   ExternalAgentRuntime newRuntime() => ExternalAgentRuntime(
     directory: directory,
     readConfig: () => config,
-    saveSpent: (value) async {
+    saveSpent: (value, day) async {
       if (failSpent) {
         throw const FileSystemException('Mock persistence failure');
       }
-      config = config.copyWith(spent: value);
+      config = config.copyWith(spent: value, spentDay: day);
     },
     estimateRequest: (_, args) async => args['cost'] as int?,
     operations: operations,
+    now: () => currentTime,
     onChanged: () => updates++,
     adoptResult: (result) async => {
       'content': [
@@ -158,13 +163,19 @@ Future<void> _defaults() async {
   _check(
     defaults.bindAddress == '127.0.0.1' &&
         defaults.mode == ExternalAgentMode.ask &&
-        defaults.budget == 0,
+        defaults.budget == 0 &&
+        defaults.perCallBudget == 0,
     'Unexpected defaults.',
   );
   final copy = ExternalAgentConfig.fromJson(
     defaults.copyWith(allowLan: true).toJson(),
   );
   _check(copy.bindAddress == '0.0.0.0', 'LAN setting did not round-trip.');
+  final legacy = ExternalAgentConfig.fromJson({'budget': 12, 'spent': 200});
+  _check(
+    legacy.budget == 12 && legacy.spentOn(DateTime(2026, 9, 30)) == 0,
+    'Legacy lifetime usage must not become today\'s usage.',
+  );
 }
 
 Future<void> _ask() async {
@@ -249,6 +260,138 @@ Future<void> _budget() async {
     await _until(() => unknown.terminal);
     _check(f.runtime.reserved == 0, 'Cancelled jobs leaked reservations.');
   } finally {
+    await f.close();
+  }
+}
+
+Future<void> _callLimits() async {
+  var dispatches = 0;
+  Future<AgentToolResult> twice(Map<String, dynamic> _, AbortSignal? __) async {
+    for (var i = 0; i < 2; i++) {
+      await ExternalBillingScope.check('generate', {'cost': 2});
+      dispatches++;
+    }
+    return _result();
+  }
+
+  final f = await _fixture([
+    _operation('retry', twice, long: true, estimate: (_) async => 2),
+    _operation('batch', twice, long: true, estimate: (_) async => 4),
+  ]);
+  f.config = f.config.copyWith(mode: ExternalAgentMode.automatic);
+  try {
+    final unlimited = await f.call('retry', id: 'unlimited');
+    await _until(() => unlimited.terminal);
+    _check(
+      unlimited.status == ExternalJobStatus.completed && dispatches == 2,
+      'Zero limits did not allow paid requests.',
+    );
+    f.config = f.config.copyWith(perCallBudget: 3);
+    final retry = await f.call('retry', id: 'limited-retry');
+    await _until(() => retry.status == ExternalJobStatus.awaitingApproval);
+    _check(
+      dispatches == 3 && retry.dispatchedAnlas == 2,
+      'Retries bypassed the total single-call limit.',
+    );
+    f.runtime.resolveApproval(retry.id, true);
+    await _until(() => retry.terminal);
+    _check(
+      retry.status == ExternalJobStatus.completed && dispatches == 4,
+      'Explicitly approved excess did not execute.',
+    );
+    final batch = await f.call('batch', id: 'limited-batch');
+    await _until(() => batch.status == ExternalJobStatus.awaitingApproval);
+    _check(dispatches == 4, 'Batch bypassed the single-call preflight.');
+    f.runtime.resolveApproval(batch.id, false);
+    await _until(() => batch.terminal);
+    f.config = f.config.copyWith(perCallBudget: 0, budget: 100);
+    final freeOfCallLimit = await f.call('batch', id: 'no-single-limit');
+    await _until(() => freeOfCallLimit.terminal);
+    _check(
+      freeOfCallLimit.status == ExternalJobStatus.completed && dispatches == 6,
+      'Zero single-call limit was not independent of the daily limit.',
+    );
+  } finally {
+    await f.close();
+  }
+}
+
+Future<void> _dailyRollover() async {
+  final midnight = Completer<void>();
+  var dispatches = 0;
+  Future<void> charge() async {
+    await ExternalBillingScope.check('generate', {'cost': 4});
+    dispatches++;
+  }
+
+  final f = await _fixture([
+    _operation(
+      'batch',
+      (_, __) async {
+        await charge();
+        await midnight.future;
+        await charge();
+        return _result();
+      },
+      long: true,
+      estimate: (_) async => 8,
+    ),
+    _operation(
+      'once',
+      (_, __) async {
+        await charge();
+        return _result();
+      },
+      long: true,
+      estimate: (_) async => 4,
+    ),
+  ]);
+  f.config = f.config.copyWith(mode: ExternalAgentMode.automatic, budget: 8);
+  f.currentTime = DateTime(2026, 9, 30, 23, 59);
+  try {
+    final batch = await f.call('batch', id: 'across-midnight');
+    await _until(() => dispatches == 1);
+    _check(
+      f.config.spent == 4 && f.runtime.reserved == 4,
+      'Missing batch reservation.',
+    );
+    f.currentTime = DateTime(2026, 10, 1, 0, 1);
+    midnight.complete();
+    await _until(() => batch.terminal);
+    _check(
+      batch.status == ExternalJobStatus.completed &&
+          f.config.spent == 4 &&
+          f.config.spentDay == '2026-10-01',
+      'Midnight did not reset daily usage.',
+    );
+    await f.runtime.shutdown();
+    f.runtime = f.newRuntime();
+    await f.runtime.initialize();
+    final sameDay = await f.call('once', id: 'after-restart');
+    await _until(() => sameDay.terminal);
+    _check(
+      f.config.spent == 8 && dispatches == 3,
+      'Restart reset same-day usage.',
+    );
+    final blocked = await f.call('once', id: 'daily-excess');
+    await _until(() => blocked.status == ExternalJobStatus.awaitingApproval);
+    _check(dispatches == 3, 'Daily budget was bypassed after restart.');
+    await f.runtime.cancel(blocked.id);
+    await _until(() => blocked.terminal);
+    f.currentTime = DateTime(2026, 10, 2, 9);
+    await f.runtime.shutdown();
+    f.runtime = f.newRuntime();
+    await f.runtime.initialize();
+    final nextDay = await f.call('once', id: 'next-day');
+    await _until(() => nextDay.terminal);
+    _check(
+      nextDay.status == ExternalJobStatus.completed &&
+          f.config.spent == 4 &&
+          f.config.spentDay == '2026-10-02',
+      'New-day usage did not reset on restart.',
+    );
+  } finally {
+    if (!midnight.isCompleted) midnight.complete();
     await f.close();
   }
 }
@@ -507,6 +650,48 @@ Future<void> _storageFailure() async {
     );
   } finally {
     await f.close();
+  }
+}
+
+Future<void> _jobStorageFailure() async {
+  for (final mode in [ExternalAgentMode.automatic, ExternalAgentMode.ask]) {
+    var dispatches = 0;
+    late _Fixture f;
+    f = await _fixture([
+      _operation(
+        'charged',
+        (_, __) async {
+          await Directory('${f.directory.path}/calls.tmp').create();
+          await ExternalBillingScope.check('generate', {'cost': 2});
+          dispatches++;
+          return _result();
+        },
+        long: true,
+        estimate: (_) async => 2,
+      ),
+      _operation('read', (_, __) async => _result(), read: true),
+    ]);
+    f.config = f.config.copyWith(mode: mode, budget: 10);
+    final fault = Directory('${f.directory.path}/calls.tmp');
+    try {
+      final job = await f.call('charged', id: 'job-write-fail');
+      if (mode == ExternalAgentMode.ask) {
+        await _until(() => job.status == ExternalJobStatus.awaitingApproval);
+        f.runtime.resolveApproval(job.id, true);
+      }
+      await _until(() => job.terminal);
+      _check(
+        job.status == ExternalJobStatus.failed &&
+            dispatches == 0 &&
+            f.config.spentOn(f.currentTime) == 0 &&
+            job.dispatchedAnlas == 0,
+        'Unsent request consumed quota after job persistence failed.',
+      );
+    } finally {
+      if (await fault.exists()) await fault.delete();
+      await f.call('read'); // Recover the persistence tail before cleanup.
+      await f.close();
+    }
   }
 }
 

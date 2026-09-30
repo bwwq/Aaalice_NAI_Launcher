@@ -41,10 +41,12 @@ class ExternalAgentRuntime {
     required this.operations,
     required this.onChanged,
     required this.adoptResult,
-  });
+    DateTime Function()? now,
+  }) : now = now ?? DateTime.now;
   final Directory directory;
   final ExternalAgentConfig Function() readConfig;
-  final Future<void> Function(int) saveSpent;
+  final Future<void> Function(int, String) saveSpent;
+  final DateTime Function() now;
   final Future<int?> Function(String, Map<String, dynamic>) estimateRequest;
   final Future<Map<String, dynamic>> Function(AgentToolResult) adoptResult;
   final List<ExternalAgentOperation> operations;
@@ -53,6 +55,7 @@ class ExternalAgentRuntime {
   final Map<String, AbortController> _controllers = {};
   final Map<String, Completer<bool>> _approvals = {};
   final Map<String, int> _reservations = {};
+  final Set<String> _approvedReservations = {};
   final Set<String> _approvedUnknownFirstRequest = {};
   final Map<String, Future<void>> _running = {};
   Future<void> _persistTail = Future.value(), _budgetTail = Future.value();
@@ -103,9 +106,13 @@ class ExternalAgentRuntime {
     if (reserved > 0) {
       throw StateError('Cannot reset usage while chargeable tasks are active.');
     }
-    await saveSpent(0);
+    await saveSpent(0, externalAgentDay(now()));
     onChanged();
   });
+
+  bool _withinLimits(ExternalAgentConfig config, int callCost, int dailyCost) =>
+      (config.perCallBudget == 0 || callCost <= config.perCallBudget) &&
+      (config.budget == 0 || dailyCost <= config.budget);
 
   Future<Map<String, dynamic>> call(
     String name,
@@ -235,24 +242,34 @@ class ExternalAgentRuntime {
     if (config.mode == ExternalAgentMode.automatic && cost != null) {
       allowed = await _budgetLock(() async {
         final latest = readConfig();
-        if (cost > 0 && latest.spent + reserved + cost > latest.budget) {
+        if (cost > 0 &&
+            !_withinLimits(
+              latest,
+              cost,
+              latest.spentOn(now()) + reserved + cost,
+            )) {
           return false;
         }
         _reservations[job.id] = cost;
         return true;
       });
     }
-    if (!allowed &&
-        !await _approve(
-          job,
-          cost == null
-              ? 'unknown_cost'
-              : cost > 0
-              ? 'charge'
-              : 'write',
-          cost: cost,
-        )) {
-      throw const ExternalAgentException('rejected', 'Operation was rejected.');
+    if (!allowed) {
+      if (!await _approve(
+        job,
+        cost == null
+            ? 'unknown_cost'
+            : cost > 0
+            ? 'charge'
+            : 'write',
+        cost: cost,
+      )) {
+        throw const ExternalAgentException(
+          'rejected',
+          'Operation was rejected.',
+        );
+      }
+      if (cost != null && cost > 0) _approvedReservations.add(job.id);
     }
     // Explicit approval reserves known batch cost too, preventing concurrent auto calls using it.
     if (cost != null && cost > 0 && !_reservations.containsKey(job.id)) {
@@ -276,17 +293,32 @@ class ExternalAgentRuntime {
         readConfig().mode == ExternalAgentMode.full || explicitlyApproved;
     if (cost != null && cost >= 0) {
       approved = await _budgetLock(() async {
+        // A failed job write must not consume quota for an unsent request.
+        await _persist();
         final available = _reservations[job.id] ?? 0;
         final config = readConfig();
+        final today = now();
+        final remaining = available > cost ? available : cost;
+        final extra = cost > available ? cost - available : 0;
+        final withinLimits = _withinLimits(
+          config,
+          job.dispatchedAnlas + remaining,
+          config.spentOn(today) + reserved + extra,
+        );
         if (explicitlyApproved ||
-            available >= cost ||
+            cost == 0 ||
+            (available >= cost &&
+                (config.mode != ExternalAgentMode.automatic ||
+                    _approvedReservations.contains(job.id) ||
+                    withinLimits)) ||
             config.mode == ExternalAgentMode.full ||
-            (config.mode == ExternalAgentMode.automatic &&
-                config.spent + reserved + cost <= config.budget)) {
-          await saveSpent(config.spent + cost);
+            (config.mode == ExternalAgentMode.automatic && withinLimits)) {
+          await saveSpent(
+            config.spentOn(today) + cost,
+            externalAgentDay(today),
+          );
           _reservations[job.id] = (available - cost).clamp(0, 1 << 30);
           job.dispatchedAnlas += cost;
-          await _persist();
           return true;
         }
         return false;
@@ -299,9 +331,15 @@ class ExternalAgentRuntime {
       throwIfAborted(signal);
       if (cost != null && cost >= 0) {
         await _budgetLock(() async {
-          await saveSpent(readConfig().spent + cost);
-          job.dispatchedAnlas += cost;
           await _persist();
+          final today = now();
+          await saveSpent(
+            readConfig().spentOn(today) + cost,
+            externalAgentDay(today),
+          );
+          final available = _reservations[job.id] ?? 0;
+          _reservations[job.id] = (available - cost).clamp(0, 1 << 30);
+          job.dispatchedAnlas += cost;
         });
       }
     }
@@ -364,6 +402,7 @@ class ExternalAgentRuntime {
       job.error = e.toString();
     } finally {
       _reservations.remove(job.id);
+      _approvedReservations.remove(job.id);
       _approvedUnknownFirstRequest.remove(job.id);
       _controllers.remove(job.id);
       job.finishedAt = DateTime.now();

@@ -9,11 +9,17 @@ class ExternalAgentConfig {
     this.port = 39123,
     this.mode = ExternalAgentMode.ask,
     this.budget = 0,
+    this.perCallBudget = 0,
     this.spent = 0,
+    this.spentDay = '',
     this.builtInEnabled = false,
   });
   final bool enabled, allowLan, builtInEnabled;
-  final int port, budget, spent;
+
+  /// Zero means unlimited. Usage belongs to one local calendar day.
+  final int port, budget, perCallBudget, spent;
+  final String spentDay;
+  int spentOn(DateTime time) => spentDay == externalAgentDay(time) ? spent : 0;
   final ExternalAgentMode mode;
   String get bindAddress => allowLan ? '0.0.0.0' : '127.0.0.1';
   String get localUrl => 'http://127.0.0.1:$port';
@@ -23,7 +29,9 @@ class ExternalAgentConfig {
     int? port,
     ExternalAgentMode? mode,
     int? budget,
+    int? perCallBudget,
     int? spent,
+    String? spentDay,
     bool? builtInEnabled,
   }) => ExternalAgentConfig(
     enabled: enabled ?? this.enabled,
@@ -31,7 +39,9 @@ class ExternalAgentConfig {
     port: port ?? this.port,
     mode: mode ?? this.mode,
     budget: budget ?? this.budget,
+    perCallBudget: perCallBudget ?? this.perCallBudget,
     spent: spent ?? this.spent,
+    spentDay: spentDay ?? this.spentDay,
     builtInEnabled: builtInEnabled ?? this.builtInEnabled,
   );
   Map<String, dynamic> toJson() => {
@@ -40,7 +50,9 @@ class ExternalAgentConfig {
     'port': port,
     'mode': mode.name,
     'budget': budget,
+    'perCallBudget': perCallBudget,
     'spent': spent,
+    'spentDay': spentDay,
     'builtInEnabled': builtInEnabled,
   };
   factory ExternalAgentConfig.fromJson(Map<String, dynamic> json) =>
@@ -53,9 +65,16 @@ class ExternalAgentConfig {
           orElse: () => ExternalAgentMode.ask,
         ),
         budget: (json['budget'] as int? ?? 0).clamp(0, 1 << 30),
+        perCallBudget: (json['perCallBudget'] as int? ?? 0).clamp(0, 1 << 30),
         spent: (json['spent'] as int? ?? 0).clamp(0, 1 << 30),
+        spentDay: json['spentDay'] as String? ?? '',
         builtInEnabled: json['builtInEnabled'] == true,
       );
+}
+
+String externalAgentDay(DateTime time) {
+  final local = time.toLocal();
+  return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
 }
 
 enum ExternalJobStatus {
