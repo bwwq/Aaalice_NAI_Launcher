@@ -81,6 +81,7 @@ class _Fixture {
     mode: ExternalAgentMode.full,
   );
   bool failSpent = false;
+  int updates = 0;
   late ExternalAgentRuntime runtime;
   Future<void> initialize() async {
     runtime = newRuntime();
@@ -98,7 +99,7 @@ class _Fixture {
     },
     estimateRequest: (_, args) async => args['cost'] as int?,
     operations: operations,
-    onChanged: () {},
+    onChanged: () => updates++,
     adoptResult: (result) async => {
       'content': [
         for (final content in result.content)
@@ -314,7 +315,12 @@ Future<void> _queue() async {
   try {
     final first = await f.call('slow', id: 'first');
     await _until(() => first.status == ExternalJobStatus.running);
+    final previousUpdates = f.updates;
     final second = await f.call('later', id: 'second');
+    _check(
+      f.updates > previousUpdates,
+      'Queued job did not notify the settings listener.',
+    );
     _check(
       second.status == ExternalJobStatus.pending,
       'Concurrent writer did not queue.',

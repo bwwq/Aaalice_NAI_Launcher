@@ -166,6 +166,7 @@ class ExternalAgentRuntime {
       _controllers.remove(candidate.id);
       rethrow;
     }
+    onChanged();
     final Future<void> future;
     if (!operation.readOnly && !operation.concurrentControl) {
       future = _writeTail
