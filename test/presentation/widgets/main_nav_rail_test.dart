@@ -450,6 +450,8 @@ void main() {
     );
     await tester.pump();
 
+    await tester.ensureVisible(find.byKey(const Key('main-nav-toggle')));
+    await tester.pump();
     final selectedBefore = tester.widget<Icon>(find.byIcon(Icons.folder)).color;
     await tester.tap(find.byKey(const Key('main-nav-toggle')));
     await tester.pump();

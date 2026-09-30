@@ -120,6 +120,12 @@ void main() {
   });
 
   testWidgets('设置页保留稳定分类且 GitHub 位于关于下面', (tester) async {
+    final errorHandler = FlutterError.onError;
+    FlutterError.onError = (details) {
+      debugPrint(details.toString());
+      errorHandler?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = errorHandler);
     debugDefaultTargetPlatformOverride = TargetPlatform.windows;
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -228,7 +234,11 @@ void main() {
         find.byKey(const ValueKey('settings-navigation-tonal-surface')),
       );
       expect(bounds.contains(tester.getCenter(github)), isTrue);
-      expect(tester.takeException(), isNull);
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'width=$width, text scale=3',
+      );
     }
     textScale.value = 1;
     await tester.binding.setSurfaceSize(const Size(1280, 900));
