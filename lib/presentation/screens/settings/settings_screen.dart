@@ -515,7 +515,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final extendedWidth = (measuredLabelWidth + 80).clamp(180.0, 320.0);
     final isExtended =
         availableWidth >= 1180 && availableWidth - extendedWidth - 16 >= 600;
-    final labelWidth = isExtended ? extendedWidth - 80 : null;
+    // The rail still lays labels out during its collapse animation. Keep their
+    // width bounded in both states so large text cannot squeeze the form.
+    final labelWidth = extendedWidth - 80;
 
     Widget buildRail() => NavigationRail(
       selectedIndex: sections.indexWhere((item) => item.id == _selectedSection),
@@ -551,9 +553,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             icon: Icon(section.icon),
             selectedIcon: Icon(section.selectedIcon),
             // NavigationRail 把目的地列按最宽一项居中，标签不等宽时窄的会整体右移。
-            label: labelWidth == null
-                ? label
-                : SizedBox(width: labelWidth, child: label),
+            label: SizedBox(width: labelWidth, child: label),
           );
         }),
         NavigationRailDestination(
@@ -561,16 +561,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             key: const ValueKey('settings-github-link'),
             color: theme.colorScheme.onSurfaceVariant,
           ),
-          label: labelWidth == null
-              ? Text(context.l10n.nav_githubRepo)
-              : SizedBox(
-                  width: labelWidth,
-                  child: Text(
-                    context.l10n.nav_githubRepo,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+          label: SizedBox(
+            width: labelWidth,
+            child: Text(
+              context.l10n.nav_githubRepo,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ),
       ],
     );

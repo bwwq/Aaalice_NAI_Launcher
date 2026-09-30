@@ -295,8 +295,7 @@ class AccountDetailTile extends ConsumerWidget {
             child: Text(context.l10n.settings_goToLogin),
           );
 
-          if (constraints.maxWidth <
-              _inlineAccountWidth(context, loginButton)) {
+          if (constraints.maxWidth < 340) {
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -314,34 +313,5 @@ class AccountDetailTile extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  double _inlineAccountWidth(BuildContext context, FilledButton loginButton) {
-    final theme = Theme.of(context);
-    final states = <WidgetState>{if (onLogin == null) WidgetState.disabled};
-    final buttonStyle =
-        theme.filledButtonTheme.style?.textStyle?.resolve(states) ??
-        loginButton.defaultStyleOf(context).textStyle?.resolve(states);
-    double measure(String label, TextStyle? style) {
-      final painter = TextPainter(
-        text: TextSpan(text: label, style: style),
-        textDirection: Directionality.of(context),
-        textScaler: MediaQuery.textScalerOf(context),
-      )..layout();
-      final width = painter.width;
-      painter.dispose();
-      return width;
-    }
-
-    final identityWidth =
-        44 +
-        12 +
-        measure(context.l10n.settings_notLoggedIn, theme.textTheme.titleSmall);
-    final buttonWidth =
-        (measure(context.l10n.settings_goToLogin, buttonStyle) + 32).clamp(
-          88.0,
-          double.infinity,
-        );
-    return (identityWidth + 12 + buttonWidth).clamp(340.0, double.infinity);
   }
 }
