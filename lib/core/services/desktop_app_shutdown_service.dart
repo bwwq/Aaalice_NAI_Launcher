@@ -18,6 +18,7 @@ class DesktopAppShutdownService {
   static Future<void>? _shutdownFuture;
   static bool get isShuttingDown => _shutdownFuture != null;
   static Future<void> Function()? _windowStateFlushHandler;
+  static Future<void> Function()? externalAgentShutdownHandler;
 
   static void setWindowStateFlushHandler(Future<void> Function() handler) {
     _windowStateFlushHandler = handler;
@@ -61,6 +62,11 @@ class DesktopAppShutdownService {
       );
     }
 
+    try {
+      await externalAgentShutdownHandler?.call();
+    } catch (error) {
+      AppLogger.w('External Agent shutdown failed: $error', 'AppShutdown');
+    }
     try {
       await DatabaseManager.instance.dispose();
       AppLogger.i('Database closed successfully', 'AppShutdown');

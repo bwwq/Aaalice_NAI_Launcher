@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/windowing/workspace_side_panel_contract.dart';
 import '../agent_chat/widgets/agent_chat_panel.dart';
+import '../external_agent/built_in_agent_visibility.dart';
 import '../themes/theme_extension.dart';
 import '../widgets/queue/queue_management_page.dart';
 
@@ -68,6 +69,11 @@ class _ShellPanelsOverlayState extends State<ShellPanelsOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final agentEnabled = BuiltInAgentVisibility.of(context);
+    if (!agentEnabled) _hasOpenedAgent = false;
+    if (!agentEnabled && widget.activePanel == ShellPanel.agent) {
+      return const SizedBox.shrink();
+    }
     final theme = Theme.of(context);
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final isVisible = widget.activePanel != null;
@@ -151,7 +157,7 @@ class _ShellPanelsOverlayState extends State<ShellPanelsOverlay> {
                                   ),
                                   KeyedSubtree(
                                     key: const ValueKey('agent-shell-panel'),
-                                    child: _hasOpenedAgent
+                                    child: agentEnabled && _hasOpenedAgent
                                         ? AgentChatPanel(
                                             key: const ValueKey(
                                               'agent-drawer-chat-panel',

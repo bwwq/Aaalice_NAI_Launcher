@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
+import '../../../core/external_agent/external_billing_scope.dart';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
@@ -122,7 +123,10 @@ class NaiGenerationTransport {
     Map<String, dynamic> requestData,
     NaiGenerationRequest request, {
     void Function(int, int)? onProgress,
-  }) {
+  }) async {
+    if (request.cancelToken.isCancelled) throw request.cancelToken.cancelError!;
+    await ExternalBillingScope.check('generate', requestData);
+    if (request.cancelToken.isCancelled) throw request.cancelToken.cancelError!;
     return _dio.post<Uint8List>(
       _endpointService.imageUrl(ApiConstants.generateImageEndpoint),
       data: buildGenerationFormData(requestData),
@@ -138,7 +142,10 @@ class NaiGenerationTransport {
   Future<Response<ResponseBody>> sendStream(
     Map<String, dynamic> requestData,
     NaiGenerationRequest request,
-  ) {
+  ) async {
+    if (request.cancelToken.isCancelled) throw request.cancelToken.cancelError!;
+    await ExternalBillingScope.check('generate', requestData);
+    if (request.cancelToken.isCancelled) throw request.cancelToken.cancelError!;
     return _dio.post<ResponseBody>(
       _endpointService.imageUrl(ApiConstants.generateImageStreamEndpoint),
       data: buildGenerationFormData(requestData),

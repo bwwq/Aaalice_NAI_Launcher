@@ -26844,6 +26844,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move down'**
   String get settings_navigationMoveDown;
+
+  /// No description provided for @externalAgent_title.
+  ///
+  /// In en, this message translates to:
+  /// **'External Agent'**
+  String get externalAgent_title;
+
+  /// No description provided for @externalAgent_connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get externalAgent_connection;
+
+  /// No description provided for @externalAgent_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow external Agent connections'**
+  String get externalAgent_enable;
+
+  /// No description provided for @externalAgent_allowLan.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow LAN connections'**
+  String get externalAgent_allowLan;
+
+  /// No description provided for @externalAgent_allowLanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, other devices on your LAN can connect. Otherwise, only this device can connect.'**
+  String get externalAgent_allowLanDescription;
+
+  /// No description provided for @externalAgent_port.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get externalAgent_port;
+
+  /// No description provided for @externalAgent_invalidPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a port from 1024 to 65535.'**
+  String get externalAgent_invalidPort;
+
+  /// No description provided for @externalAgent_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get externalAgent_save;
+
+  /// No description provided for @externalAgent_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection address'**
+  String get externalAgent_address;
+
+  /// No description provided for @externalAgent_copyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy connection address'**
+  String get externalAgent_copyAddress;
+
+  /// No description provided for @externalAgent_copyCodex.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Codex configuration'**
+  String get externalAgent_copyCodex;
+
+  /// No description provided for @externalAgent_copyOpenCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy OpenCode V2 configuration'**
+  String get externalAgent_copyOpenCode;
+
+  /// No description provided for @externalAgent_copyOpenCodeLegacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy legacy OpenCode configuration'**
+  String get externalAgent_copyOpenCodeLegacy;
+
+  /// No description provided for @externalAgent_copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get externalAgent_copied;
+
+  /// No description provided for @externalAgent_starting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting'**
+  String get externalAgent_starting;
+
+  /// No description provided for @externalAgent_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening, ready to connect'**
+  String get externalAgent_connected;
+
+  /// No description provided for @externalAgent_stopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get externalAgent_stopped;
+
+  /// No description provided for @externalAgent_permissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions'**
+  String get externalAgent_permissions;
+
+  /// No description provided for @externalAgent_modeAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask'**
+  String get externalAgent_modeAsk;
+
+  /// No description provided for @externalAgent_modeAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get externalAgent_modeAutomatic;
+
+  /// No description provided for @externalAgent_modeFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full control'**
+  String get externalAgent_modeFull;
+
+  /// No description provided for @externalAgent_permissionsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges within the cumulative budget are approved, otherwise ask. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.'**
+  String get externalAgent_permissionsDescription;
+
+  /// No description provided for @externalAgent_budget.
+  ///
+  /// In en, this message translates to:
+  /// **'Cumulative Anlas budget'**
+  String get externalAgent_budget;
+
+  /// No description provided for @externalAgent_invalidBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a non-negative whole number.'**
+  String get externalAgent_invalidBudget;
+
+  /// No description provided for @externalAgent_resetSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset usage'**
+  String get externalAgent_resetSpent;
+
+  /// No description provided for @externalAgent_spent.
+  ///
+  /// In en, this message translates to:
+  /// **'Dispatched requests: {spent} Anlas; reserved: {reserved} Anlas'**
+  String externalAgent_spent(int spent, int reserved);
+
+  /// No description provided for @externalAgent_spentDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage sums estimates before dispatch, including retries. Failed requests do not automatically refund the estimate. Actual billing is determined by the server.'**
+  String get externalAgent_spentDescription;
+
+  /// No description provided for @externalAgent_calls.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks and recent calls'**
+  String get externalAgent_calls;
+
+  /// No description provided for @externalAgent_noCalls.
+  ///
+  /// In en, this message translates to:
+  /// **'No external calls yet'**
+  String get externalAgent_noCalls;
+
+  /// No description provided for @externalAgent_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get externalAgent_pending;
+
+  /// No description provided for @externalAgent_awaitingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get externalAgent_awaitingApproval;
+
+  /// No description provided for @externalAgent_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get externalAgent_running;
+
+  /// No description provided for @externalAgent_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get externalAgent_completed;
+
+  /// No description provided for @externalAgent_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get externalAgent_failed;
+
+  /// No description provided for @externalAgent_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get externalAgent_cancelled;
+
+  /// No description provided for @externalAgent_interrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Interrupted by restart'**
+  String get externalAgent_interrupted;
+
+  /// No description provided for @externalAgent_estimatedAnlas.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated cost: {amount} Anlas'**
+  String externalAgent_estimatedAnlas(int amount);
+
+  /// No description provided for @externalAgent_unknownCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost is unknown. Approval is required.'**
+  String get externalAgent_unknownCost;
+
+  /// No description provided for @externalAgent_result.
+  ///
+  /// In en, this message translates to:
+  /// **'Details and result'**
+  String get externalAgent_result;
+
+  /// No description provided for @externalAgent_approve.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get externalAgent_approve;
+
+  /// No description provided for @externalAgent_reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get externalAgent_reject;
+
+  /// No description provided for @externalAgent_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel task'**
+  String get externalAgent_cancel;
+
+  /// No description provided for @externalAgent_builtIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Show built-in Agent'**
+  String get externalAgent_builtIn;
+
+  /// No description provided for @externalAgent_queueDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Clients share one task queue. Writes, generation and processing run in order. Queries and pause, resume, stop and cancel remain available.'**
+  String get externalAgent_queueDescription;
+
+  /// No description provided for @externalAgent_generate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation and editing'**
+  String get externalAgent_generate;
+
+  /// No description provided for @externalAgent_imageProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Image processing'**
+  String get externalAgent_imageProcessing;
+
+  /// No description provided for @externalAgent_navigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get externalAgent_navigation;
+
+  /// No description provided for @externalAgent_application.
+  ///
+  /// In en, this message translates to:
+  /// **'Application operations'**
+  String get externalAgent_application;
+
+  /// No description provided for @externalAgent_read.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get externalAgent_read;
+
+  /// No description provided for @externalAgent_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete or remove'**
+  String get externalAgent_delete;
+
+  /// No description provided for @externalAgent_prepare.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare'**
+  String get externalAgent_prepare;
+
+  /// No description provided for @externalAgent_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add or import'**
+  String get externalAgent_add;
+
+  /// No description provided for @externalAgent_export.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get externalAgent_export;
+
+  /// No description provided for @externalAgent_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Modify'**
+  String get externalAgent_edit;
+
+  /// No description provided for @externalAgent_execute.
+  ///
+  /// In en, this message translates to:
+  /// **'Execute'**
+  String get externalAgent_execute;
+
+  /// No description provided for @externalAgent_control.
+  ///
+  /// In en, this message translates to:
+  /// **'Task control'**
+  String get externalAgent_control;
+
+  /// No description provided for @externalAgent_imageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Image is no longer readable'**
+  String get externalAgent_imageUnavailable;
 }
 
 class _AppLocalizationsDelegate

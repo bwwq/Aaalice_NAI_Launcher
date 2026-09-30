@@ -7390,5 +7390,79 @@
   "settings_navigationOrder": "左欄圖示順序",
   "settings_navigationOrderSubtitle": "用上下箭頭調整位置，變更後立即生效。",
   "settings_navigationMoveUp": "上移",
-  "settings_navigationMoveDown": "下移"
+  "settings_navigationMoveDown": "下移",
+  "externalAgent_title": "外部 Agent",
+  "externalAgent_connection": "連線",
+  "externalAgent_enable": "允許外部 Agent 連線",
+  "externalAgent_allowLan": "允許區域網路連線",
+  "externalAgent_allowLanDescription": "開啟後，區域網路中的其他裝置也能連線；關閉時僅限本機。",
+  "externalAgent_port": "連接埠",
+  "externalAgent_invalidPort": "連接埠請輸入 1024–65535。",
+  "externalAgent_save": "儲存",
+  "externalAgent_address": "連線位址",
+  "externalAgent_copyAddress": "複製連線位址",
+  "externalAgent_copyCodex": "複製 Codex 設定",
+  "externalAgent_copyOpenCode": "複製 OpenCode V2 設定",
+  "externalAgent_copyOpenCodeLegacy": "複製舊版 OpenCode 設定",
+  "externalAgent_copied": "已複製",
+  "externalAgent_starting": "正在啟動",
+  "externalAgent_connected": "正在接聽，可連線",
+  "externalAgent_stopped": "已關閉",
+  "externalAgent_permissions": "操作權限",
+  "externalAgent_modeAsk": "詢問",
+  "externalAgent_modeAutomatic": "自動同意",
+  "externalAgent_modeFull": "完全控制",
+  "externalAgent_permissionsDescription": "詢問：寫入及收費操作先確認。自動同意：一般操作直接執行，收費在累計額度內執行，超額或未知費用需確認。完全控制：允許的操作直接執行。始終禁止讀取帳號金鑰、清空資料、刪除備份和覆蓋還原；權限只能在此修改。",
+  "externalAgent_budget": "累計 Anlas 額度",
+  "externalAgent_invalidBudget": "額度請輸入不小於 0 的整數。",
+  "externalAgent_resetSpent": "重設累計用量",
+  "externalAgent_spent": "累計已送出請求：{spent} Anlas；待執行預留：{reserved} Anlas",
+  "externalAgent_spentDescription": "依請求送出前的費用估算累計，重試也計入；網路失敗不自動退回估算額度。實際扣費以伺服器為準。",
+  "externalAgent_calls": "工作與最近呼叫",
+  "externalAgent_noCalls": "尚無外部呼叫",
+  "externalAgent_pending": "排隊中",
+  "externalAgent_awaitingApproval": "待確認",
+  "externalAgent_running": "執行中",
+  "externalAgent_completed": "已完成",
+  "externalAgent_failed": "失敗",
+  "externalAgent_cancelled": "已取消",
+  "externalAgent_interrupted": "重新啟動後已停止",
+  "externalAgent_estimatedAnlas": "預計費用：{amount} Anlas",
+  "externalAgent_unknownCost": "費用尚無法確定，需要確認後執行。",
+  "externalAgent_result": "檢視詳情與結果",
+  "externalAgent_approve": "批准",
+  "externalAgent_reject": "拒絕",
+  "externalAgent_cancel": "取消工作",
+  "externalAgent_builtIn": "顯示內建智慧助理",
+  "externalAgent_queueDescription": "多個用戶端共用工作佇列。寫入、生成和處理依序執行；查詢及暫停、繼續、停止、取消可隨時操作。",
+  "@externalAgent_spent": {
+    "placeholders": {
+      "spent": {
+        "type": "int"
+      },
+      "reserved": {
+        "type": "int"
+      }
+    }
+  },
+  "@externalAgent_estimatedAnlas": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "externalAgent_generate": "生成與改圖",
+  "externalAgent_imageProcessing": "影像處理",
+  "externalAgent_navigation": "頁面導覽",
+  "externalAgent_application": "軟體操作",
+  "externalAgent_read": "讀取",
+  "externalAgent_delete": "刪除或移除",
+  "externalAgent_prepare": "準備",
+  "externalAgent_add": "新增或匯入",
+  "externalAgent_export": "匯出",
+  "externalAgent_edit": "修改",
+  "externalAgent_execute": "執行",
+  "externalAgent_control": "工作控制",
+  "externalAgent_imageUnavailable": "圖片已無法讀取"
 }

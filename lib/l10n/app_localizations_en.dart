@@ -15420,4 +15420,186 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_navigationMoveDown => 'Move down';
+
+  @override
+  String get externalAgent_title => 'External Agent';
+
+  @override
+  String get externalAgent_connection => 'Connection';
+
+  @override
+  String get externalAgent_enable => 'Allow external Agent connections';
+
+  @override
+  String get externalAgent_allowLan => 'Allow LAN connections';
+
+  @override
+  String get externalAgent_allowLanDescription =>
+      'When enabled, other devices on your LAN can connect. Otherwise, only this device can connect.';
+
+  @override
+  String get externalAgent_port => 'Port';
+
+  @override
+  String get externalAgent_invalidPort => 'Enter a port from 1024 to 65535.';
+
+  @override
+  String get externalAgent_save => 'Save';
+
+  @override
+  String get externalAgent_address => 'Connection address';
+
+  @override
+  String get externalAgent_copyAddress => 'Copy connection address';
+
+  @override
+  String get externalAgent_copyCodex => 'Copy Codex configuration';
+
+  @override
+  String get externalAgent_copyOpenCode => 'Copy OpenCode V2 configuration';
+
+  @override
+  String get externalAgent_copyOpenCodeLegacy =>
+      'Copy legacy OpenCode configuration';
+
+  @override
+  String get externalAgent_copied => 'Copied';
+
+  @override
+  String get externalAgent_starting => 'Starting';
+
+  @override
+  String get externalAgent_connected => 'Listening, ready to connect';
+
+  @override
+  String get externalAgent_stopped => 'Stopped';
+
+  @override
+  String get externalAgent_permissions => 'Permissions';
+
+  @override
+  String get externalAgent_modeAsk => 'Ask';
+
+  @override
+  String get externalAgent_modeAutomatic => 'Automatic';
+
+  @override
+  String get externalAgent_modeFull => 'Full control';
+
+  @override
+  String get externalAgent_permissionsDescription =>
+      'Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges within the cumulative budget are approved, otherwise ask. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.';
+
+  @override
+  String get externalAgent_budget => 'Cumulative Anlas budget';
+
+  @override
+  String get externalAgent_invalidBudget =>
+      'Enter a non-negative whole number.';
+
+  @override
+  String get externalAgent_resetSpent => 'Reset usage';
+
+  @override
+  String externalAgent_spent(int spent, int reserved) {
+    return 'Dispatched requests: $spent Anlas; reserved: $reserved Anlas';
+  }
+
+  @override
+  String get externalAgent_spentDescription =>
+      'Usage sums estimates before dispatch, including retries. Failed requests do not automatically refund the estimate. Actual billing is determined by the server.';
+
+  @override
+  String get externalAgent_calls => 'Tasks and recent calls';
+
+  @override
+  String get externalAgent_noCalls => 'No external calls yet';
+
+  @override
+  String get externalAgent_pending => 'Queued';
+
+  @override
+  String get externalAgent_awaitingApproval => 'Awaiting approval';
+
+  @override
+  String get externalAgent_running => 'Running';
+
+  @override
+  String get externalAgent_completed => 'Completed';
+
+  @override
+  String get externalAgent_failed => 'Failed';
+
+  @override
+  String get externalAgent_cancelled => 'Cancelled';
+
+  @override
+  String get externalAgent_interrupted => 'Interrupted by restart';
+
+  @override
+  String externalAgent_estimatedAnlas(int amount) {
+    return 'Estimated cost: $amount Anlas';
+  }
+
+  @override
+  String get externalAgent_unknownCost =>
+      'Cost is unknown. Approval is required.';
+
+  @override
+  String get externalAgent_result => 'Details and result';
+
+  @override
+  String get externalAgent_approve => 'Approve';
+
+  @override
+  String get externalAgent_reject => 'Reject';
+
+  @override
+  String get externalAgent_cancel => 'Cancel task';
+
+  @override
+  String get externalAgent_builtIn => 'Show built-in Agent';
+
+  @override
+  String get externalAgent_queueDescription =>
+      'Clients share one task queue. Writes, generation and processing run in order. Queries and pause, resume, stop and cancel remain available.';
+
+  @override
+  String get externalAgent_generate => 'Generation and editing';
+
+  @override
+  String get externalAgent_imageProcessing => 'Image processing';
+
+  @override
+  String get externalAgent_navigation => 'Navigation';
+
+  @override
+  String get externalAgent_application => 'Application operations';
+
+  @override
+  String get externalAgent_read => 'Read';
+
+  @override
+  String get externalAgent_delete => 'Delete or remove';
+
+  @override
+  String get externalAgent_prepare => 'Prepare';
+
+  @override
+  String get externalAgent_add => 'Add or import';
+
+  @override
+  String get externalAgent_export => 'Export';
+
+  @override
+  String get externalAgent_edit => 'Modify';
+
+  @override
+  String get externalAgent_execute => 'Execute';
+
+  @override
+  String get externalAgent_control => 'Task control';
+
+  @override
+  String get externalAgent_imageUnavailable => 'Image is no longer readable';
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../core/agent/abort_signal.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -185,6 +186,8 @@ class GalleryStreamScanner {
     bool retryMissingMetadata = false,
     bool retryFailedMetadata = false,
     List<File>? fileSnapshot,
+    AbortSignal? signal,
+    bool throwOnError = false,
   }) {
     // Copy caller-owned lists before the first await so later mutations cannot
     // change either the total or the files processed by this scan.
@@ -194,6 +197,7 @@ class GalleryStreamScanner {
 
     // 使用互斥锁防止并发扫描
     return _scanLock.synchronized(() async {
+      throwIfAborted(signal);
       if (_isRunning) {
         AppLogger.w(
           '[StreamScan] Scanner already running',
@@ -204,6 +208,8 @@ class GalleryStreamScanner {
 
       _isRunning = true;
       _shouldCancel = false;
+      void abort(String? _) => cancel();
+      signal?.addListener(abort);
 
       AppLogger.i(
         '[StreamScan] Starting stream scan: ${rootDir.path}',
@@ -338,8 +344,10 @@ class GalleryStreamScanner {
           'GalleryStreamScanner',
         );
         _stateManager.errorScan(e.toString());
+        if (throwOnError) rethrow;
       } finally {
         _isRunning = false;
+        signal?.removeListener(abort);
         // 注意：不要在这里关闭 StreamController，因为它们是广播流
         // 在单例模式下需要保持开放以支持多次扫描
       }

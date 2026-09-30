@@ -1,3 +1,4 @@
+import '../../providers/external_agent_config_provider.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -31,7 +32,7 @@ class _AgentQuestionNotificationsState
     super.initState();
     _service = ref.read(agentQuestionNotificationServiceProvider);
     _opened = _service.opened.listen((requestId) {
-      if (!mounted) return;
+      if (!mounted || !ref.read(builtInAgentEnabledProvider)) return;
       if (ref.read(agentChatNotifierProvider).questionRequest?.toolCallId ==
           requestId) {
         ref.read(shellPanelProvider.notifier).state = ShellPanel.agent;
@@ -75,6 +76,7 @@ class _AgentQuestionNotificationsState
 
   @override
   Widget build(BuildContext context) {
+    if (!ref.watch(builtInAgentEnabledProvider)) return widget.child;
     ref.listen<AgentUserQuestionRequest?>(
       agentChatNotifierProvider.select((state) => state.questionRequest),
       (previous, next) {

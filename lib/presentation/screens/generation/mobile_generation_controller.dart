@@ -1,3 +1,4 @@
+import '../../providers/external_agent_config_provider.dart';
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
@@ -28,6 +29,12 @@ class MobileGenerationController extends ChangeNotifier
         mobileShellOverlayNotifierProvider.notifier,
       ) {
     WidgetsBinding.instance.addObserver(this);
+    _agentVisibility = ref.listenManual(builtInAgentEnabledProvider, (
+      _,
+      enabled,
+    ) {
+      if (!enabled && !_disposed) closeAgentChat();
+    });
     final storage = ref.read(localStorageServiceProvider);
     showGestureHint =
         !(storage.getSetting<bool>(
@@ -72,6 +79,7 @@ class MobileGenerationController extends ChangeNotifier
   double workspaceDragFeedback = 0;
   Timer? gestureHintTimer;
   bool _disposed = false;
+  ProviderSubscription<bool>? _agentVisibility;
 
   @override
   void didChangeMetrics() {
@@ -104,6 +112,7 @@ class MobileGenerationController extends ChangeNotifier
   }
 
   void openAgentChat() {
+    if (!ref.read(builtInAgentEnabledProvider)) return;
     FocusManager.instance.primaryFocus?.unfocus();
     _setOverlay(MobileShellOverlay.promptEditor, false);
     _setOverlay(MobileShellOverlay.agentChat, true);
@@ -379,6 +388,7 @@ class MobileGenerationController extends ChangeNotifier
 
   @override
   void dispose() {
+    _agentVisibility?.close();
     agentFocusScope.dispose();
     _disposed = true;
     gestureHintTimer?.cancel();

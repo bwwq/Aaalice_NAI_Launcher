@@ -14742,6 +14742,184 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_navigationMoveDown => '下移';
+
+  @override
+  String get externalAgent_title => '外部 Agent';
+
+  @override
+  String get externalAgent_connection => '连接';
+
+  @override
+  String get externalAgent_enable => '允许外部 Agent 连接';
+
+  @override
+  String get externalAgent_allowLan => '允许局域网连接';
+
+  @override
+  String get externalAgent_allowLanDescription => '开启后，局域网中的其他设备也能连接；关闭时仅限本机。';
+
+  @override
+  String get externalAgent_port => '端口';
+
+  @override
+  String get externalAgent_invalidPort => '端口请输入 1024–65535。';
+
+  @override
+  String get externalAgent_save => '保存';
+
+  @override
+  String get externalAgent_address => '连接地址';
+
+  @override
+  String get externalAgent_copyAddress => '复制连接地址';
+
+  @override
+  String get externalAgent_copyCodex => '复制 Codex 配置';
+
+  @override
+  String get externalAgent_copyOpenCode => '复制 OpenCode V2 配置';
+
+  @override
+  String get externalAgent_copyOpenCodeLegacy => '复制旧版 OpenCode 配置';
+
+  @override
+  String get externalAgent_copied => '已复制';
+
+  @override
+  String get externalAgent_starting => '正在启动';
+
+  @override
+  String get externalAgent_connected => '正在监听，可连接';
+
+  @override
+  String get externalAgent_stopped => '已关闭';
+
+  @override
+  String get externalAgent_permissions => '操作权限';
+
+  @override
+  String get externalAgent_modeAsk => '询问';
+
+  @override
+  String get externalAgent_modeAutomatic => '自动同意';
+
+  @override
+  String get externalAgent_modeFull => '完全控制';
+
+  @override
+  String get externalAgent_permissionsDescription =>
+      '询问：写入及收费操作先确认。自动同意：普通操作直接执行，收费在累计额度内执行，超额或未知费用需确认。完全控制：允许的操作直接执行。始终禁止读取账号密钥、清空数据、删除备份和覆盖恢复；权限只能在此修改。';
+
+  @override
+  String get externalAgent_budget => '累计 Anlas 额度';
+
+  @override
+  String get externalAgent_invalidBudget => '额度请输入不小于 0 的整数。';
+
+  @override
+  String get externalAgent_resetSpent => '重置累计用量';
+
+  @override
+  String externalAgent_spent(int spent, int reserved) {
+    return '累计已发出请求：$spent Anlas；待执行预留：$reserved Anlas';
+  }
+
+  @override
+  String get externalAgent_spentDescription =>
+      '按请求发送前的费用估算累计，重试也计入；网络失败不自动退回估算额度。实际扣费以服务端为准。';
+
+  @override
+  String get externalAgent_calls => '任务与最近调用';
+
+  @override
+  String get externalAgent_noCalls => '还没有外部调用';
+
+  @override
+  String get externalAgent_pending => '排队中';
+
+  @override
+  String get externalAgent_awaitingApproval => '待确认';
+
+  @override
+  String get externalAgent_running => '执行中';
+
+  @override
+  String get externalAgent_completed => '已完成';
+
+  @override
+  String get externalAgent_failed => '失败';
+
+  @override
+  String get externalAgent_cancelled => '已取消';
+
+  @override
+  String get externalAgent_interrupted => '重启后已停止';
+
+  @override
+  String externalAgent_estimatedAnlas(int amount) {
+    return '预计费用：$amount Anlas';
+  }
+
+  @override
+  String get externalAgent_unknownCost => '费用尚无法确定，需要确认后执行。';
+
+  @override
+  String get externalAgent_result => '查看详情与结果';
+
+  @override
+  String get externalAgent_approve => '批准';
+
+  @override
+  String get externalAgent_reject => '拒绝';
+
+  @override
+  String get externalAgent_cancel => '取消任务';
+
+  @override
+  String get externalAgent_builtIn => '显示内置智能体';
+
+  @override
+  String get externalAgent_queueDescription =>
+      '多个客户端共用任务队列。写入、生成和处理按顺序执行；查询及暂停、继续、停止、取消可随时操作。';
+
+  @override
+  String get externalAgent_generate => '生成与改图';
+
+  @override
+  String get externalAgent_imageProcessing => '图像处理';
+
+  @override
+  String get externalAgent_navigation => '页面导航';
+
+  @override
+  String get externalAgent_application => '软件操作';
+
+  @override
+  String get externalAgent_read => '读取';
+
+  @override
+  String get externalAgent_delete => '删除或移除';
+
+  @override
+  String get externalAgent_prepare => '准备';
+
+  @override
+  String get externalAgent_add => '添加或导入';
+
+  @override
+  String get externalAgent_export => '导出';
+
+  @override
+  String get externalAgent_edit => '修改';
+
+  @override
+  String get externalAgent_execute => '执行';
+
+  @override
+  String get externalAgent_control => '任务控制';
+
+  @override
+  String get externalAgent_imageUnavailable => '图片已无法读取';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -29483,4 +29661,182 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get settings_navigationMoveDown => '下移';
+
+  @override
+  String get externalAgent_title => '外部 Agent';
+
+  @override
+  String get externalAgent_connection => '連線';
+
+  @override
+  String get externalAgent_enable => '允許外部 Agent 連線';
+
+  @override
+  String get externalAgent_allowLan => '允許區域網路連線';
+
+  @override
+  String get externalAgent_allowLanDescription => '開啟後，區域網路中的其他裝置也能連線；關閉時僅限本機。';
+
+  @override
+  String get externalAgent_port => '連接埠';
+
+  @override
+  String get externalAgent_invalidPort => '連接埠請輸入 1024–65535。';
+
+  @override
+  String get externalAgent_save => '儲存';
+
+  @override
+  String get externalAgent_address => '連線位址';
+
+  @override
+  String get externalAgent_copyAddress => '複製連線位址';
+
+  @override
+  String get externalAgent_copyCodex => '複製 Codex 設定';
+
+  @override
+  String get externalAgent_copyOpenCode => '複製 OpenCode V2 設定';
+
+  @override
+  String get externalAgent_copyOpenCodeLegacy => '複製舊版 OpenCode 設定';
+
+  @override
+  String get externalAgent_copied => '已複製';
+
+  @override
+  String get externalAgent_starting => '正在啟動';
+
+  @override
+  String get externalAgent_connected => '正在接聽，可連線';
+
+  @override
+  String get externalAgent_stopped => '已關閉';
+
+  @override
+  String get externalAgent_permissions => '操作權限';
+
+  @override
+  String get externalAgent_modeAsk => '詢問';
+
+  @override
+  String get externalAgent_modeAutomatic => '自動同意';
+
+  @override
+  String get externalAgent_modeFull => '完全控制';
+
+  @override
+  String get externalAgent_permissionsDescription =>
+      '詢問：寫入及收費操作先確認。自動同意：一般操作直接執行，收費在累計額度內執行，超額或未知費用需確認。完全控制：允許的操作直接執行。始終禁止讀取帳號金鑰、清空資料、刪除備份和覆蓋還原；權限只能在此修改。';
+
+  @override
+  String get externalAgent_budget => '累計 Anlas 額度';
+
+  @override
+  String get externalAgent_invalidBudget => '額度請輸入不小於 0 的整數。';
+
+  @override
+  String get externalAgent_resetSpent => '重設累計用量';
+
+  @override
+  String externalAgent_spent(int spent, int reserved) {
+    return '累計已送出請求：$spent Anlas；待執行預留：$reserved Anlas';
+  }
+
+  @override
+  String get externalAgent_spentDescription =>
+      '依請求送出前的費用估算累計，重試也計入；網路失敗不自動退回估算額度。實際扣費以伺服器為準。';
+
+  @override
+  String get externalAgent_calls => '工作與最近呼叫';
+
+  @override
+  String get externalAgent_noCalls => '尚無外部呼叫';
+
+  @override
+  String get externalAgent_pending => '排隊中';
+
+  @override
+  String get externalAgent_awaitingApproval => '待確認';
+
+  @override
+  String get externalAgent_running => '執行中';
+
+  @override
+  String get externalAgent_completed => '已完成';
+
+  @override
+  String get externalAgent_failed => '失敗';
+
+  @override
+  String get externalAgent_cancelled => '已取消';
+
+  @override
+  String get externalAgent_interrupted => '重新啟動後已停止';
+
+  @override
+  String externalAgent_estimatedAnlas(int amount) {
+    return '預計費用：$amount Anlas';
+  }
+
+  @override
+  String get externalAgent_unknownCost => '費用尚無法確定，需要確認後執行。';
+
+  @override
+  String get externalAgent_result => '檢視詳情與結果';
+
+  @override
+  String get externalAgent_approve => '批准';
+
+  @override
+  String get externalAgent_reject => '拒絕';
+
+  @override
+  String get externalAgent_cancel => '取消工作';
+
+  @override
+  String get externalAgent_builtIn => '顯示內建智慧助理';
+
+  @override
+  String get externalAgent_queueDescription =>
+      '多個用戶端共用工作佇列。寫入、生成和處理依序執行；查詢及暫停、繼續、停止、取消可隨時操作。';
+
+  @override
+  String get externalAgent_generate => '生成與改圖';
+
+  @override
+  String get externalAgent_imageProcessing => '影像處理';
+
+  @override
+  String get externalAgent_navigation => '頁面導覽';
+
+  @override
+  String get externalAgent_application => '軟體操作';
+
+  @override
+  String get externalAgent_read => '讀取';
+
+  @override
+  String get externalAgent_delete => '刪除或移除';
+
+  @override
+  String get externalAgent_prepare => '準備';
+
+  @override
+  String get externalAgent_add => '新增或匯入';
+
+  @override
+  String get externalAgent_export => '匯出';
+
+  @override
+  String get externalAgent_edit => '修改';
+
+  @override
+  String get externalAgent_execute => '執行';
+
+  @override
+  String get externalAgent_control => '工作控制';
+
+  @override
+  String get externalAgent_imageUnavailable => '圖片已無法讀取';
 }

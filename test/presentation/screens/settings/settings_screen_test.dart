@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:nai_launcher/presentation/providers/external_agent_config_provider.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -644,6 +645,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
         localStorageServiceProvider.overrideWithValue(storage),
         secureStorageServiceProvider.overrideWithValue(_MemorySecureStorage()),
         agentSettingsProvider.overrideWith(
@@ -756,6 +758,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
         localStorageServiceProvider.overrideWithValue(storage),
         secureStorageServiceProvider.overrideWithValue(_MemorySecureStorage()),
         agentSettingsProvider.overrideWith(
@@ -923,6 +926,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
+        builtInAgentEnabledProvider.overrideWithValue(true),
         localStorageServiceProvider.overrideWithValue(storage),
         secureStorageServiceProvider.overrideWithValue(_MemorySecureStorage()),
         agentSettingsProvider.overrideWith(

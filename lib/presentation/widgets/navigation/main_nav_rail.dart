@@ -1,3 +1,4 @@
+import '../../providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -102,6 +103,7 @@ class MainNavRail extends ConsumerWidget {
     final items = visibleMainNavigationItems(
       ref.watch(mainNavigationOrderProvider),
       onlineGalleryEnabled: ref.watch(onlineGalleryEnabledProvider),
+      builtInAgentEnabled: ref.watch(builtInAgentEnabledProvider),
     );
     Widget buildItem(MainNavigationItem item) {
       if (item == MainNavigationItem.agent) {

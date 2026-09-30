@@ -1,4 +1,6 @@
 import 'dart:convert';
+import '../../../core/external_agent/external_billing_scope.dart';
+import '../../../data/models/queue/replication_task_status.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/agent/agent_types.dart';
 import '../../../data/models/queue/replication_task.dart';
@@ -117,6 +119,13 @@ class GenerationQueueTaskService {
       }
       String started = 'not started';
       if (autoStart) {
+        ExternalBillingScope.bindQueueTasks(
+          _ref
+              .read(replicationQueueNotifierProvider)
+              .tasks
+              .where((task) => task.status == ReplicationTaskStatus.pending)
+              .map((task) => task.id),
+        );
         final result = await _ref
             .read(queueExecutionNotifierProvider.notifier)
             .startQueue();

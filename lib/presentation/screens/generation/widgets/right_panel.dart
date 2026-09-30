@@ -1,3 +1,4 @@
+import '../../../providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -67,6 +68,7 @@ class _RightPanelState extends ConsumerState<RightPanel> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
+    final agentEnabled = ref.watch(builtInAgentEnabledProvider);
     final layoutState = ref.watch(layoutStateNotifierProvider);
     final expanded = widget.expanded ?? layoutState.rightPanelExpanded;
 
@@ -89,22 +91,23 @@ class _RightPanelState extends ConsumerState<RightPanel> {
     if (expanded) {
       // 每页唯一一行 header：聊天页的会话行内含折叠按钮与标题
       // （见 AgentChatPanel），历史页用 HistoryPanel 自带 header。
-      child = _activeView == 0
+      child = agentEnabled && _activeView == 0
           ? const AgentChatPanel()
           : HistoryPanel(embedded: false, viewportOffset: _historyViewport);
     } else {
       // 折叠态：竖排两个独立入口（聊天 / 历史），点击展开对应页面。
       child = Column(
         children: [
-          Expanded(
-            child: CollapsedPanel(
-              icon: Icons.smart_toy_outlined,
-              label: l10n.agentChat_tab,
-              active: _activeView == 0,
-              onTap: () => _expandTo(0),
+          if (agentEnabled)
+            Expanded(
+              child: CollapsedPanel(
+                icon: Icons.smart_toy_outlined,
+                label: l10n.agentChat_tab,
+                active: _activeView == 0,
+                onTap: () => _expandTo(0),
+              ),
             ),
-          ),
-          const Divider(height: 1),
+          if (agentEnabled) const Divider(height: 1),
           Expanded(
             child: CollapsedPanel(
               icon: Icons.history,

@@ -1,4 +1,5 @@
 import '../../../core/cloud_sync/operation.dart';
+import '../../../core/cloud_sync/backup_retention_scope.dart';
 import '../../../core/cloud_sync/encrypted_cloud_sync_backend.dart';
 import '../../../core/cloud_sync/backend/cloud_sync_backend.dart';
 import '../../../core/cloud_sync/cloud_drive_provider.dart';
@@ -89,6 +90,71 @@ class CloudSyncApplicationService implements CloudSyncUiPort {
   Future<void> initialize() async {
     if (_state.deviceName != null) return;
     _set(await _connectionStore.initializeState(_state));
+  }
+
+  /// Independent external queries do not create or replace a restore preview.
+  Future<Map<String, dynamic>> externalHistory() => _gate.run((_) async {
+    final coordinator = _coordinator;
+    if (coordinator == null) {
+      throw StateError('Backup connection is not ready.');
+    }
+    final entries = await coordinator.history();
+    return {
+      'snapshots': [
+        for (final item in entries)
+          {
+            'snapshot_id': item.id,
+            'created_at': item.createdAt.toIso8601String(),
+            'object_count': item.objectCount,
+            'encrypted': item.encrypted,
+          },
+      ],
+    };
+  });
+
+  Future<Map<String, dynamic>> externalBrowse(String id) =>
+      _gate.run((_) async {
+        final coordinator = _coordinator;
+        if (coordinator == null) {
+          throw StateError('Backup connection is not ready.');
+        }
+        final preview = await coordinator.browseBackup(id);
+        return {
+          'snapshot_id': id,
+          'contents': [
+            for (final item in preview.contents)
+              {
+                'group': item.group,
+                'title': item.title,
+                'text': item.text,
+                'bytes': item.bytes,
+              },
+          ],
+        };
+      });
+
+  Future<Map<String, dynamic>> externalCreateBackup() {
+    _state.ensureNoPendingPreview();
+    return _gate.run(
+      (_) => BackupRetentionScope.preserve(() async {
+        final coordinator = _coordinator;
+        if (coordinator == null) {
+          throw StateError('Backup connection is not ready.');
+        }
+        if (await coordinator.journalStore.read() != null) {
+          throw StateError(
+            'Finish the pending backup operation in the application first. External calls cannot recover or restore it.',
+          );
+        }
+        final outcome = await coordinator.uploadLocal();
+        await _operations.loadHistory();
+        return {
+          'snapshot_id': outcome.snapshotId,
+          'uploaded': outcome.uploaded,
+          'existing_backups_preserved': true,
+        };
+      }),
+    );
   }
 
   void _set(CloudSyncUiState value) {

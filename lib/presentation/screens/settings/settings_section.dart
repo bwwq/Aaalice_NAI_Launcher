@@ -3,6 +3,7 @@ enum SettingsSection {
   appearance('appearance'),
   generation('generation'),
   agent('agent'),
+  externalAgent('external-agent'),
   storage('storage'),
   cloudSync('cloud-sync'),
   privacy('privacy'),

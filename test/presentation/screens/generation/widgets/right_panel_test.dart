@@ -12,6 +12,7 @@ import 'package:nai_launcher/presentation/agent_chat/providers/agent_chat_notifi
 import 'package:nai_launcher/presentation/agent_chat/widgets/agent_chat_panel.dart';
 import 'package:nai_launcher/presentation/screens/generation/widgets/history_panel.dart';
 import 'package:nai_launcher/presentation/screens/generation/widgets/right_panel.dart';
+import 'package:nai_launcher/presentation/providers/external_agent_config_provider.dart';
 import 'package:nai_launcher/presentation/widgets/common/owned_scroll_controller.dart';
 
 void main() {
@@ -123,6 +124,42 @@ void main() {
     expect(viewport.pixels, 720);
   });
 
+  testWidgets('hidden Agent falls back from a saved chat tab to history', (
+    tester,
+  ) async {
+    final storage = _MemoryLocalStorage()
+      .._values[StorageKeys.rightPanelTab] = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          localStorageServiceProvider.overrideWithValue(storage),
+          agentChatNotifierProvider.overrideWith(
+            (_) => throw StateError('Hidden Agent initialized'),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: Scaffold(
+            body: SizedBox(
+              width: 400,
+              height: 640,
+              child: RightPanel(expanded: true),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(HistoryPanel), findsOneWidget);
+    expect(find.byType(AgentChatPanel), findsNothing);
+    expect(find.byIcon(Icons.smart_toy_outlined), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets('collapsed entries open the selected panel immediately', (
     tester,
   ) async {
@@ -142,6 +179,7 @@ void main() {
               presetSkills: const [],
             ),
           ),
+          builtInAgentEnabledProvider.overrideWithValue(true),
         ],
         child: const MaterialApp(
           locale: Locale('en'),

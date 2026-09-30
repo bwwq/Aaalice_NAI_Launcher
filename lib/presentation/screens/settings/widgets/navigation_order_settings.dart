@@ -1,3 +1,4 @@
+import '../../../providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -39,9 +40,11 @@ class _NavigationOrderSettingsState
   @override
   Widget build(BuildContext context) {
     final galleryEnabled = ref.watch(onlineGalleryEnabledProvider);
+    final agentEnabled = ref.watch(builtInAgentEnabledProvider);
     final items = visibleMainNavigationItems(
       ref.watch(mainNavigationOrderProvider),
       onlineGalleryEnabled: galleryEnabled,
+      builtInAgentEnabled: agentEnabled,
     );
     return SettingsCard(
       title: context.l10n.settings_navigationOrder,
@@ -69,6 +72,7 @@ class _NavigationOrderSettingsState
                                   items[index],
                                   -1,
                                   onlineGalleryEnabled: galleryEnabled,
+                                  builtInAgentEnabled: agentEnabled,
                                 ),
                           ),
                     icon: const Icon(Icons.arrow_upward),
@@ -85,6 +89,7 @@ class _NavigationOrderSettingsState
                                   items[index],
                                   1,
                                   onlineGalleryEnabled: galleryEnabled,
+                                  builtInAgentEnabled: agentEnabled,
                                 ),
                           ),
                     icon: const Icon(Icons.arrow_downward),

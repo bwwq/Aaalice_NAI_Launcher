@@ -1,5 +1,9 @@
 import 'presentation/providers/cloud_sync/backup_automation_provider.dart';
 import 'dart:async';
+import 'core/external_agent/external_billing_scope.dart';
+import 'presentation/providers/external_agent_config_provider.dart';
+import 'presentation/external_agent/external_agent_controller.dart';
+import 'presentation/external_agent/built_in_agent_visibility.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,6 +92,13 @@ class _AppBootstrapEffectsState extends ConsumerState<AppBootstrapEffects>
       }
       if (widget.cloudSyncLifecycle == null && !usesTestOverrides) {
         ref.read(backupAutomationProvider);
+        ref.listenManual(externalAgentConfigProvider, (_, config) {
+          if (config.enabled) ref.read(externalAgentControllerProvider);
+          if (!config.builtInEnabled &&
+              ref.read(shellPanelProvider) == ShellPanel.agent) {
+            ref.read(shellPanelProvider.notifier).state = null;
+          }
+        }, fireImmediately: true);
       }
       unawaited(_restoreCloudBackupConnection());
     });
@@ -172,6 +183,7 @@ class _AppBootstrapEffectsState extends ConsumerState<AppBootstrapEffects>
   Future<void> _persistAndPauseForBackground() async {
     final queueState = ref.read(queueExecutionNotifierProvider);
     if (!_queuePausedForBackground &&
+        !ExternalBillingScope.hasQueueOwner &&
         (queueState.isRunning || queueState.isReady)) {
       _queuePausedForBackground = true;
       await ref.read(queueExecutionNotifierProvider.notifier).pause();
@@ -375,7 +387,10 @@ class NAILauncherApp extends ConsumerWidget {
                       : InteractionPolicy.neutral,
                   child: DesktopWindowFrame(
                     child: LargestDisplayFeatureSubScreen(
-                      child: DiscordShareTaskOverlay(child: child!),
+                      child: BuiltInAgentVisibility(
+                        enabled: ref.watch(builtInAgentEnabledProvider),
+                        child: DiscordShareTaskOverlay(child: child!),
+                      ),
                     ),
                   ),
                 ),

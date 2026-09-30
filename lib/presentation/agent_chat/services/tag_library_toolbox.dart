@@ -569,6 +569,15 @@ Map<String, dynamic> _entryJson(
       : categories.getPathString(entry.categoryId!),
   'favorite': entry.isFavorite,
   'has_thumbnail': entry.hasThumbnail,
+  if (entry.hasThumbnail)
+    'preview_resource_ref': AgentChatResourceReferenceCodec.encodeJsonMap(
+      AgentChatResourceReference(
+        kind: AgentChatResourceKind.tagLibraryEntry,
+        source: 'tag_library',
+        resourceId: entry.id,
+        display: const {},
+      ),
+    ),
   'thumbnail_offset_x': entry.thumbnailOffsetX,
   'thumbnail_offset_y': entry.thumbnailOffsetY,
   'thumbnail_scale': entry.thumbnailScale,

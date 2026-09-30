@@ -184,6 +184,7 @@ const _settingsSections = [
   'network',
   'shortcuts',
   'integrations',
+  'external-agent',
   'online-gallery',
   'about',
 ];

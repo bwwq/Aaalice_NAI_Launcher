@@ -1,3 +1,4 @@
+import 'external_agent_config_provider.dart';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -213,7 +214,8 @@ final startupInitializationTasksProvider = Provider<StartupInitializationTasks>(
             .read(localStorageServiceProvider)
             .getSetting<int>(StorageKeys.rightPanelTab);
         final agentChatInitialization =
-            layoutState.rightPanelExpanded &&
+            ref.read(builtInAgentEnabledProvider) &&
+                layoutState.rightPanelExpanded &&
                 (rightPanelTab == null || rightPanelTab == 0)
             ? ref.read(agentChatNotifierProvider.notifier).ensureInitialized()
             : Future<void>.value();

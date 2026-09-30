@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'backup_retention_scope.dart';
 
 import 'package:cryptography/cryptography.dart';
 
@@ -568,10 +569,12 @@ class EncryptedCloudSyncBackend
       expectedRevision: expected,
     );
     _token = null;
-    try {
-      await retainRecentSnapshots(result.revision);
-    } catch (_) {
-      pendingCleanup = pendingCleanup > 0 ? pendingCleanup : 1;
+    if (!BackupRetentionScope.preserveExisting) {
+      try {
+        await retainRecentSnapshots(result.revision);
+      } catch (_) {
+        pendingCleanup = pendingCleanup > 0 ? pendingCleanup : 1;
+      }
     }
     return CloudCommitResult(revision: 'v4:${result.revision}');
   }

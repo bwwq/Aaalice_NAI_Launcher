@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../core/external_agent/external_billing_scope.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -491,10 +492,13 @@ class QueueExecutionNotifier extends _$QueueExecutionNotifier {
       // generate() 在首次异步让出前会把状态切到 generating；此后由生成状态
       // 本身阻止重复提交，不要让该锁跨越整次生成而吞掉下一任务的触发。
       _generationTriggerPending = false;
-      await generationNotifier.generate(
-        params,
-        batchSizeOverride: batchSizeOverride,
-        preserveCharacterSnapshot: snapshot != null,
+      await ExternalBillingScope.runQueueTask(
+        task.id,
+        () => generationNotifier.generate(
+          params,
+          batchSizeOverride: batchSizeOverride,
+          preserveCharacterSnapshot: snapshot != null,
+        ),
       );
     } on FormatException catch (error, stackTrace) {
       final taskId = state.currentTaskId;

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import '../../../core/external_agent/external_billing_scope.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,8 +82,16 @@ class NAIImageEnhancementApiService {
         ),
       });
 
+      final dimensions = img.decodeImage(image);
+      if (dimensions == null) throw const FormatException('Invalid image.');
+      await ExternalBillingScope.check('upscale', {
+        'width': dimensions.width,
+        'height': dimensions.height,
+        'scale': scale,
+      });
       final response = await _dio.post(
         _endpointService.imageUrl(ApiConstants.upscaleEndpoint),
+        cancelToken: ExternalBillingScope.cancelToken,
         data: formData,
         options: Options(
           responseType: ResponseType.bytes,
@@ -120,8 +129,14 @@ class NAIImageEnhancementApiService {
         throw Exception('无法解析图像尺寸');
       }
 
+      await ExternalBillingScope.check('upscale', {
+        'width': decoded.width,
+        'height': decoded.height,
+        'scale': scale,
+      });
       final response = await _dio.post(
         _endpointService.mainUrl(ApiConstants.upscaleEndpoint),
+        cancelToken: ExternalBillingScope.cancelToken,
         data: {
           'image': base64Encode(image),
           'scale': scale,
@@ -158,8 +173,10 @@ class NAIImageEnhancementApiService {
       CriticalNetworkActivityType.vibeEncoding,
     );
     try {
+      await ExternalBillingScope.check('encode_vibe', {});
       final response = await _dio.post(
         _endpointService.imageUrl(ApiConstants.encodeVibeEndpoint),
+        cancelToken: ExternalBillingScope.cancelToken,
         data: {
           'image': base64Encode(image),
           'model': model,
@@ -202,8 +219,10 @@ class NAIImageEnhancementApiService {
         if (prompt != null && prompt.isNotEmpty) 'prompt': prompt,
       };
 
+      await ExternalBillingScope.check('augment', requestData);
       final response = await _dio.post(
         _endpointService.imageUrl(ApiConstants.augmentImageEndpoint),
+        cancelToken: ExternalBillingScope.cancelToken,
         data: requestData,
         options: Options(
           responseType: ResponseType.bytes,
@@ -265,8 +284,10 @@ class NAIImageEnhancementApiService {
     required String annotateType,
   }) async {
     try {
+      await ExternalBillingScope.check('annotate', {});
       final response = await _dio.post(
         _endpointService.imageUrl(ApiConstants.annotateImageEndpoint),
+        cancelToken: ExternalBillingScope.cancelToken,
         data: {'image': base64Encode(image), 'req_type': annotateType},
         options: Options(
           responseType: annotateType == _annotateTypeWd

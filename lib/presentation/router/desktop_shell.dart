@@ -1,3 +1,4 @@
+import '../providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,11 +53,13 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
   @override
   Widget build(BuildContext context) {
     final activePanel = ref.watch(shellPanelProvider);
-    final agentRunning = ref.watch(
-      agentChatNotifierProvider.select(
-        (state) => state.status == AgentChatRunStatus.running,
-      ),
-    );
+    final agentRunning =
+        ref.watch(builtInAgentEnabledProvider) &&
+        ref.watch(
+          agentChatNotifierProvider.select(
+            (state) => state.status == AgentChatRunStatus.running,
+          ),
+        );
     final isAgentVisible = activePanel == ShellPanel.agent;
     final isQueueVisible = activePanel == ShellPanel.queue;
 

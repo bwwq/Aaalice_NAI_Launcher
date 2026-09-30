@@ -7043,5 +7043,79 @@
   "settings_navigationOrder": "Sidebar icon order",
   "settings_navigationOrderSubtitle": "Move icons up or down. Changes take effect immediately.",
   "settings_navigationMoveUp": "Move up",
-  "settings_navigationMoveDown": "Move down"
+  "settings_navigationMoveDown": "Move down",
+  "externalAgent_title": "External Agent",
+  "externalAgent_connection": "Connection",
+  "externalAgent_enable": "Allow external Agent connections",
+  "externalAgent_allowLan": "Allow LAN connections",
+  "externalAgent_allowLanDescription": "When enabled, other devices on your LAN can connect. Otherwise, only this device can connect.",
+  "externalAgent_port": "Port",
+  "externalAgent_invalidPort": "Enter a port from 1024 to 65535.",
+  "externalAgent_save": "Save",
+  "externalAgent_address": "Connection address",
+  "externalAgent_copyAddress": "Copy connection address",
+  "externalAgent_copyCodex": "Copy Codex configuration",
+  "externalAgent_copyOpenCode": "Copy OpenCode V2 configuration",
+  "externalAgent_copyOpenCodeLegacy": "Copy legacy OpenCode configuration",
+  "externalAgent_copied": "Copied",
+  "externalAgent_starting": "Starting",
+  "externalAgent_connected": "Listening, ready to connect",
+  "externalAgent_stopped": "Stopped",
+  "externalAgent_permissions": "Permissions",
+  "externalAgent_modeAsk": "Ask",
+  "externalAgent_modeAutomatic": "Automatic",
+  "externalAgent_modeFull": "Full control",
+  "externalAgent_permissionsDescription": "Ask: confirm writes and charges. Automatic: run ordinary operations immediately; charges within the cumulative budget are approved, otherwise ask. Full control: run allowed operations immediately. Account secrets, data wiping, backup deletion and overwrite restore are always prohibited. Permissions can only be changed here.",
+  "externalAgent_budget": "Cumulative Anlas budget",
+  "externalAgent_invalidBudget": "Enter a non-negative whole number.",
+  "externalAgent_resetSpent": "Reset usage",
+  "externalAgent_spent": "Dispatched requests: {spent} Anlas; reserved: {reserved} Anlas",
+  "externalAgent_spentDescription": "Usage sums estimates before dispatch, including retries. Failed requests do not automatically refund the estimate. Actual billing is determined by the server.",
+  "externalAgent_calls": "Tasks and recent calls",
+  "externalAgent_noCalls": "No external calls yet",
+  "externalAgent_pending": "Queued",
+  "externalAgent_awaitingApproval": "Awaiting approval",
+  "externalAgent_running": "Running",
+  "externalAgent_completed": "Completed",
+  "externalAgent_failed": "Failed",
+  "externalAgent_cancelled": "Cancelled",
+  "externalAgent_interrupted": "Interrupted by restart",
+  "externalAgent_estimatedAnlas": "Estimated cost: {amount} Anlas",
+  "externalAgent_unknownCost": "Cost is unknown. Approval is required.",
+  "externalAgent_result": "Details and result",
+  "externalAgent_approve": "Approve",
+  "externalAgent_reject": "Reject",
+  "externalAgent_cancel": "Cancel task",
+  "externalAgent_builtIn": "Show built-in Agent",
+  "externalAgent_queueDescription": "Clients share one task queue. Writes, generation and processing run in order. Queries and pause, resume, stop and cancel remain available.",
+  "@externalAgent_spent": {
+    "placeholders": {
+      "spent": {
+        "type": "int"
+      },
+      "reserved": {
+        "type": "int"
+      }
+    }
+  },
+  "@externalAgent_estimatedAnlas": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "externalAgent_generate": "Generation and editing",
+  "externalAgent_imageProcessing": "Image processing",
+  "externalAgent_navigation": "Navigation",
+  "externalAgent_application": "Application operations",
+  "externalAgent_read": "Read",
+  "externalAgent_delete": "Delete or remove",
+  "externalAgent_prepare": "Prepare",
+  "externalAgent_add": "Add or import",
+  "externalAgent_export": "Export",
+  "externalAgent_edit": "Modify",
+  "externalAgent_execute": "Execute",
+  "externalAgent_control": "Task control",
+  "externalAgent_imageUnavailable": "Image is no longer readable"
 }

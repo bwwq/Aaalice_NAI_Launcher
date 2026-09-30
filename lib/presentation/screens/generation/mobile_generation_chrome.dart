@@ -1,3 +1,4 @@
+import '../../providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -76,9 +77,8 @@ class MobileGenerationChrome extends ConsumerWidget {
                 onPressed: controller.openParameterDrawer,
                 tooltip: context.l10n.generation_paramsSettings,
               ),
-              AgentChatEntryButton(
-                onPressed: controller.openAgentChat,
-              ),
+              if (controller.ref.read(builtInAgentEnabledProvider))
+                AgentChatEntryButton(onPressed: controller.openAgentChat),
               IconButton(
                 key: const ValueKey('generation-history-drawer-action'),
                 icon: const Icon(Icons.history_rounded),

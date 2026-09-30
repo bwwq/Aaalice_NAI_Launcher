@@ -1,3 +1,4 @@
+import '../providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -49,6 +50,7 @@ Future<void> showMobileMorePanel({
   }
   final accountForMenu = currentAccount;
   final agentRunning =
+      ref.read(builtInAgentEnabledProvider) &&
       ref.read(agentChatNotifierProvider).status == AgentChatRunStatus.running;
 
   return AdaptivePresenter.showPanel<void>(
@@ -95,18 +97,19 @@ Future<void> showMobileMorePanel({
                     },
                   ),
                   const Divider(indent: 16, endIndent: 16),
-                  _MobileMoreDestination(
-                    key: const ValueKey('mobile-more-agent'),
-                    icon: Icons.smart_toy_outlined,
-                    label: panelContext.l10n.nav_agent,
-                    selected: activePanel == ShellPanel.agent,
-                    showBadge: agentRunning,
-                    onTap: () {
-                      Navigator.of(panelContext).pop();
-                      ref.read(shellPanelProvider.notifier).state =
-                          ShellPanel.agent;
-                    },
-                  ),
+                  if (ref.read(builtInAgentEnabledProvider))
+                    _MobileMoreDestination(
+                      key: const ValueKey('mobile-more-agent'),
+                      icon: Icons.smart_toy_outlined,
+                      label: panelContext.l10n.nav_agent,
+                      selected: activePanel == ShellPanel.agent,
+                      showBadge: agentRunning,
+                      onTap: () {
+                        Navigator.of(panelContext).pop();
+                        ref.read(shellPanelProvider.notifier).state =
+                            ShellPanel.agent;
+                      },
+                    ),
                   _MobileMoreDestination(
                     key: const ValueKey('mobile-more-queue'),
                     icon: Icons.playlist_play_rounded,

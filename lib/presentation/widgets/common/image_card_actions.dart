@@ -1,3 +1,4 @@
+import '../../external_agent/built_in_agent_visibility.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -128,12 +129,14 @@ class ImageCardActionCatalog {
         menuLabel: l10n.shortcut_action_copy_image,
       );
     }
-    add(
-      ImageCardActionId.addToAgent,
-      Icons.smart_toy_outlined,
-      l10n.agentChat_addResource,
-      onAddToAgent,
-    );
+    if (BuiltInAgentVisibility.of(context)) {
+      add(
+        ImageCardActionId.addToAgent,
+        Icons.smart_toy_outlined,
+        l10n.agentChat_addResource,
+        onAddToAgent,
+      );
+    }
     add(
       ImageCardActionId.shareDiscord,
       Icons.send_rounded,

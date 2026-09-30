@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../core/external_agent/external_billing_scope.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -414,6 +415,7 @@ class QueueToolbox {
           'Queue changed after estimation; prepare it again.',
         );
       }
+      ExternalBillingScope.bindQueueTasks(preparation.taskIds);
       final error = await action();
       return error == null
           ? agentToolJsonResult({

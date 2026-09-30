@@ -15011,4 +15011,183 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_navigationMoveDown => '下へ移動';
+
+  @override
+  String get externalAgent_title => '外部 Agent';
+
+  @override
+  String get externalAgent_connection => '接続';
+
+  @override
+  String get externalAgent_enable => '外部 Agent の接続を許可';
+
+  @override
+  String get externalAgent_allowLan => 'LAN 接続を許可';
+
+  @override
+  String get externalAgent_allowLanDescription =>
+      '有効にすると LAN 内の他の端末からも接続できます。無効時はこの端末のみ接続できます。';
+
+  @override
+  String get externalAgent_port => 'ポート';
+
+  @override
+  String get externalAgent_invalidPort => 'ポートは 1024～65535 で入力してください。';
+
+  @override
+  String get externalAgent_save => '保存';
+
+  @override
+  String get externalAgent_address => '接続先';
+
+  @override
+  String get externalAgent_copyAddress => '接続先をコピー';
+
+  @override
+  String get externalAgent_copyCodex => 'Codex 設定をコピー';
+
+  @override
+  String get externalAgent_copyOpenCode => 'OpenCode V2 設定をコピー';
+
+  @override
+  String get externalAgent_copyOpenCodeLegacy => '旧版 OpenCode 設定をコピー';
+
+  @override
+  String get externalAgent_copied => 'コピーしました';
+
+  @override
+  String get externalAgent_starting => '起動中';
+
+  @override
+  String get externalAgent_connected => '接続待機中';
+
+  @override
+  String get externalAgent_stopped => '停止中';
+
+  @override
+  String get externalAgent_permissions => '操作権限';
+
+  @override
+  String get externalAgent_modeAsk => '確認する';
+
+  @override
+  String get externalAgent_modeAutomatic => '自動承認';
+
+  @override
+  String get externalAgent_modeFull => '完全な操作';
+
+  @override
+  String get externalAgent_permissionsDescription =>
+      '確認する：書き込みと課金操作を確認します。自動承認：通常の操作と累計上限内の課金を承認し、超過や不明な料金は確認します。完全な操作：許可された操作を直接実行します。アカウントの秘密情報取得、データ全消去、バックアップ削除、上書き復元は禁止です。権限はここでのみ変更できます。';
+
+  @override
+  String get externalAgent_budget => '累計 Anlas 上限';
+
+  @override
+  String get externalAgent_invalidBudget => '上限は 0 以上の整数で入力してください。';
+
+  @override
+  String get externalAgent_resetSpent => '累計使用量をリセット';
+
+  @override
+  String externalAgent_spent(int spent, int reserved) {
+    return '送信済みリクエスト：$spent Anlas、予約分：$reserved Anlas';
+  }
+
+  @override
+  String get externalAgent_spentDescription =>
+      '送信前の推定料金を再試行も含めて累計します。通信失敗時も推定額は自動で戻しません。実際の課金はサーバーに従います。';
+
+  @override
+  String get externalAgent_calls => 'タスクと最近の呼び出し';
+
+  @override
+  String get externalAgent_noCalls => 'まだ呼び出しはありません';
+
+  @override
+  String get externalAgent_pending => '待機中';
+
+  @override
+  String get externalAgent_awaitingApproval => '承認待ち';
+
+  @override
+  String get externalAgent_running => '実行中';
+
+  @override
+  String get externalAgent_completed => '完了';
+
+  @override
+  String get externalAgent_failed => '失敗';
+
+  @override
+  String get externalAgent_cancelled => 'キャンセル済み';
+
+  @override
+  String get externalAgent_interrupted => '再起動により中断';
+
+  @override
+  String externalAgent_estimatedAnlas(int amount) {
+    return '推定料金：$amount Anlas';
+  }
+
+  @override
+  String get externalAgent_unknownCost => '料金が不明なため、承認が必要です。';
+
+  @override
+  String get externalAgent_result => '詳細と結果';
+
+  @override
+  String get externalAgent_approve => '承認';
+
+  @override
+  String get externalAgent_reject => '拒否';
+
+  @override
+  String get externalAgent_cancel => 'タスクをキャンセル';
+
+  @override
+  String get externalAgent_builtIn => '内蔵 Agent を表示';
+
+  @override
+  String get externalAgent_queueDescription =>
+      '複数のクライアントで待機列を共有します。書き込み、生成、処理を順に実行し、照会、一時停止、再開、停止、キャンセルは随時利用できます。';
+
+  @override
+  String get externalAgent_generate => '生成と画像編集';
+
+  @override
+  String get externalAgent_imageProcessing => '画像処理';
+
+  @override
+  String get externalAgent_navigation => '画面の移動';
+
+  @override
+  String get externalAgent_application => 'アプリの操作';
+
+  @override
+  String get externalAgent_read => '読み取り';
+
+  @override
+  String get externalAgent_delete => '削除または解除';
+
+  @override
+  String get externalAgent_prepare => '準備';
+
+  @override
+  String get externalAgent_add => '追加またはインポート';
+
+  @override
+  String get externalAgent_export => 'エクスポート';
+
+  @override
+  String get externalAgent_edit => '変更';
+
+  @override
+  String get externalAgent_execute => '実行';
+
+  @override
+  String get externalAgent_control => 'タスクの操作';
+
+  @override
+  String get externalAgent_imageUnavailable => '画像を読み取れません';
 }

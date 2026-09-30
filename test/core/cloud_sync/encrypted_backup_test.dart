@@ -9,6 +9,7 @@ import 'package:nai_launcher/core/cloud_sync/encrypted_backup_codec.dart';
 import 'package:nai_launcher/core/cloud_sync/encrypted_cloud_sync_backend.dart';
 import 'package:nai_launcher/core/cloud_sync/models.dart';
 import 'package:nai_launcher/core/cloud_sync/operation.dart';
+import 'package:nai_launcher/core/cloud_sync/backup_retention_scope.dart';
 
 import 'coordinator_test_backend.dart';
 
@@ -263,6 +264,25 @@ void main() {
         (await fresh.readObject(EncryptedBackupCodec.hash(bytes)))!.bytes,
         bytes,
       );
+    },
+  );
+
+  test(
+    'external backup preserves older snapshots on an atomic backend',
+    () async {
+      remote = _AtomicBackend();
+      final writer = client('external')..keepSnapshots = 1;
+      await upload(writer, 'snapshot-1', Uint8List.fromList([1]));
+      await BackupRetentionScope.preserve(
+        () => upload(writer, 'snapshot-2', Uint8List.fromList([2])),
+      );
+      expect(
+        await writer.listSnapshotIds(),
+        containsAll(['snapshot-1', 'snapshot-2']),
+      );
+      expect(await writer.readSnapshotManifest('snapshot-1'), isNotNull);
+      await upload(writer, 'snapshot-3', Uint8List.fromList([3]));
+      expect(await writer.listSnapshotIds(), ['snapshot-3']);
     },
   );
 

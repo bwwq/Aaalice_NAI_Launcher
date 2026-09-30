@@ -131,10 +131,11 @@ class ComfyUIConnection extends _$ComfyUIConnection {
 @Riverpod(keepAlive: true)
 class ComfyUIWorkflows extends _$ComfyUIWorkflows {
   final WorkflowTemplateManager _manager = WorkflowTemplateManager();
+  late Future<void> _initialization;
 
   @override
   List<WorkflowTemplate> build() {
-    _initAsync();
+    _initialization = _initAsync();
     return _manager.templates;
   }
 
@@ -144,6 +145,7 @@ class ComfyUIWorkflows extends _$ComfyUIWorkflows {
   }
 
   WorkflowTemplateManager get manager => _manager;
+  Future<void> whenLoaded() => _initialization;
 
   WorkflowTemplate? getById(String id) => _manager.getById(id);
 

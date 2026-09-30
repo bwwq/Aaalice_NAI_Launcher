@@ -44,9 +44,11 @@ enum MainNavigationItem {
 List<MainNavigationItem> visibleMainNavigationItems(
   List<MainNavigationItem> order, {
   required bool onlineGalleryEnabled,
+  bool builtInAgentEnabled = true,
 }) => order
     .where(
       (item) =>
-          onlineGalleryEnabled || item != MainNavigationItem.onlineGallery,
+          (onlineGalleryEnabled || item != MainNavigationItem.onlineGallery) &&
+          (builtInAgentEnabled || item != MainNavigationItem.agent),
     )
     .toList(growable: false);

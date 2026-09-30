@@ -32,10 +32,12 @@ class MainNavigationOrderNotifier extends Notifier<List<MainNavigationItem>> {
     MainNavigationItem item,
     int direction, {
     required bool onlineGalleryEnabled,
+    bool builtInAgentEnabled = true,
   }) => _enqueue(() async {
     final visible = visibleMainNavigationItems(
       state,
       onlineGalleryEnabled: onlineGalleryEnabled,
+      builtInAgentEnabled: builtInAgentEnabled,
     );
     final index = visible.indexOf(item);
     final neighbor = index + direction;

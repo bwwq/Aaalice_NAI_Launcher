@@ -1,3 +1,4 @@
+import '../../external_agent/built_in_agent_visibility.dart';
 import 'package:flutter/material.dart';
 import '../../../core/platform/platform_capabilities.dart';
 import '../../../core/utils/localization_extension.dart';
@@ -114,11 +115,12 @@ class LocalImageContextMenu {
         onAction: onAction,
         isKritaConnected: isKritaConnected,
       ),
-      action(
-        value: LocalImageContextAction.addToAgent,
-        icon: Icons.auto_awesome_outlined,
-        label: context.l10n.agentChat_addResource,
-      ),
+      if (BuiltInAgentVisibility.of(context))
+        action(
+          value: LocalImageContextAction.addToAgent,
+          icon: Icons.auto_awesome_outlined,
+          label: context.l10n.agentChat_addResource,
+        ),
       action(
         value: LocalImageContextAction.moveToCategory,
         icon: Icons.drive_file_move_outline,

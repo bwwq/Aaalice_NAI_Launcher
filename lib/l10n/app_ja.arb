@@ -7068,5 +7068,79 @@
   "settings_navigationOrder": "サイドバーのアイコン順序",
   "settings_navigationOrderSubtitle": "上下の矢印で位置を変更すると、すぐに反映されます。",
   "settings_navigationMoveUp": "上へ移動",
-  "settings_navigationMoveDown": "下へ移動"
+  "settings_navigationMoveDown": "下へ移動",
+  "externalAgent_title": "外部 Agent",
+  "externalAgent_connection": "接続",
+  "externalAgent_enable": "外部 Agent の接続を許可",
+  "externalAgent_allowLan": "LAN 接続を許可",
+  "externalAgent_allowLanDescription": "有効にすると LAN 内の他の端末からも接続できます。無効時はこの端末のみ接続できます。",
+  "externalAgent_port": "ポート",
+  "externalAgent_invalidPort": "ポートは 1024～65535 で入力してください。",
+  "externalAgent_save": "保存",
+  "externalAgent_address": "接続先",
+  "externalAgent_copyAddress": "接続先をコピー",
+  "externalAgent_copyCodex": "Codex 設定をコピー",
+  "externalAgent_copyOpenCode": "OpenCode V2 設定をコピー",
+  "externalAgent_copyOpenCodeLegacy": "旧版 OpenCode 設定をコピー",
+  "externalAgent_copied": "コピーしました",
+  "externalAgent_starting": "起動中",
+  "externalAgent_connected": "接続待機中",
+  "externalAgent_stopped": "停止中",
+  "externalAgent_permissions": "操作権限",
+  "externalAgent_modeAsk": "確認する",
+  "externalAgent_modeAutomatic": "自動承認",
+  "externalAgent_modeFull": "完全な操作",
+  "externalAgent_permissionsDescription": "確認する：書き込みと課金操作を確認します。自動承認：通常の操作と累計上限内の課金を承認し、超過や不明な料金は確認します。完全な操作：許可された操作を直接実行します。アカウントの秘密情報取得、データ全消去、バックアップ削除、上書き復元は禁止です。権限はここでのみ変更できます。",
+  "externalAgent_budget": "累計 Anlas 上限",
+  "externalAgent_invalidBudget": "上限は 0 以上の整数で入力してください。",
+  "externalAgent_resetSpent": "累計使用量をリセット",
+  "externalAgent_spent": "送信済みリクエスト：{spent} Anlas、予約分：{reserved} Anlas",
+  "externalAgent_spentDescription": "送信前の推定料金を再試行も含めて累計します。通信失敗時も推定額は自動で戻しません。実際の課金はサーバーに従います。",
+  "externalAgent_calls": "タスクと最近の呼び出し",
+  "externalAgent_noCalls": "まだ呼び出しはありません",
+  "externalAgent_pending": "待機中",
+  "externalAgent_awaitingApproval": "承認待ち",
+  "externalAgent_running": "実行中",
+  "externalAgent_completed": "完了",
+  "externalAgent_failed": "失敗",
+  "externalAgent_cancelled": "キャンセル済み",
+  "externalAgent_interrupted": "再起動により中断",
+  "externalAgent_estimatedAnlas": "推定料金：{amount} Anlas",
+  "externalAgent_unknownCost": "料金が不明なため、承認が必要です。",
+  "externalAgent_result": "詳細と結果",
+  "externalAgent_approve": "承認",
+  "externalAgent_reject": "拒否",
+  "externalAgent_cancel": "タスクをキャンセル",
+  "externalAgent_builtIn": "内蔵 Agent を表示",
+  "externalAgent_queueDescription": "複数のクライアントで待機列を共有します。書き込み、生成、処理を順に実行し、照会、一時停止、再開、停止、キャンセルは随時利用できます。",
+  "@externalAgent_spent": {
+    "placeholders": {
+      "spent": {
+        "type": "int"
+      },
+      "reserved": {
+        "type": "int"
+      }
+    }
+  },
+  "@externalAgent_estimatedAnlas": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "externalAgent_generate": "生成と画像編集",
+  "externalAgent_imageProcessing": "画像処理",
+  "externalAgent_navigation": "画面の移動",
+  "externalAgent_application": "アプリの操作",
+  "externalAgent_read": "読み取り",
+  "externalAgent_delete": "削除または解除",
+  "externalAgent_prepare": "準備",
+  "externalAgent_add": "追加またはインポート",
+  "externalAgent_export": "エクスポート",
+  "externalAgent_edit": "変更",
+  "externalAgent_execute": "実行",
+  "externalAgent_control": "タスクの操作",
+  "externalAgent_imageUnavailable": "画像を読み取れません"
 }

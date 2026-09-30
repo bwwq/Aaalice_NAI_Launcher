@@ -7112,5 +7112,79 @@
   "settings_navigationOrder": "左栏图标顺序",
   "settings_navigationOrderSubtitle": "用上下箭头调整位置，更改后立即生效。",
   "settings_navigationMoveUp": "上移",
-  "settings_navigationMoveDown": "下移"
+  "settings_navigationMoveDown": "下移",
+  "externalAgent_title": "外部 Agent",
+  "externalAgent_connection": "连接",
+  "externalAgent_enable": "允许外部 Agent 连接",
+  "externalAgent_allowLan": "允许局域网连接",
+  "externalAgent_allowLanDescription": "开启后，局域网中的其他设备也能连接；关闭时仅限本机。",
+  "externalAgent_port": "端口",
+  "externalAgent_invalidPort": "端口请输入 1024–65535。",
+  "externalAgent_save": "保存",
+  "externalAgent_address": "连接地址",
+  "externalAgent_copyAddress": "复制连接地址",
+  "externalAgent_copyCodex": "复制 Codex 配置",
+  "externalAgent_copyOpenCode": "复制 OpenCode V2 配置",
+  "externalAgent_copyOpenCodeLegacy": "复制旧版 OpenCode 配置",
+  "externalAgent_copied": "已复制",
+  "externalAgent_starting": "正在启动",
+  "externalAgent_connected": "正在监听，可连接",
+  "externalAgent_stopped": "已关闭",
+  "externalAgent_permissions": "操作权限",
+  "externalAgent_modeAsk": "询问",
+  "externalAgent_modeAutomatic": "自动同意",
+  "externalAgent_modeFull": "完全控制",
+  "externalAgent_permissionsDescription": "询问：写入及收费操作先确认。自动同意：普通操作直接执行，收费在累计额度内执行，超额或未知费用需确认。完全控制：允许的操作直接执行。始终禁止读取账号密钥、清空数据、删除备份和覆盖恢复；权限只能在此修改。",
+  "externalAgent_budget": "累计 Anlas 额度",
+  "externalAgent_invalidBudget": "额度请输入不小于 0 的整数。",
+  "externalAgent_resetSpent": "重置累计用量",
+  "externalAgent_spent": "累计已发出请求：{spent} Anlas；待执行预留：{reserved} Anlas",
+  "externalAgent_spentDescription": "按请求发送前的费用估算累计，重试也计入；网络失败不自动退回估算额度。实际扣费以服务端为准。",
+  "externalAgent_calls": "任务与最近调用",
+  "externalAgent_noCalls": "还没有外部调用",
+  "externalAgent_pending": "排队中",
+  "externalAgent_awaitingApproval": "待确认",
+  "externalAgent_running": "执行中",
+  "externalAgent_completed": "已完成",
+  "externalAgent_failed": "失败",
+  "externalAgent_cancelled": "已取消",
+  "externalAgent_interrupted": "重启后已停止",
+  "externalAgent_estimatedAnlas": "预计费用：{amount} Anlas",
+  "externalAgent_unknownCost": "费用尚无法确定，需要确认后执行。",
+  "externalAgent_result": "查看详情与结果",
+  "externalAgent_approve": "批准",
+  "externalAgent_reject": "拒绝",
+  "externalAgent_cancel": "取消任务",
+  "externalAgent_builtIn": "显示内置智能体",
+  "externalAgent_queueDescription": "多个客户端共用任务队列。写入、生成和处理按顺序执行；查询及暂停、继续、停止、取消可随时操作。",
+  "@externalAgent_spent": {
+    "placeholders": {
+      "spent": {
+        "type": "int"
+      },
+      "reserved": {
+        "type": "int"
+      }
+    }
+  },
+  "@externalAgent_estimatedAnlas": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "externalAgent_generate": "生成与改图",
+  "externalAgent_imageProcessing": "图像处理",
+  "externalAgent_navigation": "页面导航",
+  "externalAgent_application": "软件操作",
+  "externalAgent_read": "读取",
+  "externalAgent_delete": "删除或移除",
+  "externalAgent_prepare": "准备",
+  "externalAgent_add": "添加或导入",
+  "externalAgent_export": "导出",
+  "externalAgent_edit": "修改",
+  "externalAgent_execute": "执行",
+  "externalAgent_control": "任务控制",
+  "externalAgent_imageUnavailable": "图片已无法读取"
 }

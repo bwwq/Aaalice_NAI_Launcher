@@ -24,6 +24,8 @@ import 'sections/shortcut_settings_section.dart';
 import 'sections/integrations_settings_section.dart';
 import 'sections/about_settings_section.dart';
 import 'sections/agent_settings_section.dart';
+import 'sections/external_agent_settings_section.dart';
+import '../../providers/external_agent_config_provider.dart';
 import '../../agent_settings/providers/agent_prompt_draft_provider.dart';
 import 'settings_section.dart';
 
@@ -118,17 +120,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         widget: const GenerationSettingsSection(),
       ),
       _SettingsSection(
-        id: SettingsSection.agent,
-        icon: Icons.smart_toy_outlined,
-        selectedIcon: Icons.smart_toy,
-        label: context.l10n.settings_agent,
-        widget: AgentSettingsSection(
-          onOpenIntegrations: () => _onSectionSelected(
-            SettingsSection.integrations,
-            showCompactDetail: true,
+        id: SettingsSection.externalAgent,
+        icon: Icons.hub_outlined,
+        selectedIcon: Icons.hub,
+        label: context.l10n.externalAgent_title,
+        widget: const ExternalAgentSettingsSection(),
+      ),
+      if (ref.watch(builtInAgentEnabledProvider))
+        _SettingsSection(
+          id: SettingsSection.agent,
+          icon: Icons.smart_toy_outlined,
+          selectedIcon: Icons.smart_toy,
+          label: context.l10n.settings_agent,
+          widget: AgentSettingsSection(
+            onOpenIntegrations: () => _onSectionSelected(
+              SettingsSection.integrations,
+              showCompactDetail: true,
+            ),
           ),
         ),
-      ),
       _SettingsSection(
         id: SettingsSection.storage,
         icon: Icons.storage_outlined,
@@ -274,6 +284,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_selectedSection == SettingsSection.agent &&
+        !ref.watch(builtInAgentEnabledProvider)) {
+      _selectedSection = SettingsSection.externalAgent;
+    }
     final theme = Theme.of(context);
     final sections = _buildSections(context);
     final hasUnsavedAgentDraft =
