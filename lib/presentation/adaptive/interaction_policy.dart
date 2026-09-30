@@ -189,6 +189,7 @@ class _InteractionPolicyScopeState extends State<InteractionPolicyScope> {
       behavior: HitTestBehavior.translucent,
       onPointerDown: _handlePointer,
       onPointerHover: _handlePointer,
+      onPointerSignal: _handlePointer,
       child: _InteractionPolicyInherited(
         policySnapshot: _policy,
         readPolicy: () => _policy,

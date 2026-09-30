@@ -41,10 +41,12 @@ Duration _boundedMotionDuration(
 }
 
 double _railItemMinHeight(BuildContext context) =>
-    MediaQuery.textScalerOf(
-      context,
-    ).scale(14).clamp(36, double.infinity).toDouble() +
-    12;
+    !_NavRailExpansionScope.isExpandedOf(context)
+    ? 48
+    : MediaQuery.textScalerOf(
+            context,
+          ).scale(14).clamp(36, double.infinity).toDouble() +
+          12;
 
 class MainNavRail extends ConsumerWidget {
   static const double collapsedWidth = 60;
@@ -84,7 +86,6 @@ class MainNavRail extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final storedExpansion = ref.watch(
       layoutStateNotifierProvider.select((state) => state.mainNavRailExpanded),
     );
@@ -144,6 +145,16 @@ class MainNavRail extends ConsumerWidget {
       );
     }
 
+    return _buildRail(context, ref, isExpanded, items.map(buildItem).toList());
+  }
+
+  Widget _buildRail(
+    BuildContext context,
+    WidgetRef ref,
+    bool isExpanded,
+    List<Widget> items,
+  ) {
+    final theme = Theme.of(context);
     final motion = theme.appTheme;
     final animationDuration = _boundedMotionDuration(
       context,
@@ -151,50 +162,31 @@ class MainNavRail extends ConsumerWidget {
       minMilliseconds: 180,
       maxMilliseconds: 240,
     );
-
     return _NavRailWidthTransition(
       isExpanded: isExpanded,
       expandedWidth: expandedWidthFor(context),
       duration: animationDuration,
       enterCurve: motion.enterCurve,
       exitCurve: motion.exitCurve,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(right: BorderSide(color: theme.dividerColor, width: 1)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          // 账户头像区域
-          _AccountAvatarButton(ref: ref),
-
-          Expanded(
-            child: SingleChildScrollView(
-              key: const Key('main-nav-primary-scroll'),
-              child: Column(
-                children: [
-                  for (final item in items) buildItem(item),
-                  if (CommunityLinks.showDiscord)
-                    _ExternalLinkIcon(
-                      icon: Icons.discord,
-                      label: context.l10n.nav_discordCommunity,
-                      color: const Color(0xFF5865F2),
-                      url: CommunityLinks.discord,
-                    ),
-                ],
-              ),
+      decoration: BoxDecoration(color: theme.colorScheme.surface),
+      child: _MainRailContents(
+        account: _AccountAvatarButton(ref: ref),
+        items: [
+          ...items,
+          if (CommunityLinks.showDiscord)
+            _ExternalLinkIcon(
+              icon: Icons.discord,
+              label: context.l10n.nav_discordCommunity,
+              color: const Color(0xFF5865F2),
+              url: CommunityLinks.discord,
             ),
-          ),
-
           if (allowExpansion) ...[
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             _NavRailToggle(
               isExpanded: isExpanded,
-              onTap: () {
-                ref
-                    .read(layoutStateNotifierProvider.notifier)
-                    .toggleMainNavRail();
-              },
+              onTap: () => ref
+                  .read(layoutStateNotifierProvider.notifier)
+                  .toggleMainNavRail(),
             ),
           ],
           const SizedBox(height: 6),
@@ -202,6 +194,38 @@ class MainNavRail extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _MainRailContents extends StatelessWidget {
+  const _MainRailContents({required this.account, required this.items});
+  final Widget account;
+  final List<Widget> items;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      // Very short windows must not lose their entire viewport to fixed chrome.
+      final compactHeight = constraints.maxHeight < 160;
+      final list = SingleChildScrollView(
+        key: const Key('main-nav-primary-scroll'),
+        child: Column(
+          children: [
+            if (compactHeight) ...[const SizedBox(height: 8), account],
+            ...items,
+          ],
+        ),
+      );
+      return compactHeight
+          ? list
+          : Column(
+              children: [
+                const SizedBox(height: 12),
+                account,
+                Expanded(child: list),
+              ],
+            );
+    },
+  );
 }
 
 class _NavRailWidthTransition extends StatefulWidget {
@@ -330,6 +354,8 @@ class _NavRailWidthTransitionState extends State<_NavRailWidthTransition>
       child: _NavRailExpansionScope(
         isExpanded: widget.isExpanded,
         expansion: _contentReveal,
+        widthExpansion: _widthExpansion,
+        expandedWidth: widget.expandedWidth,
         child: widget.child,
       ),
     );
@@ -349,11 +375,15 @@ class _NavRailExpansionScope extends InheritedWidget {
   const _NavRailExpansionScope({
     required this.isExpanded,
     required this.expansion,
+    required this.widthExpansion,
+    required this.expandedWidth,
     required super.child,
   });
 
   final bool isExpanded;
   final Animation<double> expansion;
+  final Animation<double> widthExpansion;
+  final double expandedWidth;
 
   static _NavRailExpansionScope of(BuildContext context) {
     return context
@@ -365,7 +395,8 @@ class _NavRailExpansionScope extends InheritedWidget {
   @override
   bool updateShouldNotify(_NavRailExpansionScope oldWidget) {
     return isExpanded != oldWidget.isExpanded ||
-        expansion != oldWidget.expansion;
+        expansion != oldWidget.expansion ||
+        expandedWidth != oldWidget.expandedWidth;
   }
 }
 
@@ -379,6 +410,52 @@ class _ExpandedRailContent extends StatelessWidget {
     final scope = _NavRailExpansionScope.of(context);
     return FadeTransition(opacity: scope.expansion, child: child);
   }
+}
+
+/// Keep both rounded edges inside the visible rail while labels retain their
+/// stable expanded layout throughout the width transition.
+class _RailItemBackground extends StatelessWidget {
+  const _RailItemBackground({required this.color, required this.child});
+
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    painter: _RailItemBackgroundPainter(
+      color,
+      _NavRailExpansionScope.of(context),
+    ),
+    child: child,
+  );
+}
+
+class _RailItemBackgroundPainter extends CustomPainter {
+  _RailItemBackgroundPainter(this.color, this.scope)
+    : super(repaint: scope.widthExpansion);
+
+  final Color color;
+  final _NavRailExpansionScope scope;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final width =
+        MainNavRail.collapsedWidth +
+        (scope.expandedWidth - MainNavRail.collapsedWidth) *
+            scope.widthExpansion.value -
+        12;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, width, size.height),
+        const Radius.circular(8),
+      ),
+      Paint()..color = color,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RailItemBackgroundPainter oldDelegate) =>
+      color != oldDelegate.color || scope != oldDelegate.scope;
 }
 
 class _NavRailToggle extends StatelessWidget {
@@ -887,12 +964,6 @@ class _NavIconState extends State<_NavIcon> {
       minMilliseconds: 100,
       maxMilliseconds: 140,
     );
-    final hoverDuration = _boundedMotionDuration(
-      context,
-      theme.appTheme.normalDuration,
-      minMilliseconds: 120,
-      maxMilliseconds: 180,
-    );
     final color = widget.isSelected
         ? theme.colorScheme.primary
         : theme.iconTheme.color?.withValues(alpha: 0.7);
@@ -925,12 +996,8 @@ class _NavIconState extends State<_NavIcon> {
             scale: _isPressed ? 0.97 : 1.0,
             duration: pressDuration,
             curve: theme.appTheme.standardCurve,
-            child: AnimatedContainer(
-              duration: hoverDuration,
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
+            child: _RailItemBackground(
+              color: backgroundColor,
               child: Row(
                 children: [
                   Tooltip(

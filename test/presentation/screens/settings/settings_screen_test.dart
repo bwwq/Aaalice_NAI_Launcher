@@ -3,6 +3,7 @@ import 'package:nai_launcher/presentation/providers/external_agent_config_provid
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -123,6 +124,8 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
+    final textScale = ValueNotifier(1.0);
+    addTearDown(textScale.dispose);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -147,11 +150,20 @@ void main() {
             _FakeSubscriptionNotifier.new,
           ),
         ],
-        child: const MaterialApp(
-          locale: Locale('zh'),
+        child: MaterialApp(
+          locale: const Locale('zh'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: SettingsScreen(),
+          builder: (context, child) => ValueListenableBuilder<double>(
+            valueListenable: textScale,
+            builder: (context, value, _) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(value)),
+              child: child!,
+            ),
+          ),
+          home: const SettingsScreen(),
         ),
       ),
     );
@@ -184,6 +196,44 @@ void main() {
       expect(tester.takeException(), isNull);
     }
     await tester.binding.setSurfaceSize(const Size(1280, 900));
+    await tester.pumpAndSettle();
+
+    textScale.value = 3;
+    for (final width in [600.0, 840.0, 1180.0, 1600.0]) {
+      await tester.binding.setSurfaceSize(Size(width, 300));
+      await tester.pumpAndSettle();
+      final railFinder = find.byType(NavigationRail);
+      final scroll = find.descendant(
+        of: railFinder,
+        matching: find.byType(Scrollable),
+      );
+      final position = tester.state<ScrollableState>(scroll).position;
+      position.jumpTo(0);
+      await tester.pump();
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: tester.getCenter(scroll),
+          scrollDelta: const Offset(0, 120),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(position.pixels, greaterThan(0));
+      await tester.drag(scroll, const Offset(0, -100));
+      await tester.pumpAndSettle();
+      final github = find.byKey(const ValueKey('settings-github-link'));
+      await tester.ensureVisible(github);
+      await tester.pumpAndSettle();
+      expect(github.hitTestable(), findsOneWidget);
+      final bounds = tester.getRect(
+        find.byKey(const ValueKey('settings-navigation-tonal-surface')),
+      );
+      expect(bounds.contains(tester.getCenter(github)), isTrue);
+      expect(tester.takeException(), isNull);
+    }
+    textScale.value = 1;
+    await tester.binding.setSurfaceSize(const Size(1280, 900));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byIcon(Icons.person));
     await tester.pumpAndSettle();
 
     // 标签按等宽包装以避免导航项横向抖动，取文本要穿过包装层。

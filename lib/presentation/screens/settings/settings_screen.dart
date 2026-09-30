@@ -317,7 +317,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             body: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildNavigationRail(context, sizeClass.isWide, sections),
+                _buildNavigationRail(context, constraints.maxWidth, sections),
                 Expanded(
                   child: _buildSectionContent(
                     sections[selectedIndex].widget,
@@ -496,7 +496,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   /// 构建 NavigationRail 侧边栏
   Widget _buildNavigationRail(
     BuildContext context,
-    bool isExtended,
+    double availableWidth,
     List<_SettingsSection> sections,
   ) {
     final theme = Theme.of(context);
@@ -506,9 +506,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       color: theme.colorScheme.primary,
       fontWeight: FontWeight.w600,
     );
-    final labelWidth = isExtended
-        ? _widestLabelWidth(context, sections, selectedLabelStyle)
-        : null;
+    final measuredLabelWidth = _widestLabelWidth(
+      context,
+      sections,
+      selectedLabelStyle,
+    );
+    // Leave a usable form column instead of reserving a wide, mostly empty rail.
+    final extendedWidth = (measuredLabelWidth + 80).clamp(180.0, 320.0);
+    final isExtended =
+        availableWidth >= 1180 && availableWidth - extendedWidth - 16 >= 600;
+    final labelWidth = isExtended ? extendedWidth - 80 : null;
 
     Widget buildRail() => NavigationRail(
       selectedIndex: sections.indexWhere((item) => item.id == _selectedSection),
@@ -520,7 +527,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       },
       extended: isExtended,
-      minExtendedWidth: 180,
+      minWidth: 60,
+      minExtendedWidth: extendedWidth,
+      scrollable: true,
+      groupAlignment: -1,
       backgroundColor: Colors.transparent,
       selectedIconTheme: IconThemeData(color: theme.colorScheme.primary),
       selectedLabelTextStyle: selectedLabelStyle,
@@ -532,7 +542,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       destinations: [
         ...sections.map((section) {
-          final label = Text(section.label);
+          final label = Text(
+            section.label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          );
           return NavigationRailDestination(
             icon: Icon(section.icon),
             selectedIcon: Icon(section.selectedIcon),
@@ -551,7 +565,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ? Text(context.l10n.nav_githubRepo)
               : SizedBox(
                   width: labelWidth,
-                  child: Text(context.l10n.nav_githubRepo),
+                  child: Text(
+                    context.l10n.nav_githubRepo,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
         ),
       ],
@@ -566,17 +584,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           borderRadius: BorderRadius.circular(10),
         ),
         clipBehavior: Clip.antiAlias,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final contentHeight = (sections.length + 1) * 56.0;
-            final railHeight = constraints.maxHeight > contentHeight
-                ? constraints.maxHeight
-                : contentHeight;
-            return SingleChildScrollView(
-              child: SizedBox(height: railHeight, child: buildRail()),
-            );
-          },
-        ),
+        child: buildRail(),
       ),
     );
   }

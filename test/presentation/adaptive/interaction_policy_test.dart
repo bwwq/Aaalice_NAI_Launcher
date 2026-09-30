@@ -111,6 +111,22 @@ void main() {
     },
   );
 
+  testWidgets('mouse wheel restores pointer presentation after touch', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _policyHost(initialPolicy: InteractionPolicy.touchFirst),
+    );
+    await tester.sendEventToBinding(
+      const PointerScrollEvent(
+        position: Offset(100, 100),
+        scrollDelta: Offset(0, 100),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('pointer|true|true|48.0'), findsOneWidget);
+  });
+
   testWidgets(
     'first touch callback reads the observed policy in the same event',
     (tester) async {

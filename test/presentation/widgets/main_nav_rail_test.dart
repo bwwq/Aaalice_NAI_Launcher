@@ -1,5 +1,6 @@
 import 'package:nai_launcher/presentation/providers/external_agent_config_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -169,6 +170,8 @@ void main() {
     expect(tooltip.message, '智能体');
     expect(tooltip.verticalOffset, 24);
 
+    await tester.ensureVisible(find.byKey(const Key('main-nav-toggle')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('main-nav-toggle')));
     await tester.pumpAndSettle();
 
@@ -219,6 +222,8 @@ void main() {
       () => navigationShell.goBranch(AppBranch.preciseRefLibrary.index),
     ).called(1);
 
+    await tester.ensureVisible(find.byKey(const Key('main-nav-toggle')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('main-nav-toggle')));
     await tester.pumpAndSettle();
 
@@ -231,7 +236,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('高侧栏功能图标连续排列且展开按钮固定底部', (tester) async {
+  testWidgets('高侧栏功能图标与展开按钮连续排列，无弹性空位', (tester) async {
     await tester.binding.setSurfaceSize(const Size(800, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -256,13 +261,57 @@ void main() {
       }
     }
 
-    final railBottom = tester
-        .getBottomRight(find.byKey(const Key('main-nav-rail')))
+    final settingsBottom = tester
+        .getBottomRight(find.byKey(Key(MainNavigationItem.settings.widgetKey)))
         .dy;
-    final toggleBottom = tester
-        .getBottomRight(find.byKey(const Key('main-nav-toggle')))
+    final toggleTop = tester
+        .getTopLeft(find.byKey(const Key('main-nav-toggle')))
         .dy;
-    expect(toggleBottom, closeTo(railBottom - 6, 0.01));
+    expect(toggleTop, closeTo(settingsBottom + 4, 0.01));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('短窗口与大字中滚轮、触屏均可访问全部导航', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 300));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final media = ValueNotifier(
+      const MediaQueryData(
+        size: Size(800, 300),
+        textScaler: TextScaler.linear(3),
+      ),
+    );
+    addTearDown(media.dispose);
+    await _pumpAuthenticatedRail(tester, mediaQuery: media);
+    final scroll = find.descendant(
+      of: find.byKey(const Key('main-nav-primary-scroll')),
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(scroll).position;
+    await tester.sendEventToBinding(
+      PointerScrollEvent(
+        position: tester.getCenter(scroll),
+        scrollDelta: const Offset(0, 120),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(position.pixels, greaterThan(0));
+    await tester.drag(scroll, const Offset(0, -160));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('main-nav-toggle')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('main-nav-toggle')).hitTestable(),
+      findsOneWidget,
+    );
+    await tester.binding.setSurfaceSize(const Size(800, 100));
+    media.value = media.value.copyWith(size: const Size(800, 100));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('main-nav-toggle')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('main-nav-toggle')).hitTestable(),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
