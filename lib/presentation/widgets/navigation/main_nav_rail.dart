@@ -27,6 +27,7 @@ import '../auth/account_avatar.dart';
 import '../auth/login_form_container.dart';
 
 import '../common/app_toast.dart';
+import '../common/owned_scroll_controller.dart';
 
 Duration _boundedMotionDuration(
   BuildContext context,
@@ -196,10 +197,23 @@ class MainNavRail extends ConsumerWidget {
   }
 }
 
-class _MainRailContents extends StatelessWidget {
+class _MainRailContents extends StatefulWidget {
   const _MainRailContents({required this.account, required this.items});
   final Widget account;
   final List<Widget> items;
+
+  @override
+  State<_MainRailContents> createState() => _MainRailContentsState();
+}
+
+class _MainRailContentsState extends State<_MainRailContents> {
+  final _scrollController = OwnedScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -208,10 +222,11 @@ class _MainRailContents extends StatelessWidget {
       final compactHeight = constraints.maxHeight < 160;
       final list = SingleChildScrollView(
         key: const Key('main-nav-primary-scroll'),
+        controller: _scrollController,
         child: Column(
           children: [
-            if (compactHeight) ...[const SizedBox(height: 8), account],
-            ...items,
+            if (compactHeight) ...[const SizedBox(height: 8), widget.account],
+            ...widget.items,
           ],
         ),
       );
@@ -220,7 +235,7 @@ class _MainRailContents extends StatelessWidget {
           : Column(
               children: [
                 const SizedBox(height: 12),
-                account,
+                widget.account,
                 Expanded(child: list),
               ],
             );
