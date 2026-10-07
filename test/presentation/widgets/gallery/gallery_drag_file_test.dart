@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:nai_launcher/core/utils/image_share_sanitizer.dart';
 import 'package:nai_launcher/presentation/widgets/gallery/gallery_drag_file.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
@@ -75,7 +76,7 @@ void main() {
       final pathData = representations.last as raw.DataRepresentationSimple;
       expect(imageData.data, image.bytes);
       expect(pathData.format, 'NativeShell_CF_15'); // Windows CF_HDROP.
-      expect(pathData.data, windowsFile.path);
+      expect(pathData.data, p.windows.normalize(windowsFile.path));
       session.completed.value = DropOperation.none;
       await owner.release();
       expect(deleted, [windowsFile]);
