@@ -5,6 +5,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
+// Diagnostics must inspect the same raw context owned by the drag dependency.
+// ignore: depend_on_referenced_packages
+import 'package:super_native_extensions/raw_drag_drop.dart' as raw;
 
 import '../../../core/agent/resources/agent_chat_resource_drag_format.dart';
 import '../../../core/utils/image_share_sanitizer.dart';
@@ -21,6 +24,9 @@ import 'image_hover_preview_controller.dart';
 
 export 'card_drag_resource.dart';
 
+bool _traceWriteFailureReported = false;
+bool _nativeContextTraced = false;
+
 // Opt-in local diagnostics for failures that do not reach native drag startup.
 // Records phases only; never image data, resource identities, or credentials.
 void _traceCardDrag(String phase) {
@@ -32,8 +38,26 @@ void _traceCardDrag(String phase) {
       '${DateTime.now().toIso8601String()} $phase\n',
       mode: FileMode.append,
     );
-  } catch (_) {
-    // Optional diagnostics must not affect the gesture.
+  } catch (error) {
+    if (!_traceWriteFailureReported) {
+      _traceWriteFailureReported = true;
+      AppLogger.w('Card drag trace could not be written: $error', 'CardDrag');
+    }
+  }
+}
+
+Future<void> _traceNativeDragContext() async {
+  if (kIsWeb ||
+      _nativeContextTraced ||
+      Platform.environment['NAI_CARD_DRAG_TRACE'] == null) {
+    return;
+  }
+  _nativeContextTraced = true;
+  try {
+    await raw.DragContext.instance().timeout(const Duration(seconds: 5));
+    _traceCardDrag('native-context-ready');
+  } catch (error) {
+    _traceCardDrag('native-context-unavailable: ${error.runtimeType}');
   }
 }
 
@@ -85,7 +109,17 @@ class _CardDragSourceState extends State<CardDragSource> {
   Future<bool> Function()? _prepareFiles;
 
   @override
+  void initState() {
+    super.initState();
+    _traceCardDrag('source-mounted');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_traceNativeDragContext());
+    });
+  }
+
+  @override
   void dispose() {
+    _traceCardDrag('source-disposed');
     _dragging.dispose();
     super.dispose();
   }
@@ -284,54 +318,79 @@ class _CardDragSourceState extends State<CardDragSource> {
     );
   }
 
+  bool _canDrag() {
+    if (!mounted || !widget.enabled) return false;
+    final policy = context.interactionPolicy;
+    return !policy.prefersTouchPresentation &&
+        (policy.precisePointerAvailable ||
+            WidgetsBinding.instance.mouseTracker.mouseIsConnected);
+  }
+
+  bool _isLocationDraggable(Offset location) {
+    final allowed = _canDrag();
+    final policy = context.interactionPolicy;
+    _traceCardDrag(
+      'gesture-gate: allowed=$allowed enabled=${widget.enabled} '
+      'modality=${policy.modality} precise=${policy.precisePointerAvailable} '
+      'mouse=${WidgetsBinding.instance.mouseTracker.mouseIsConnected}',
+    );
+    return allowed;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final enabled =
-        widget.enabled && context.interactionPolicy.usesAnchoredMenus;
     return DragItemWidget(
-      allowedOperations: () => enabled ? [DropOperation.copy] : [],
+      allowedOperations: () => _canDrag() ? [DropOperation.copy] : [],
       dragItemProvider: _start,
       dragBuilder: _feedback,
       liftBuilder: _feedback,
-      child: DraggableWidget(
-        isLocationDraggable: (_) => enabled,
-        onDragConfiguration: (configuration, session) async {
-          _traceCardDrag('feedback-captured');
-          if (!identical(_itemsSession, session)) {
-            return _discardConfiguration(configuration);
-          }
-          final items = _items;
-          final prepareFiles = _prepareFiles;
-          // The plugin has now captured the drag image. Exporting earlier can
-          // rebuild its feedback boundary before it has a painted layer.
-          // Finish all files here, before the plugin checks cancellation and
-          // registers the data for the native drag loop.
-          if (prepareFiles == null || !await prepareFiles()) {
-            return _discardConfiguration(configuration);
-          }
-          if (!mounted || session.dragCompleted.value != null) {
-            return _discardConfiguration(configuration);
-          }
-          final first = configuration.items.first;
-          return DragConfiguration(
-            allowedOperations: configuration.allowedOperations,
-            options: configuration.options,
-            items: [
-              first,
-              for (final item in items.skip(1))
-                DragConfigurationItem(
-                  item: item,
-                  image: first.image.retain(),
-                  liftImage: first.liftImage?.retain(),
-                ),
-            ],
-          );
-        },
-        child: ValueListenableBuilder<bool>(
-          valueListenable: _dragging,
-          child: widget.child,
-          builder: (context, dragging, child) =>
-              Opacity(opacity: dragging ? widget.dragOpacity : 1, child: child),
+      child: Listener(
+        onPointerDown: (event) =>
+            _traceCardDrag('pointer-down: ${event.kind} allowed=${_canDrag()}'),
+        onPointerUp: (_) => _traceCardDrag('pointer-up'),
+        onPointerCancel: (_) => _traceCardDrag('pointer-cancel'),
+        child: DraggableWidget(
+          isLocationDraggable: _isLocationDraggable,
+          onDragConfiguration: (configuration, session) async {
+            _traceCardDrag('feedback-captured');
+            if (!identical(_itemsSession, session)) {
+              return _discardConfiguration(configuration);
+            }
+            final items = _items;
+            final prepareFiles = _prepareFiles;
+            // The plugin has now captured the drag image. Exporting earlier can
+            // rebuild its feedback boundary before it has a painted layer.
+            // Finish all files here, before the plugin checks cancellation and
+            // registers the data for the native drag loop.
+            if (prepareFiles == null || !await prepareFiles()) {
+              return _discardConfiguration(configuration);
+            }
+            if (!mounted || session.dragCompleted.value != null) {
+              return _discardConfiguration(configuration);
+            }
+            final first = configuration.items.first;
+            return DragConfiguration(
+              allowedOperations: configuration.allowedOperations,
+              options: configuration.options,
+              items: [
+                first,
+                for (final item in items.skip(1))
+                  DragConfigurationItem(
+                    item: item,
+                    image: first.image.retain(),
+                    liftImage: first.liftImage?.retain(),
+                  ),
+              ],
+            );
+          },
+          child: ValueListenableBuilder<bool>(
+            valueListenable: _dragging,
+            child: widget.child,
+            builder: (context, dragging, child) => Opacity(
+              opacity: dragging ? widget.dragOpacity : 1,
+              child: child,
+            ),
+          ),
         ),
       ),
     );

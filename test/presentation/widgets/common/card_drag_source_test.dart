@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -225,18 +226,114 @@ void main() {
     },
     variant: const TargetPlatformVariant({TargetPlatform.windows}),
   );
+
+  testWidgets(
+    'connected mouse can drag before the neutral policy observes hover',
+    (tester) async {
+      await tester.pumpWidget(
+        _app(const [
+          CardDragResource(id: 'mouse-image', fileName: 'mouse.png'),
+        ], policy: InteractionPolicy.neutral),
+      );
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      var mouseRemoved = false;
+      addTearDown(() async {
+        if (!mouseRemoved) await mouse.removePointer();
+      });
+      await mouse.addPointer(
+        location: tester.getCenter(find.byType(CardDragSource)),
+      );
+
+      final sourceContext = tester.element(find.byType(CardDragSource));
+      expect(tester.binding.mouseTracker.mouseIsConnected, isTrue);
+      expect(
+        InteractionPolicyScope.of(sourceContext).precisePointerAvailable,
+        isFalse,
+      );
+      final dragItem = tester.widget<DragItemWidget>(
+        find.byType(DragItemWidget),
+      );
+      final draggable = tester.widget<DraggableWidget>(
+        find.byType(DraggableWidget),
+      );
+      expect(dragItem.allowedOperations(), [DropOperation.copy]);
+      expect(
+        draggable.isLocationDraggable(
+          tester.getCenter(find.byType(CardDragSource)),
+        ),
+        isTrue,
+      );
+
+      await mouse.removePointer();
+      mouseRemoved = true;
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.windows}),
+  );
+
+  testWidgets(
+    'existing drag callbacks observe mouse policy before the next rebuild',
+    (tester) async {
+      await tester.pumpWidget(
+        _app(const [
+          CardDragResource(id: 'switch-image', fileName: 'switch.png'),
+        ], policy: InteractionPolicy.touchFirst),
+      );
+      final dragItemFinder = find.byType(DragItemWidget);
+      final oldDragItem = tester.widget<DragItemWidget>(dragItemFinder);
+      final oldAllowedOperations = oldDragItem.allowedOperations;
+      final oldIsLocationDraggable = tester
+          .widget<DraggableWidget>(find.byType(DraggableWidget))
+          .isLocationDraggable;
+      final location = tester.getCenter(find.byType(CardDragSource));
+      expect(tester.binding.mouseTracker.mouseIsConnected, isFalse);
+      expect(oldAllowedOperations(), isEmpty);
+      expect(oldIsLocationDraggable(location), isFalse);
+
+      // Call the scope's actual input handler without dispatching a mouse
+      // through MouseTracker or pumping a rebuild. This isolates live policy
+      // reads from both the connected-mouse fallback and refreshed closures.
+      final scopeListener = tester.widget<Listener>(
+        find
+            .descendant(
+              of: find.byType(InteractionPolicyScope),
+              matching: find.byWidgetPredicate(
+                (widget) =>
+                    widget is Listener &&
+                    widget.onPointerHover != null &&
+                    widget.onPointerSignal != null,
+              ),
+            )
+            .first,
+      );
+      scopeListener.onPointerHover!(
+        PointerHoverEvent(kind: PointerDeviceKind.mouse, position: location),
+      );
+      expect(tester.widget<DragItemWidget>(dragItemFinder), same(oldDragItem));
+      expect(oldIsLocationDraggable(location), isTrue);
+      expect(oldAllowedOperations(), [DropOperation.copy]);
+      expect(tester.binding.mouseTracker.mouseIsConnected, isFalse);
+
+      await tester.pump();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.windows}),
+  );
 }
 
-Widget _app(List<CardDragResource> resources) => ProviderScope(
+Widget _app(
+  List<CardDragResource> resources, {
+  InteractionPolicy policy = const InteractionPolicy(
+    modality: InteractionModality.pointer,
+    touchAvailable: false,
+    precisePointerAvailable: true,
+  ),
+}) => ProviderScope(
   child: MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: InteractionPolicyScope(
-      initialPolicy: const InteractionPolicy(
-        modality: InteractionModality.pointer,
-        touchAvailable: false,
-        precisePointerAvailable: true,
-      ),
+      initialPolicy: policy,
       child: Scaffold(
         body: Center(
           child: CardDragSource(
