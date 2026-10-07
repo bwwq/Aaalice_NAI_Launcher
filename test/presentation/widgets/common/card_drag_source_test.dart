@@ -1,0 +1,316 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nai_launcher/l10n/app_localizations.dart';
+import 'package:nai_launcher/presentation/adaptive/interaction_policy.dart';
+import 'package:nai_launcher/presentation/widgets/common/card_drag_source.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
+import 'package:super_native_extensions/raw_clipboard.dart' as raw;
+
+void main() {
+  late Directory directory;
+  late PathProviderPlatform previousPathProvider;
+
+  setUp(() async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    final temporaryRoot = await Directory(
+      'tool/.tmp/card-drag-source-test',
+    ).create(recursive: true);
+    directory = (await temporaryRoot.createTemp()).absolute;
+    previousPathProvider = PathProviderPlatform.instance;
+    PathProviderPlatform.instance = _TemporaryDirectory(directory.path);
+  });
+
+  tearDown(() async {
+    debugDefaultTargetPlatformOverride = null;
+    PathProviderPlatform.instance = previousPathProvider;
+    if (await directory.exists()) await directory.delete(recursive: true);
+  });
+
+  for (final count in [1, 2]) {
+    testWidgets(
+      'Windows captures feedback before exporting $count image(s) and releases their files',
+      (tester) async {
+        final session = _Session();
+        final exportReady = Completer<Uint8List>();
+        final exportedIds = <String>[];
+        final resources = [
+          for (var index = 0; index < count; index++)
+            CardDragResource(
+              id: 'image-$index',
+              fileName: 'image-$index.png',
+              format: Formats.png,
+              prepare: () {
+                exportedIds.add('image-$index');
+                return exportReady.future;
+              },
+            ),
+        ];
+        await tester.pumpWidget(_app(resources));
+
+        // Exercise the SDK's actual feedback rasterization, rather than
+        // calling only the application's data-provider callback.
+        final captured = await _captureItem(tester, session);
+        expect(captured.image.snapshot.isImage, isTrue);
+        expect(captured.image.snapshot.image.width, greaterThan(0));
+        expect(captured.image.snapshot.image.height, greaterThan(0));
+        expect(exportedIds, isEmpty);
+        expect(await _sharedFiles(tester, directory), isEmpty);
+
+        final draggable = tester.widget<DraggableWidget>(
+          find.byType(DraggableWidget),
+        );
+        final configuring = Future<DragConfiguration?>.value(
+          draggable.onDragConfiguration!(
+            DragConfiguration(
+              items: [captured],
+              allowedOperations: [DropOperation.copy],
+            ),
+            session,
+          ),
+        );
+        var configurationFinished = false;
+        configuring.then((_) => configurationFinished = true);
+        await tester.pump();
+        expect(exportedIds, ['image-0']);
+        expect(configurationFinished, isFalse);
+
+        DragConfiguration? configuration;
+        await tester.runAsync(() async {
+          exportReady.complete(_png);
+          configuration = await configuring;
+        });
+        expect(configuration, isNotNull);
+        expect(configuration!.items, hasLength(count));
+        expect(exportedIds, resources.map((resource) => resource.id).toList());
+
+        final files = <File>[];
+        for (final configured in configuration!.items) {
+          final representations = await _representations(configured.item);
+          expect(
+            representations,
+            everyElement(isA<raw.DataRepresentationSimple>()),
+          );
+          final contents = representations
+              .whereType<raw.DataRepresentationSimple>()
+              .singleWhere((value) => value.format == 'PNG');
+          final path = representations
+              .whereType<raw.DataRepresentationSimple>()
+              .singleWhere((value) => value.format == 'NativeShell_CF_15');
+          expect(contents.data, _png);
+          final file = _fileFromWindowsPath(path.data as String);
+          files.add(file);
+          await tester.runAsync(() async {
+            expect(await file.exists(), isTrue);
+            expect(await file.readAsBytes(), _png);
+          });
+        }
+        expect(files.map((file) => file.path).toSet(), hasLength(count));
+
+        // No native OLE registration is performed here. Cancelling this
+        // prepared, unregistered gesture must reclaim every transfer file.
+        session.completed.value = DropOperation.userCancelled;
+        await tester.pump();
+        await _waitForCleanup(tester, files);
+        await tester.pump(const Duration(seconds: 1));
+        final disposedSnapshots = Set<Object>.identity();
+        for (final item in configuration!.items) {
+          for (final image in [item.image, item.liftImage]) {
+            // The SDK's retain() shares the snapshot; dispose() destroys it
+            // immediately rather than decrementing its retained count.
+            if (image != null && disposedSnapshots.add(image.snapshot)) {
+              image.dispose();
+            }
+          }
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        session.dispose();
+      },
+    );
+  }
+
+  testWidgets('failed export keeps captured feedback out of native drag', (
+    tester,
+  ) async {
+    final session = _Session();
+    final exportReady = Completer<Uint8List>();
+    var exports = 0;
+    await tester.pumpWidget(
+      _app([
+        CardDragResource(
+          id: 'failed-image',
+          fileName: 'failed.png',
+          format: Formats.png,
+          prepare: () {
+            exports++;
+            return exportReady.future;
+          },
+        ),
+      ]),
+    );
+
+    final captured = await _captureItem(tester, session);
+    expect(exports, 0);
+    final draggable = tester.widget<DraggableWidget>(
+      find.byType(DraggableWidget),
+    );
+    final configuring = Future<DragConfiguration?>.value(
+      draggable.onDragConfiguration!(
+        DragConfiguration(
+          items: [captured],
+          allowedOperations: [DropOperation.copy],
+        ),
+        session,
+      ),
+    );
+    await tester.pump();
+    expect(exports, 1);
+    exportReady.completeError(StateError('synthetic export failure'));
+    expect(await configuring, isNull);
+    expect(await _sharedFiles(tester, directory), isEmpty);
+    final representations = await _representations(captured.item);
+    expect(
+      representations.map((value) => value.format),
+      isNot(contains('NativeShell_CF_15')),
+    );
+
+    session.completed.value = DropOperation.userCancelled;
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpWidget(const SizedBox.shrink());
+    session.dispose();
+  });
+}
+
+Widget _app(List<CardDragResource> resources) => ProviderScope(
+  child: MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: InteractionPolicyScope(
+      initialPolicy: const InteractionPolicy(
+        modality: InteractionModality.pointer,
+        touchAvailable: false,
+        precisePointerAvailable: true,
+      ),
+      child: Scaffold(
+        body: Center(
+          child: CardDragSource(
+            resource: () => resources.first,
+            snapshot: (_) => resources,
+            feedbackBuilder: (_, _) => const SizedBox(
+              width: 120,
+              height: 80,
+              child: ColoredBox(color: Colors.teal),
+            ),
+            child: const SizedBox(
+              width: 120,
+              height: 80,
+              child: ColoredBox(color: Colors.blue),
+            ),
+          ),
+        ),
+      ),
+    ),
+  ),
+);
+
+Future<DragConfigurationItem> _captureItem(
+  WidgetTester tester,
+  DragSession session,
+) async {
+  final finder = find.byType(DragItemWidget);
+  final state = tester.state<DragItemWidgetState>(finder);
+  DragConfigurationItem? captured;
+  var completed = false;
+  final creating = state.createItem(tester.getCenter(finder), session).then((
+    value,
+  ) {
+    captured = value;
+    completed = true;
+  });
+  // A bounded number of frames makes the old ordering fail immediately even
+  // though the deliberately blocked exporter never completes.
+  for (var frame = 0; frame < 8 && !completed; frame++) {
+    await tester.pump();
+  }
+  expect(completed, isTrue, reason: 'Export must not block feedback capture');
+  await creating;
+  expect(captured, isNotNull, reason: 'The actual SDK snapshot must exist');
+  return captured!;
+}
+
+Future<List<raw.DataRepresentation>> _representations(DragItem item) async => [
+  for (final data in item.data) ...(await data).representations,
+];
+
+File _fileFromWindowsPath(String path) =>
+    File(Uri.file(path, windows: true).toFilePath(windows: Platform.isWindows));
+
+Future<List<File>> _sharedFiles(
+  WidgetTester tester,
+  Directory directory,
+) async => (await tester.runAsync(() async {
+  final shared = Directory('${directory.path}/nai_launcher_share');
+  return await shared.exists()
+      ? await shared
+            .list()
+            .where((entry) => entry is File)
+            .cast<File>()
+            .toList()
+      : <File>[];
+}))!;
+
+Future<void> _waitForCleanup(WidgetTester tester, List<File> files) async {
+  await tester.runAsync(() async {
+    for (var attempt = 0; attempt < 30; attempt++) {
+      if (!(await Future.wait(
+        files.map((file) => file.exists()),
+      )).contains(true)) {
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+    for (final file in files) {
+      expect(
+        await file.exists(),
+        isFalse,
+        reason: 'Ended gesture leaked a file',
+      );
+    }
+  });
+}
+
+final _png = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aOioAAAAASUVORK5CYII=',
+);
+
+class _TemporaryDirectory extends PathProviderPlatform {
+  _TemporaryDirectory(this.path);
+  final String path;
+  @override
+  Future<String?> getTemporaryPath() async => path;
+}
+
+class _Session extends DragSession {
+  final completed = ValueNotifier<DropOperation?>(null);
+  final _dragging = ValueNotifier(false);
+  final _location = ValueNotifier<Offset?>(null);
+  @override
+  ValueListenable<DropOperation?> get dragCompleted => completed;
+  @override
+  ValueListenable<bool> get dragging => _dragging;
+  @override
+  ValueListenable<Offset?> get lastScreenLocation => _location;
+  @override
+  Future<List<Object?>?> getLocalData() async => null;
+  void dispose() {
+    completed.dispose();
+    _dragging.dispose();
+    _location.dispose();
+  }
+}
