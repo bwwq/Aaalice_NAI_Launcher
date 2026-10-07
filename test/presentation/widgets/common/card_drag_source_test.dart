@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nai_launcher/l10n/app_localizations.dart';
@@ -16,9 +17,30 @@ import 'package:super_native_extensions/raw_clipboard.dart' as raw;
 void main() {
   late Directory directory;
   late PathProviderPlatform previousPathProvider;
+  const engineChannel = MethodChannel('dev.irondash.engine_context');
+
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final nativeEngineReady = Completer<int>();
+    // Mounting the SDK's draggable widget automatically bootstraps OLE.
+    // These tests exercise real Flutter snapshots and configuration only.
+    // Keep that bootstrap waiting at its Dart engine lookup; never supply a
+    // fabricated native handle or let it enter FFI without an engine.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(engineChannel, (call) {
+          if (call.method != 'getEngineHandle') {
+            throw StateError('Unexpected engine operation: ${call.method}');
+          }
+          return nativeEngineReady.future;
+        });
+  });
+
+  tearDownAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(engineChannel, null);
+  });
 
   setUp(() async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
     final temporaryRoot = await Directory(
       'tool/.tmp/card-drag-source-test',
     ).create(recursive: true);
@@ -28,7 +50,6 @@ void main() {
   });
 
   tearDown(() async {
-    debugDefaultTargetPlatformOverride = null;
     PathProviderPlatform.instance = previousPathProvider;
     if (await directory.exists()) await directory.delete(recursive: true);
   });
@@ -137,70 +158,73 @@ void main() {
         await tester.pumpWidget(const SizedBox.shrink());
         session.dispose();
       },
+      variant: const TargetPlatformVariant({TargetPlatform.windows}),
     );
   }
 
-  testWidgets('failed export keeps captured feedback out of native drag', (
-    tester,
-  ) async {
-    final session = _Session();
-    final exportReady = Completer<Uint8List>();
-    var exports = 0;
-    await tester.pumpWidget(
-      _app([
-        CardDragResource(
-          id: 'failed-image',
-          fileName: 'failed.png',
-          format: Formats.png,
-          prepare: () {
-            exports++;
-            return exportReady.future;
-          },
-        ),
-      ]),
-    );
+  testWidgets(
+    'failed export keeps captured feedback out of native drag',
+    (tester) async {
+      final session = _Session();
+      final exportReady = Completer<Uint8List>();
+      var exports = 0;
+      await tester.pumpWidget(
+        _app([
+          CardDragResource(
+            id: 'failed-image',
+            fileName: 'failed.png',
+            format: Formats.png,
+            prepare: () {
+              exports++;
+              return exportReady.future;
+            },
+          ),
+        ]),
+      );
 
-    final captured = await _captureItem(tester, session);
-    expect(exports, 0);
-    final draggable = tester.widget<DraggableWidget>(
-      find.byType(DraggableWidget),
-    );
-    final configuring = Future<DragConfiguration?>.value(
-      draggable.onDragConfiguration!(
-        DragConfiguration(
-          items: [captured],
-          allowedOperations: [DropOperation.copy],
+      final captured = await _captureItem(tester, session);
+      expect(exports, 0);
+      final draggable = tester.widget<DraggableWidget>(
+        find.byType(DraggableWidget),
+      );
+      final configuring = Future<DragConfiguration?>.value(
+        draggable.onDragConfiguration!(
+          DragConfiguration(
+            items: [captured],
+            allowedOperations: [DropOperation.copy],
+          ),
+          session,
         ),
-        session,
-      ),
-    );
-    var configurationFinished = false;
-    DragConfiguration? configuration;
-    configuring.then((value) {
-      configuration = value;
-      configurationFinished = true;
-    });
-    await tester.pump();
-    expect(exports, 1);
-    exportReady.completeError(StateError('synthetic export failure'));
-    await _pumpUntilFinished(
-      tester,
-      () => configurationFinished,
-      stage: 'Failed export configuration cleanup',
-    );
-    expect(configuration, isNull);
-    expect(await _sharedFiles(tester, directory), isEmpty);
-    final representations = await _representations(captured.item);
-    expect(
-      representations.map((value) => value.format),
-      isNot(contains('NativeShell_CF_15')),
-    );
+      );
+      var configurationFinished = false;
+      DragConfiguration? configuration;
+      configuring.then((value) {
+        configuration = value;
+        configurationFinished = true;
+      });
+      await tester.pump();
+      expect(exports, 1);
+      exportReady.completeError(StateError('synthetic export failure'));
+      await _pumpUntilFinished(
+        tester,
+        () => configurationFinished,
+        stage: 'Failed export configuration cleanup',
+      );
+      expect(configuration, isNull);
+      expect(await _sharedFiles(tester, directory), isEmpty);
+      final representations = await _representations(captured.item);
+      expect(
+        representations.map((value) => value.format),
+        isNot(contains('NativeShell_CF_15')),
+      );
 
-    session.completed.value = DropOperation.userCancelled;
-    await tester.pump(const Duration(seconds: 4));
-    await tester.pumpWidget(const SizedBox.shrink());
-    session.dispose();
-  });
+      session.completed.value = DropOperation.userCancelled;
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpWidget(const SizedBox.shrink());
+      session.dispose();
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.windows}),
+  );
 }
 
 Widget _app(List<CardDragResource> resources) => ProviderScope(
