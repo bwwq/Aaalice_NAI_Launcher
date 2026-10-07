@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nai_launcher/core/utils/image_share_sanitizer.dart';
 import 'package:nai_launcher/presentation/widgets/gallery/gallery_drag_file.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
+import 'package:super_native_extensions/raw_clipboard.dart' as raw;
 
 void main() {
   final image = SanitizedShareImage(
@@ -52,6 +53,34 @@ void main() {
     expect(item.disposed.observing, isFalse);
     expect(session.completed.observing, isFalse);
   });
+
+  test(
+    'Windows transfer supplies eager contents and a real file path',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final windowsFile = file.absolute;
+      final owner = transfer(write: (_) async => windowsFile);
+      expect(await owner.addImage(image), isTrue);
+      final representations = <raw.DataRepresentation>[];
+      for (final data in item.data) {
+        representations.addAll((await data).representations);
+      }
+      // GetData must not need a Dart callback or a virtual FileContents stream.
+      expect(
+        representations,
+        everyElement(isA<raw.DataRepresentationSimple>()),
+      );
+      final imageData = representations.first as raw.DataRepresentationSimple;
+      final pathData = representations.last as raw.DataRepresentationSimple;
+      expect(imageData.data, image.bytes);
+      expect(pathData.format, 'NativeShell_CF_15'); // Windows CF_HDROP.
+      expect(pathData.data, windowsFile.path);
+      session.completed.value = DropOperation.none;
+      await owner.release();
+      expect(deleted, [windowsFile]);
+    },
+  );
 
   test('unregistered file is reclaimed when the gesture ends', () async {
     final owner = transfer();

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
@@ -133,7 +134,11 @@ class _CardDragSourceState extends State<CardDragSource> {
       if (reference != null) addAgentResourceDragPayload(item, reference);
       final format = resource.format;
       if (format != null && resource.prepare != null) {
-        if (item.virtualFileSupported) {
+        // Synchronous Windows receivers (including QQ) can block in Drop
+        // while FileContents waits for our main thread. Materialize the file
+        // before entering OLE instead, so GetData never needs a Dart callback.
+        if (item.virtualFileSupported &&
+            defaultTargetPlatform != TargetPlatform.windows) {
           final resourceIndex = index;
           addCardVirtualFile(
             item,
