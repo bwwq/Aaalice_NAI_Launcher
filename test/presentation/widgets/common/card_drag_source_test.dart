@@ -76,16 +76,21 @@ void main() {
           ),
         );
         var configurationFinished = false;
-        configuring.then((_) => configurationFinished = true);
+        DragConfiguration? configuration;
+        configuring.then((value) {
+          configuration = value;
+          configurationFinished = true;
+        });
         await tester.pump();
         expect(exportedIds, ['image-0']);
         expect(configurationFinished, isFalse);
 
-        DragConfiguration? configuration;
-        await tester.runAsync(() async {
-          exportReady.complete(_png);
-          configuration = await configuring;
-        });
+        exportReady.complete(_png);
+        await _pumpUntilFinished(
+          tester,
+          () => configurationFinished,
+          stage: 'Windows file preparation after feedback capture',
+        );
         expect(configuration, isNotNull);
         expect(configuration!.items, hasLength(count));
         expect(exportedIds, resources.map((resource) => resource.id).toList());
@@ -169,10 +174,21 @@ void main() {
         session,
       ),
     );
+    var configurationFinished = false;
+    DragConfiguration? configuration;
+    configuring.then((value) {
+      configuration = value;
+      configurationFinished = true;
+    });
     await tester.pump();
     expect(exports, 1);
     exportReady.completeError(StateError('synthetic export failure'));
-    expect(await configuring, isNull);
+    await _pumpUntilFinished(
+      tester,
+      () => configurationFinished,
+      stage: 'Failed export configuration cleanup',
+    );
+    expect(configuration, isNull);
     expect(await _sharedFiles(tester, directory), isEmpty);
     final representations = await _representations(captured.item);
     expect(
@@ -266,23 +282,37 @@ Future<List<File>> _sharedFiles(
 }))!;
 
 Future<void> _waitForCleanup(WidgetTester tester, List<File> files) async {
-  await tester.runAsync(() async {
-    for (var attempt = 0; attempt < 30; attempt++) {
-      if (!(await Future.wait(
-        files.map((file) => file.exists()),
-      )).contains(true)) {
-        return;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 5));
-    }
-    for (final file in files) {
-      expect(
-        await file.exists(),
-        isFalse,
-        reason: 'Ended gesture leaked a file',
-      );
-    }
-  });
+  for (var attempt = 0; attempt < 50; attempt++) {
+    await _pumpWithFileIo(tester);
+    final remaining = (await tester.runAsync(
+      () => Future.wait(files.map((file) => file.exists())),
+    ))!;
+    if (!remaining.contains(true)) return;
+  }
+  fail('Ended gesture file cleanup did not finish after pumping file I/O');
+}
+
+Future<void> _pumpUntilFinished(
+  WidgetTester tester,
+  bool Function() finished, {
+  required String stage,
+}) async {
+  for (var attempt = 0; attempt < 50; attempt++) {
+    await _pumpWithFileIo(tester);
+    if (finished()) return;
+  }
+  fail('$stage did not finish after pumping file I/O');
+}
+
+Future<void> _pumpWithFileIo(WidgetTester tester) async {
+  // Export callbacks belong to the widget test's fake zone, while actual
+  // filesystem operations require the real event loop. Never wait for a
+  // fake-zone export future inside runAsync: only yield to real I/O there.
+  await tester.pump();
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 10)),
+  );
+  await tester.pump();
 }
 
 final _png = base64Decode(
